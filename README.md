@@ -19,7 +19,7 @@ If uploaded to the repository root, the converter's public address is:
 
 Replace `YOUR-USERNAME` and `science-simulations` with your actual GitHub owner and repository name. You can then replace the placeholder address below with your converter's real public URL:
 
-[Open the link and iframe generator](https://YOUR-USERNAME.github.io/science-simulations/link-generator.html)
+[Open the link and iframe generator](https://stephenborish.github.io/simulations/link-generator.html)
 
 ## Enable hosting once
 
