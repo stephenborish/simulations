@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulation link generator</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6f8;color:#142c35;font:17px/1.55 system-ui,sans-serif}main{max-width:850px;margin:50px auto;padding:32px}h1{font-size:36px;letter-spacing:-1px;margin:0}p{color:#52656c}section{background:white;padding:28px;border:1px solid #dce5e8;border-radius:18px;margin:24px 0}label{display:block;font-weight:650;margin:18px 0 7px}input,select,textarea{font:inherit;width:100%;padding:12px;border:1px solid #a9bbc2;border-radius:8px;color:inherit;background:white}textarea{font:14px/1.6 ui-monospace,monospace;resize:vertical}button,.button{display:inline-block;border:0;border-radius:8px;background:#12665f;color:white;padding:12px 18px;font:600 16px system-ui;cursor:pointer;text-decoration:none;margin:12px 8px 0 0}button:hover,.button:hover{background:#0b4b46}summary{cursor:pointer;margin-top:20px;color:#12665f}.row{display:grid;grid-template-columns:1fr 1fr;gap:18px}.note{font-size:14px}#error{color:#a22828}input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid #78c8bd;outline-offset:2px}[hidden]{display:none!important}@media(max-width:600px){main{margin:12px auto;padding:16px}section{padding:20px}.row{grid-template-columns:1fr}h1{font-size:29px}}
+</style>
+<main><h1>Simulation link generator</h1><p>Paste a GitHub HTML file URL. Copy its public link and ready-to-use iframe code.</p>
+<section><form id="form"><label for="github">GitHub file URL</label><input id="github" type="url" required placeholder="https://github.com/your-name/science-simulations/blob/main/Slope.html">
+<div class="row"><div><label for="title">Simulation title</label><input id="title" value="Slope Practice"></div><div><label for="height">Embed height (pixels)</label><input id="height" type="number" value="1000" min="200" max="10000" required></div></div>
+<details><summary>Hosting settings</summary><p class="note">Defaults match publishing from the main branch and repository root. These settings must match Settings → Pages.</p>
+<div class="row"><div><label for="branch">Published branch</label><input id="branch" value="main"></div><div><label for="folder">Published folder</label><select id="folder"><option value="">Repository root</option><option value="docs">/docs</option></select></div></div>
+<label for="base">Custom Pages base URL (optional)</label><input id="base" type="url" placeholder="https://simulations.example.com/"><p class="note">For a custom domain, enter the exact site base URL shown in Settings → Pages, including any repository path.</p></details>
+<button type="submit">Generate link &amp; embed</button><p id="error" role="alert" hidden></p></form></section>
+<section id="result" hidden><label for="public">Public simulation URL</label><input id="public" readonly><button type="button" data-copy="public">Copy URL</button><a id="open" class="button" target="_blank" rel="noopener noreferrer">Open simulation</a>
+<label for="embed">Iframe embed code</label><textarea id="embed" rows="9" readonly></textarea><button type="button" data-copy="embed">Copy iframe</button><p id="status" role="status"></p><p class="note">This constructs the URL; it does not enable hosting or verify that deployment has finished. GitHub Pages must already be enabled. Adjust the height if your simulation needs more room.</p></section>
+<p class="note">Runs entirely in your browser. No account, API key, or connection between simulations is needed.</p></main>
+<script>
+function makePublicUrl(value,branch,folder,customBase){
+ const u=new URL(value.trim());
+ if(u.protocol!=='https:'||u.hostname!=='github.com'||u.username||u.password)throw Error('Paste an HTTPS github.com file URL from the file’s page.');
+ const parts=u.pathname.split('/').slice(1).map(decodeURIComponent);
+ const [owner,repo,kind,...tail]=parts;
+ if(!owner||!repo||kind!=='blob')throw Error('Open the HTML file in GitHub and copy its URL. It should include /blob/ and the filename.');
+ const b=branch.trim().split('/');
+ if(!branch.trim()||b.some((p,i)=>tail[i]!==p))throw Error('The URL does not match the published branch. Check Hosting settings.');
+ let path=tail.slice(b.length);
+ if(folder){if(path[0]!==folder)throw Error('This file is outside the selected /docs publishing folder.');path=path.slice(1);}
+ if(!path.length||! /\.html?$/i.test(path.at(-1)))throw Error('Choose an .html or .htm file.');
+ if(path.some(p=>!p||p==='.'||p==='..'||p.includes('/')||p.includes('\\')))throw Error('The file path is invalid.');
+ let base=customBase.trim()||`https://${owner.toLowerCase()}.github.io/${repo.toLowerCase()===owner.toLowerCase()+'.github.io'?'':encodeURIComponent(repo)+'/'}`;
+ const checked=new URL(base);
+ if(checked.protocol!=='https:'||checked.username||checked.password||checked.search||checked.hash)throw Error('The custom base URL must be HTTPS, without credentials, a query, or a fragment.');
+ return checked.href.replace(/\/$/,'')+'/'+path.map(encodeURIComponent).join('/');
+}
+function escapeAttribute(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const el=id=>document.getElementById(id);
+el('form').addEventListener('input',()=>{el('result').hidden=true;el('error').hidden=true;});
+el('form').addEventListener('submit',event=>{
+ event.preventDefault();el('result').hidden=true;el('error').hidden=true;el('status').textContent='';
+ try{
+ const url=makePublicUrl(el('github').value,el('branch').value,el('folder').value,el('base').value);
+ const height=Number(el('height').value);if(!Number.isInteger(height)||height<200||height>10000)throw Error('Enter a whole-number height from 200 to 10000.');
+ el('public').value=url;el('open').href=url;
+ el('embed').value=`<iframe\n  src="${escapeAttribute(url)}"\n  title="${escapeAttribute(el('title').value.trim()||'Interactive simulation')}"\n  width="100%"\n  height="${height}"\n  style="border: 0; display: block;"\n  loading="lazy"\n  allowfullscreen>\n</iframe>`;
+ el('result').hidden=false;
+ }catch(error){el('error').textContent=error.message;el('error').hidden=false;}
+});
+document.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',async()=>{
+ const field=el(button.dataset.copy);
+ try{await navigator.clipboard.writeText(field.value);el('status').textContent='Copied.';}
+ catch{field.focus();field.select();el('status').textContent='Text selected. Press Ctrl+C or Command+C to copy.';}
+}));
+</script></html>
