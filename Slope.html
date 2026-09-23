@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slope Practice App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        .math-font {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+        }
+        #graph-container {
+            position: relative;
+            width: 100%;
+            max-width: 550px;
+            aspect-ratio: 1 / 1;
+            margin: 0 auto;
+            border: 3px solid #cbd5e1;
+            border-radius: 1rem;
+            overflow: hidden;
+            background-color: #ffffff;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Dynamic interactive points placed by the user */
+        .interactive-point {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background-color: #fbbf24; /* Amber 400 */
+            border: 3px solid white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.4);
+            z-index: 30;
+        }
+        .interactive-point:hover {
+            transform: translate(-50%, -50%) scale(1.3);
+            background-color: #f59e0b;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        @keyframes pulse-success {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            50% { transform: scale(1.02); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .animate-success {
+            animation: pulse-success 0.6s ease-out;
+        }
+        
+        @keyframes shake-error {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+            20%, 40%, 60%, 80% { transform: translateX(6px); }
+        }
+        .animate-error {
+            animation: shake-error 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col items-center justify-center p-4 lg:p-8">
+    <div class="w-full max-w-7xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-200">
+        
+        <!-- Left Panel: Graph Display -->
+        <div class="w-full lg:w-[55%] p-8 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col">
+            <div class="mb-6">
+                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Slope Practice</h1>
+                <p id="instruction-text" class="text-lg text-slate-600 font-medium">A scatter plot and its line of best fit are shown. Click any two locations on the line to select your points.</p>
+            </div>
+            
+            <div class="flex-grow flex items-center justify-center">
+                <div id="graph-container">
+                    <canvas id="gridCanvas"></canvas>
+                    <canvas id="lineCanvas"></canvas>
+                    <!-- Points layer sits on top, capturing pure HTML clicks -->
+                    <div id="points-layer" class="absolute top-0 left-0 w-full h-full pointer-events-auto cursor-crosshair"></div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex items-center space-x-3">
+                    <span class="text-slate-500 font-semibold uppercase tracking-wider text-sm">Score</span>
+                    <span id="score-display" class="text-indigo-600 font-black text-3xl">0</span>
+                </div>
+                <button id="new-line-btn" class="px-6 py-3 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 rounded-lg font-bold transition-all focus:outline-none focus:ring-4 focus:ring-slate-200">
+                    Skip / New Graph
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Calculation Workspace -->
+        <div class="w-full lg:w-[45%] p-8 flex flex-col bg-white">
+            <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                Calculation Workspace
+            </h2>
+            
+            <div class="flex flex-col space-y-6 flex-grow">
+                <!-- Step 1: Selected Points -->
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm font-bold text-slate-500 uppercase tracking-widest">Step 1: Coordinates</span>
+                        <span id="selection-status" class="text-xs font-bold px-3 py-1 bg-amber-100 text-amber-800 rounded-full">Select 2 points</span>
+                    </div>
+                    
+                    <div class="flex justify-between text-center space-x-4">
+                        <div class="bg-white px-4 py-3 rounded-xl shadow-sm border border-slate-100 w-1/2 overflow-hidden">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Point 1 <span class="math-font text-slate-600 lowercase">(x₁, y₁)</span></span>
+                            <div id="pt1-display" class="font-mono text-lg font-bold text-slate-400 whitespace-nowrap overflow-x-auto">(?, ?)</div>
+                        </div>
+                        <div class="bg-white px-4 py-3 rounded-xl shadow-sm border border-slate-100 w-1/2 overflow-hidden">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Point 2 <span class="math-font text-slate-600 lowercase">(x₂, y₂)</span></span>
+                            <div id="pt2-display" class="font-mono text-lg font-bold text-slate-400 whitespace-nowrap overflow-x-auto">(?, ?)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Formula & Calculation -->
+                <div id="calculation-section" class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 shadow-sm opacity-50 pointer-events-none transition-all duration-300">
+                    <div class="text-sm font-bold text-indigo-500 uppercase tracking-widest mb-4">Step 2: Setup Formula</div>
+                    
+                    <div class="flex items-center justify-center">
+                        <span class="text-3xl text-slate-800 mr-4 font-semibold"><span class="math-font">m</span> =</span>
+                        <div class="flex flex-col items-center">
+                            <!-- Numerator (Rise) -->
+                            <div class="flex items-center space-x-3 pb-3">
+                                <input type="number" step="any" id="y2-input" class="w-16 h-12 text-center border-2 border-slate-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-mono text-xl font-bold bg-white text-slate-900 shadow-inner" placeholder="y₂">
+                                <span class="text-2xl font-black text-slate-400">-</span>
+                                <input type="number" step="any" id="y1-input" class="w-16 h-12 text-center border-2 border-slate-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-mono text-xl font-bold bg-white text-slate-900 shadow-inner" placeholder="y₁">
+                            </div>
+                            
+                            <!-- Fraction Line -->
+                            <div class="w-[200px] h-[3px] bg-slate-800 rounded-full"></div>
+                            
+                            <!-- Denominator (Run) -->
+                            <div class="flex items-center space-x-3 pt-3">
+                                <input type="number" step="any" id="x2-input" class="w-16 h-12 text-center border-2 border-slate-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-mono text-xl font-bold bg-white text-slate-900 shadow-inner" placeholder="x₂">
+                                <span class="text-2xl font-black text-slate-400">-</span>
+                                <input type="number" step="any" id="x1-input" class="w-16 h-12 text-center border-2 border-slate-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-mono text-xl font-bold bg-white text-slate-900 shadow-inner" placeholder="x₁">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Final Answer -->
+                <div id="final-answer-section" class="bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100 shadow-sm opacity-50 pointer-events-none transition-all duration-300">
+                    <div class="text-sm font-bold text-emerald-600 uppercase tracking-widest mb-4">Step 3: Solve</div>
+                    
+                    <div class="flex flex-col items-center justify-center space-y-6">
+                        <div class="flex items-center justify-center">
+                            <!-- Fraction Final -->
+                            <span class="text-3xl text-slate-800 mr-4 font-semibold"><span class="math-font">m</span> =</span>
+                            <div class="flex flex-col items-center mr-6">
+                                <div class="pb-2">
+                                    <input type="number" step="any" id="final-numerator" class="w-20 h-12 text-center border-2 border-slate-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 font-mono text-xl font-bold bg-white text-slate-900 shadow-inner" placeholder="Rise">
+                                </div>
+                                <div class="w-full h-[3px] bg-slate-800 rounded-full"></div>
+                                <div class="pt-2">
+                                    <input type="number" step="any" id="final-denominator" class="w-20 h-12 text-center border-2 border-slate-300 rounded-lg focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 font-mono text-xl font-bold bg-white text-slate-900 shadow-inner" placeholder="Run">
+                                </div>
+                            </div>
+                            
+                            <!-- Decimal Final -->
+                            <span class="text-3xl font-bold text-slate-800 mr-4">=</span>
+                            <div>
+                                <input type="number" step="any" id="final-decimal" class="w-24 h-14 text-center border-2 border-emerald-400 rounded-xl focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100 font-mono text-2xl font-black bg-white text-slate-900 shadow-sm" placeholder="0.0">
+                            </div>
+                        </div>
+                        
+                        <button id="check-btn" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xl font-black rounded-xl shadow-lg hover:shadow-xl transition-all focus:outline-none focus:ring-4 focus:ring-emerald-300 flex justify-center items-center">
+                            <span>Check Answer</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feedback Display -->
+                <div id="feedback-display" class="hidden p-4 rounded-xl border-2 text-center font-bold text-sm shadow-sm transition-all duration-300"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Variables ---
+        let currentLine = {
+            m: 0, b: 0, scatterPoints: []
+        };
+        let selectedPoints = [];
+        let score = 0;
+        
+        // --- Configuration ---
+        const PADDING = { top: 20, right: 20, bottom: 40, left: 55 }; 
+        let xIncrement = 1;
+        let yIncrement = 1;
+        let GRID_CELLS_X = 10;
+        let GRID_CELLS_Y = 10;
+        let AXIS_MAX_X = 10;
+        let AXIS_MAX_Y = 10;
+        
+        // --- DOM Elements ---
+        const container = document.getElementById('graph-container');
+        const gridCanvas = document.getElementById('gridCanvas');
+        const lineCanvas = document.getElementById('lineCanvas');
+        const pointsLayer = document.getElementById('points-layer');
+        const gridCtx = gridCanvas.getContext('2d');
+        const lineCtx = lineCanvas.getContext('2d');
+        
+        const pt1Display = document.getElementById('pt1-display');
+        const pt2Display = document.getElementById('pt2-display');
+        const selectionStatus = document.getElementById('selection-status');
+        
+        const calcSection = document.getElementById('calculation-section');
+        const finalSection = document.getElementById('final-answer-section');
+        
+        const inputs = {
+            y2: document.getElementById('y2-input'),
+            y1: document.getElementById('y1-input'),
+            x2: document.getElementById('x2-input'),
+            x1: document.getElementById('x1-input'),
+            num: document.getElementById('final-numerator'),
+            den: document.getElementById('final-denominator'),
+            dec: document.getElementById('final-decimal')
+        };
+        
+        const checkBtn = document.getElementById('check-btn');
+        const newLineBtn = document.getElementById('new-line-btn');
+        const feedbackDisplay = document.getElementById('feedback-display');
+        const scoreDisplay = document.getElementById('score-display');
+
+        // --- Canvas Setup and Resize Handling ---
+        function resizeCanvases() {
+            const rect = container.getBoundingClientRect();
+            gridCanvas.width = rect.width;
+            gridCanvas.height = rect.height;
+            lineCanvas.width = rect.width;
+            lineCanvas.height = rect.height;
+            
+            drawGrid();
+            drawLine();
+            updatePointPositions();
+        }
+
+        window.addEventListener('resize', resizeCanvases);
+
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('wheel', function(e) { this.blur(); });
+        });
+
+        // --- Coordinate Transformation Helpers (1st Quadrant with Padding) ---
+        function mathToPixel(mathX, mathY) {
+            const pW = lineCanvas.width - PADDING.left - PADDING.right;
+            const pH = lineCanvas.height - PADDING.top - PADDING.bottom;
+            
+            const normX = mathX / AXIS_MAX_X;
+            const normY = mathY / AXIS_MAX_Y;
+            
+            return {
+                x: PADDING.left + (normX * pW),
+                y: PADDING.top + pH - (normY * pH)
+            };
+        }
+
+        function pixelToMath(pxX, pxY) {
+            const pW = lineCanvas.width - PADDING.left - PADDING.right;
+            const pH = lineCanvas.height - PADDING.top - PADDING.bottom;
+            
+            const normX = (pxX - PADDING.left) / pW;
+            const normY = (PADDING.top + pH - pxY) / pH;
+            
+            return {
+                x: normX * AXIS_MAX_X,
+                y: normY * AXIS_MAX_Y
+            };
+        }
+
+        // --- Drawing Functions ---
+        function drawGrid() {
+            const width = gridCanvas.width;
+            const height = gridCanvas.height;
+            const pW = width - PADDING.left - PADDING.right;
+            const pH = height - PADDING.top - PADDING.bottom;
+            
+            gridCtx.clearRect(0, 0, width, height);
+            
+            const stepX = pW / GRID_CELLS_X;
+            const stepY = pH / GRID_CELLS_Y;
+            
+            gridCtx.beginPath();
+            gridCtx.strokeStyle = '#e2e8f0';
+            gridCtx.lineWidth = 1;
+            
+            for (let i = 0; i <= GRID_CELLS_X; i++) {
+                let x = PADDING.left + i * stepX;
+                gridCtx.moveTo(x, PADDING.top);
+                gridCtx.lineTo(x, PADDING.top + pH);
+            }
+            for (let i = 0; i <= GRID_CELLS_Y; i++) {
+                let y = PADDING.top + i * stepY;
+                gridCtx.moveTo(PADDING.left, y);
+                gridCtx.lineTo(PADDING.left + pW, y);
+            }
+            gridCtx.stroke();
+            
+            const origin = mathToPixel(0, 0);
+            gridCtx.beginPath();
+            gridCtx.strokeStyle = '#64748b';
+            gridCtx.lineWidth = 2;
+            
+            gridCtx.moveTo(PADDING.left, origin.y);
+            gridCtx.lineTo(PADDING.left + pW, origin.y);
+            gridCtx.moveTo(origin.x, PADDING.top + pH);
+            gridCtx.lineTo(origin.x, PADDING.top);
+            gridCtx.stroke();
+            
+            gridCtx.fillStyle = '#64748b';
+            gridCtx.font = '600 11px Inter, sans-serif';
+            
+            const xLabelStepMultiplier = Math.ceil(GRID_CELLS_X / 10);
+            for (let i = 0; i <= AXIS_MAX_X; i += xIncrement) {
+                const tickIndex = Math.round(i / xIncrement);
+                if (tickIndex % xLabelStepMultiplier === 0) {
+                    const px = mathToPixel(i, 0);
+                    gridCtx.beginPath();
+                    gridCtx.moveTo(px.x, origin.y);
+                    gridCtx.lineTo(px.x, origin.y + 6);
+                    gridCtx.stroke();
+                    
+                    gridCtx.textAlign = 'center';
+                    gridCtx.textBaseline = 'top';
+                    gridCtx.fillText(i.toFixed(0), px.x, origin.y + 10);
+                }
+            }
+
+            const yLabelStepMultiplier = Math.ceil(GRID_CELLS_Y / 10);
+            for (let i = 0; i <= AXIS_MAX_Y; i += yIncrement) {
+                if (i === 0) continue; 
+                const tickIndex = Math.round(i / yIncrement);
+                if (tickIndex % yLabelStepMultiplier === 0) {
+                    const py = mathToPixel(0, i);
+                    gridCtx.beginPath();
+                    gridCtx.moveTo(origin.x - 6, py.y);
+                    gridCtx.lineTo(origin.x, py.y);
+                    gridCtx.stroke();
+                    
+                    gridCtx.textAlign = 'right';
+                    gridCtx.textBaseline = 'middle';
+                    gridCtx.fillText(i.toFixed(0), origin.x - 10, py.y);
+                }
+            }
+        }
+
+        function generateNewLine() {
+            const increments = [1, 2, 5, 10, 20, 25, 50, 100];
+            xIncrement = increments[Math.floor(Math.random() * increments.length)];
+            yIncrement = increments[Math.floor(Math.random() * increments.length)];
+            
+            GRID_CELLS_X = 10;
+            GRID_CELLS_Y = 10;
+            AXIS_MAX_X = GRID_CELLS_X * xIncrement;
+            AXIS_MAX_Y = GRID_CELLS_Y * yIncrement;
+
+            let idx_x1 = Math.floor(Math.random() * 4); 
+            let idx_y1 = Math.floor(Math.random() * 11);
+            let idx_x2 = idx_x1 + Math.floor(Math.random() * 4) + 3; 
+            let idx_y2 = Math.floor(Math.random() * 11);
+            
+            while (idx_y1 === idx_y2) {
+                idx_y2 = Math.floor(Math.random() * 11);
+            }
+
+            let x1 = idx_x1 * xIncrement;
+            let y1 = idx_y1 * yIncrement;
+            let x2 = idx_x2 * xIncrement;
+            let y2 = idx_y2 * yIncrement;
+
+            currentLine.m = (y2 - y1) / (x2 - x1);
+            currentLine.b = y1 - (currentLine.m * x1);
+
+            currentLine.scatterPoints = [];
+            const numPoints = Math.floor(Math.random() * 10) + 15; 
+            for (let i = 0; i < numPoints; i++) {
+                let x = Math.random() * AXIS_MAX_X;
+                let exactY = currentLine.m * x + currentLine.b;
+                
+                let noise = (Math.random() - 0.5) * (yIncrement * 2.5); 
+                let y = exactY + noise;
+                
+                if (y < 0) y = Math.random() * (yIncrement * 1.5); 
+                if (y > AXIS_MAX_Y) y = AXIS_MAX_Y - (Math.random() * yIncrement * 1.5);
+                
+                currentLine.scatterPoints.push({x, y});
+            }
+
+            resetWorkspace();
+            drawGrid();
+            drawLine();
+        }
+
+        function drawLine() {
+            lineCtx.clearRect(0, 0, lineCanvas.width, lineCanvas.height);
+            
+            lineCtx.save();
+            lineCtx.beginPath();
+            lineCtx.rect(PADDING.left, PADDING.top, lineCanvas.width - PADDING.left - PADDING.right, lineCanvas.height - PADDING.top - PADDING.bottom);
+            lineCtx.clip();
+            
+            lineCtx.fillStyle = '#94a3b8';
+            currentLine.scatterPoints.forEach(pt => {
+                const px = mathToPixel(pt.x, pt.y);
+                lineCtx.beginPath();
+                lineCtx.arc(px.x, px.y, 4.5, 0, Math.PI * 2);
+                lineCtx.fill();
+            });
+            
+            const p1 = mathToPixel(-AXIS_MAX_X, currentLine.m * -AXIS_MAX_X + currentLine.b);
+            const p2 = mathToPixel(AXIS_MAX_X * 2, currentLine.m * (AXIS_MAX_X * 2) + currentLine.b);
+            
+            lineCtx.beginPath();
+            lineCtx.strokeStyle = '#6366f1'; 
+            lineCtx.lineWidth = 3;
+            lineCtx.moveTo(p1.x, p1.y);
+            lineCtx.lineTo(p2.x, p2.y);
+            lineCtx.stroke();
+            
+            lineCtx.restore();
+        }
+
+        // --- Free-Click Placement Logic ---
+        pointsLayer.addEventListener('click', (e) => {
+            // Remove a point if clicked again
+            if (e.target.classList.contains('interactive-point')) {
+                removeSelectedPoint(e.target);
+                return;
+            }
+
+            const rect = pointsLayer.getBoundingClientRect();
+            const pxX = e.clientX - rect.left;
+            const pxY = e.clientY - rect.top;
+
+            const mathPos = pixelToMath(pxX, pxY);
+            const m = currentLine.m;
+            const b = currentLine.b;
+
+            // Project click onto the mathematical line equation
+            let closestX = (mathPos.x + m * mathPos.y - m * b) / (m * m + 1);
+            let closestY = m * closestX + b;
+
+            const linePx = mathToPixel(closestX, closestY);
+            const dist = Math.hypot(pxX - linePx.x, pxY - linePx.y);
+
+            // Generous snap tolerance to the line
+            if (dist < 25) {
+                // Round exactly to 1 decimal place to prevent frustrating float arithmetic 
+                let roundedX = Math.round(closestX * 10) / 10;
+                let roundedY = Math.round((m * roundedX + b) * 10) / 10;
+
+                // Ensure the point is within visible quadrant bounds
+                if (roundedX >= 0 && roundedX <= AXIS_MAX_X && roundedY >= 0 && roundedY <= AXIS_MAX_Y) {
+                    addSelectedPoint(roundedX, roundedY);
+                }
+            }
+        });
+
+        function addSelectedPoint(x, y) {
+            // Prevent exact duplicates
+            if (selectedPoints.find(p => p.x === x && p.y === y)) return;
+
+            if (selectedPoints.length >= 2) {
+                const oldest = selectedPoints.shift();
+                oldest.element.remove();
+            }
+
+            const px = mathToPixel(x, y);
+            const pointEl = document.createElement('div');
+            pointEl.className = 'interactive-point';
+            pointEl.style.left = `${px.x}px`;
+            pointEl.style.top = `${px.y}px`;
+            
+            pointsLayer.appendChild(pointEl);
+            selectedPoints.push({x, y, element: pointEl});
+            
+            updateWorkspaceState();
+        }
+
+        function removeSelectedPoint(element) {
+            const index = selectedPoints.findIndex(p => p.element === element);
+            if (index > -1) {
+                selectedPoints.splice(index, 1);
+                element.remove();
+                updateWorkspaceState();
+            }
+        }
+        
+        function updatePointPositions() {
+            selectedPoints.forEach(pt => {
+                const px = mathToPixel(pt.x, pt.y);
+                pt.element.style.left = `${px.x}px`;
+                pt.element.style.top = `${px.y}px`;
+            });
+        }
+
+        function updateWorkspaceState() {
+            if (selectedPoints[0]) {
+                pt1Display.textContent = `(${selectedPoints[0].x.toFixed(1)}, ${selectedPoints[0].y.toFixed(1)})`;
+                pt1Display.classList.remove('text-slate-400');
+                pt1Display.classList.add('text-indigo-600');
+            } else {
+                pt1Display.textContent = '(?, ?)';
+                pt1Display.classList.add('text-slate-400');
+                pt1Display.classList.remove('text-indigo-600');
+            }
+            
+            if (selectedPoints[1]) {
+                pt2Display.textContent = `(${selectedPoints[1].x.toFixed(1)}, ${selectedPoints[1].y.toFixed(1)})`;
+                pt2Display.classList.remove('text-slate-400');
+                pt2Display.classList.add('text-indigo-600');
+            } else {
+                pt2Display.textContent = '(?, ?)';
+                pt2Display.classList.add('text-slate-400');
+                pt2Display.classList.remove('text-indigo-600');
+            }
+
+            if (selectedPoints.length === 0) {
+                selectionStatus.textContent = 'Select 2 points';
+                selectionStatus.className = 'text-xs font-bold px-3 py-1 bg-amber-100 text-amber-800 rounded-full';
+                calcSection.classList.add('opacity-50', 'pointer-events-none');
+                finalSection.classList.add('opacity-50', 'pointer-events-none');
+                clearInputs();
+            } else if (selectedPoints.length === 1) {
+                selectionStatus.textContent = 'Select 1 more point';
+                selectionStatus.className = 'text-xs font-bold px-3 py-1 bg-blue-100 text-blue-700 rounded-full';
+                calcSection.classList.add('opacity-50', 'pointer-events-none');
+                finalSection.classList.add('opacity-50', 'pointer-events-none');
+            } else if (selectedPoints.length === 2) {
+                selectionStatus.textContent = 'Points Selected!';
+                selectionStatus.className = 'text-xs font-bold px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full';
+                calcSection.classList.remove('opacity-50', 'pointer-events-none');
+                finalSection.classList.remove('opacity-50', 'pointer-events-none');
+                inputs.y2.focus();
+            }
+            
+            hideFeedback();
+        }
+
+        function clearInputs() {
+            Object.values(inputs).forEach(input => input.value = '');
+            document.getElementById('final-answer-section').classList.remove('animate-success', 'animate-error');
+            hideFeedback();
+        }
+
+        function resetWorkspace() {
+            pointsLayer.innerHTML = '';
+            selectedPoints = [];
+            updateWorkspaceState();
+        }
+
+        // --- Validation Logic ---
+        function checkAnswer() {
+            if (selectedPoints.length !== 2) return;
+            
+            let p1 = selectedPoints[0];
+            let p2 = selectedPoints[1];
+
+            const userY2 = parseFloat(inputs.y2.value);
+            const userY1 = parseFloat(inputs.y1.value);
+            const userX2 = parseFloat(inputs.x2.value);
+            const userX1 = parseFloat(inputs.x1.value);
+            
+            if (isNaN(userY2) || isNaN(userY1) || isNaN(userX2) || isNaN(userX1)) {
+                showFeedback('error', 'Please fill in all parts of the initial slope formula using your selected points.');
+                shakeElement(calcSection);
+                return;
+            }
+
+            // Must match the exact coordinates they clicked
+            const order1Matches = (Math.abs(userY2 - p2.y) < 0.05 && Math.abs(userY1 - p1.y) < 0.05 && Math.abs(userX2 - p2.x) < 0.05 && Math.abs(userX1 - p1.x) < 0.05);
+            const order2Matches = (Math.abs(userY2 - p1.y) < 0.05 && Math.abs(userY1 - p2.y) < 0.05 && Math.abs(userX2 - p1.x) < 0.05 && Math.abs(userX1 - p2.x) < 0.05);
+
+            if (!order1Matches && !order2Matches) {
+                showFeedback('error', 'Check your formula setup. Map (x₁, y₁) and (x₂, y₂) consistently with your selected points.');
+                shakeElement(calcSection);
+                return;
+            }
+
+            let userFinalRise = parseFloat(inputs.num.value);
+            let userFinalRun = parseFloat(inputs.den.value);
+            let userFinalDec = parseFloat(inputs.dec.value);
+            
+            if (isNaN(userFinalRun)) userFinalRun = 1;
+            if (isNaN(userFinalRise)) {
+                showFeedback('error', 'Please enter a value for the rise (numerator).');
+                shakeElement(finalSection);
+                return;
+            }
+            if (isNaN(userFinalDec)) {
+                showFeedback('error', 'Please enter the simplified slope as a decimal.');
+                shakeElement(finalSection);
+                return;
+            }
+
+            // Calculate expected based on their specific rounded selections, not the global line equation
+            const expectedUserSlopeDec = (userY2 - userY1) / (userX2 - userX1);
+            const calculatedUserSlopeDec = userFinalRun === 0 ? null : userFinalRise / userFinalRun;
+            
+            const isFractionCorrect = Math.abs(calculatedUserSlopeDec - expectedUserSlopeDec) < 0.0001; 
+            const isDecimalCorrect = Math.abs(userFinalDec - expectedUserSlopeDec) < 0.05; 
+            
+            if (isFractionCorrect && isDecimalCorrect) {
+                handleSuccess('Perfect! Your formula setup and final answers are both correct.');
+            } else {
+                handleError(userFinalRise, userFinalRun, userFinalDec, isFractionCorrect, isDecimalCorrect);
+            }
+        }
+
+        function handleSuccess(message) {
+            showFeedback('success', message);
+            score += 10;
+            scoreDisplay.textContent = score;
+            
+            finalSection.classList.remove('animate-error');
+            void finalSection.offsetWidth; 
+            finalSection.classList.add('animate-success');
+            
+            setTimeout(() => {
+                generateNewLine();
+            }, 2500);
+        }
+
+        function handleError(uRise, uRun, uDec, isFracCorrect, isDecCorrect) {
+            let message = 'Not quite right. ';
+            
+            if (uRun === 0) {
+                 message += 'The run (denominator) cannot be zero.';
+            } else if (!isFracCorrect) {
+                 const uSign = (uRise / uRun) < 0 ? -1 : 1;
+                 const expSign = currentLine.m < 0 ? -1 : 1;
+                 
+                 if (uSign !== expSign && currentLine.m !== 0) {
+                     message += 'Check your fraction signs. Is the line going up or down from left to right?';
+                 } else {
+                     message += 'Check your subtraction in the formula.';
+                 }
+            } else if (!isDecCorrect) {
+                 message += 'Your fraction is correct, but your decimal conversion is incorrect.';
+            }
+            
+            showFeedback('error', message);
+            shakeElement(finalSection);
+        }
+
+        function shakeElement(el) {
+            el.classList.remove('animate-success');
+            el.classList.remove('animate-error');
+            void el.offsetWidth; 
+            el.classList.add('animate-error');
+        }
+
+        function showFeedback(type, message) {
+            feedbackDisplay.textContent = message;
+            feedbackDisplay.className = `p-4 rounded-xl border-2 text-center font-bold text-sm mt-4 block transition-all duration-300`;
+            
+            if (type === 'success') {
+                feedbackDisplay.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+                feedbackDisplay.classList.remove('bg-rose-50', 'text-rose-700', 'border-rose-200');
+            } else {
+                feedbackDisplay.classList.add('bg-rose-50', 'text-rose-700', 'border-rose-200');
+                feedbackDisplay.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+            }
+        }
+        
+        function hideFeedback() {
+            feedbackDisplay.classList.add('hidden');
+            feedbackDisplay.classList.remove('block');
+        }
+
+        // --- Event Listeners ---
+        checkBtn.addEventListener('click', checkAnswer);
+        newLineBtn.addEventListener('click', generateNewLine);
+        
+        inputs.den.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+        inputs.num.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+        inputs.dec.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+
+        // --- Initialization ---
+        window.onload = () => {
+            resizeCanvases();
+            generateNewLine();
+        };
+
+    </script>
+</body>
+</html>
