@@ -5,8 +5,8 @@
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f6f8;color:#142c35;font:17px/1.55 system-ui,sans-serif}main{max-width:850px;margin:50px auto;padding:32px}h1{font-size:36px;letter-spacing:-1px;margin:0}p{color:#52656c}section{background:white;padding:28px;border:1px solid #dce5e8;border-radius:18px;margin:24px 0}label{display:block;font-weight:650;margin:18px 0 7px}input,select,textarea{font:inherit;width:100%;padding:12px;border:1px solid #a9bbc2;border-radius:8px;color:inherit;background:white}textarea{font:14px/1.6 ui-monospace,monospace;resize:vertical}button,.button{display:inline-block;border:0;border-radius:8px;background:#12665f;color:white;padding:12px 18px;font:600 16px system-ui;cursor:pointer;text-decoration:none;margin:12px 8px 0 0}button:hover,.button:hover{background:#0b4b46}summary{cursor:pointer;margin-top:20px;color:#12665f}.row{display:grid;grid-template-columns:1fr 1fr;gap:18px}.note{font-size:14px}#error{color:#a22828}input:focus,textarea:focus,select:focus,button:focus-visible{outline:3px solid #78c8bd;outline-offset:2px}[hidden]{display:none!important}@media(max-width:600px){main{margin:12px auto;padding:16px}section{padding:20px}.row{grid-template-columns:1fr}h1{font-size:29px}}
 </style>
-<main><h1>Simulation link generator</h1><p>Paste a GitHub HTML file URL. Copy its public link and ready-to-use iframe code.</p>
-<section><form id="form"><label for="github">GitHub file URL</label><input id="github" type="url" required placeholder="https://github.com/your-name/science-simulations/blob/main/Slope.html">
+<main><h1>Simulation link generator</h1><p>Create public links and iframe embeds for stephenborish/simulations.</p>
+<section><form id="form"><label for="github">Simulation filename or URL</label><input id="github" type="text" required value="Slope.html" placeholder="Slope.html or a GitHub file URL"><p class="note">Public base: https://stephenborish.github.io/simulations/ — paste a file link or enter its path, such as biology/osmosis.html.</p>
 <div class="row"><div><label for="title">Simulation title</label><input id="title" value="Slope Practice"></div><div><label for="height">Embed height (pixels)</label><input id="height" type="number" value="1000" min="200" max="10000" required></div></div>
 <details><summary>Hosting settings</summary><p class="note">Defaults match publishing from the main branch and repository root. These settings must match Settings → Pages.</p>
 <div class="row"><div><label for="branch">Published branch</label><input id="branch" value="main"></div><div><label for="folder">Published folder</label><select id="folder"><option value="">Repository root</option><option value="docs">/docs</option></select></div></div>
@@ -17,19 +17,33 @@
 <p class="note">Runs entirely in your browser. No account, API key, or connection between simulations is needed.</p></main>
 <script>
 function makePublicUrl(value,branch,folder,customBase){
- const u=new URL(value.trim());
- if(u.protocol!=='https:'||u.hostname!=='github.com'||u.username||u.password)throw Error('Paste an HTTPS github.com file URL from the file’s page.');
- const parts=u.pathname.split('/').slice(1).map(decodeURIComponent);
- const [owner,repo,kind,...tail]=parts;
- if(!owner||!repo||kind!=='blob')throw Error('Open the HTML file in GitHub and copy its URL. It should include /blob/ and the filename.');
- const b=branch.trim().split('/');
- if(!branch.trim()||b.some((p,i)=>tail[i]!==p))throw Error('The URL does not match the published branch. Check Hosting settings.');
- let path=tail.slice(b.length);
- if(folder){if(path[0]!==folder)throw Error('This file is outside the selected /docs publishing folder.');path=path.slice(1);}
- if(!path.length||! /\.html?$/i.test(path.at(-1)))throw Error('Choose an .html or .htm file.');
+ const input=value.trim();
+ const defaultBase='https://stephenborish.github.io/simulations/';
+ let path, published=false;
+ if(/^https?:/i.test(input)){
+  const u=new URL(input);
+  if(u.protocol!=='https:'||u.username||u.password||u.port)throw Error('Use an HTTPS file URL without credentials or a custom port.');
+  const parts=u.pathname.split('/').slice(1).map(decodeURIComponent);
+  if(u.hostname==='stephenborish.github.io'){
+   if(parts.shift()!=='simulations')throw Error('Use a link from stephenborish.github.io/simulations/.');
+   path=parts;published=true;
+  }else if(u.hostname==='github.com'||u.hostname==='raw.githubusercontent.com'){
+   const owner=parts.shift(),repo=parts.shift();
+   if(owner?.toLowerCase()!=='stephenborish'||repo!=='simulations')throw Error('Choose a file from stephenborish/simulations.');
+   if(u.hostname==='github.com'&&parts.shift()!=='blob')throw Error('Paste the link to a specific HTML file, or enter its filename (for example, Slope.html).');
+   if(u.hostname==='raw.githubusercontent.com'&&parts[0]==='refs'&&parts[1]==='heads')parts.splice(0,2);
+   const branchParts=branch.trim().split('/');
+   if(!branch.trim()||branchParts.some((part,i)=>parts[i]!==part))throw Error('The file link does not match the published branch. Check Hosting settings.');
+   path=parts.slice(branchParts.length);
+  }else throw Error('Use a GitHub file link, a raw file link, your public simulation URL, or just the filename.');
+ }else{
+  if(!input||/^[a-z][a-z0-9+.-]*:/i.test(input)||input.startsWith('//'))throw Error('Enter an HTML filename or an HTTPS GitHub file URL.');
+  path=input.replace(/^\.\//,'').replace(/^\//,'').split('/').map(decodeURIComponent);
+ }
+ if(folder&&!published){if(path[0]!==folder)throw Error('This file is outside the selected /docs publishing folder. Include docs/ in its repository path.');path=path.slice(1);}
+ if(!path.length||!/\.html?$/i.test(path.at(-1)))throw Error('Choose an .html or .htm file, such as Slope.html.');
  if(path.some(p=>!p||p==='.'||p==='..'||p.includes('/')||p.includes('\\')))throw Error('The file path is invalid.');
- let base=customBase.trim()||`https://${owner.toLowerCase()}.github.io/${repo.toLowerCase()===owner.toLowerCase()+'.github.io'?'':encodeURIComponent(repo)+'/'}`;
- const checked=new URL(base);
+ const checked=new URL(customBase.trim()||defaultBase);
  if(checked.protocol!=='https:'||checked.username||checked.password||checked.search||checked.hash)throw Error('The custom base URL must be HTTPS, without credentials, a query, or a fragment.');
  return checked.href.replace(/\/$/,'')+'/'+path.map(encodeURIComponent).join('/');
 }
@@ -51,4 +65,5 @@ document.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener
  try{await navigator.clipboard.writeText(field.value);el('status').textContent='Copied.';}
  catch{field.focus();field.select();el('status').textContent='Text selected. Press Ctrl+C or Command+C to copy.';}
 }));
+el('form').requestSubmit();
 </script></html>
