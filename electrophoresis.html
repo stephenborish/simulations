@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Gel Lab · DNA Electrophoresis</title>
+<style>
+:root{--ink:#202735;--muted:#606a7a;--paper:#f6f5f1;--line:#dddfe4;--purple:#6352c8;--mint:#75eed3;--navy:#101c2a;--radius:20px}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:default;opacity:.45}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #a08bff;outline-offset:4px}button{transition:background .15s,box-shadow .15s}header{padding:20px 3vw;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:20px;background:#fff}.brand{display:flex;align-items:center;gap:12px;font-size:23px;font-weight:750;letter-spacing:-1px}.logo{display:grid;grid-template-columns:repeat(3,5px);align-items:center;gap:4px;width:44px;height:44px;justify-content:center;background:var(--navy);border-radius:13px}.logo i{display:block;background:var(--mint);height:20px;border-radius:2px}.logo i:nth-child(2){height:30px}.logo i:nth-child(3){height:12px}.brand small{display:block;font-weight:500;font-size:12px;letter-spacing:1.4px;color:var(--muted)}.top-actions{display:flex;align-items:center;gap:15px}.quiet{background:transparent;border:1px solid var(--line);border-radius:10px;padding:9px 14px;color:var(--ink)}.progress-text{font-size:14px;color:var(--muted)}main{width:100%;padding:25px 3vw 36px}.intro{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:25px}.eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:750;color:var(--purple)}h1{font-size:clamp(28px,3vw,46px);line-height:1.12;margin:8px 0 11px;letter-spacing:-1.5px}p{margin:0}.intro p{color:var(--muted);max-width:800px}.journey{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:25px}.module{background:#fff;border:1px solid var(--line);border-radius:14px;text-align:left;display:flex;align-items:center;gap:14px;padding:15px 19px;color:var(--ink)}.module .num{display:grid;place-items:center;min-width:36px;height:36px;border-radius:50%;background:#f0f0f5;font-size:14px;font-weight:700}.module b{display:block;font-size:16px}.module small{color:var(--muted);font-size:13px}.module.active{border-color:var(--purple);background:#eeebff;box-shadow:0 0 0 1px var(--purple)}.module.active .num{background:var(--purple);color:#fff}.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,370px);gap:23px;align-items:start}.lab{background:var(--navy);border-radius:var(--radius);color:#ecf4fa;overflow:hidden;box-shadow:0 13px 30px #182a4020}.lab-top{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #ffffff16}.lab-top h2{font-size:19px;margin:0}.lab-top p{font-size:13px;color:#a6b7c8}.status{font-size:12px;font-weight:650;color:var(--mint);background:#75eed312;padding:6px 11px;border-radius:25px;white-space:nowrap}.lab-inner{padding:15px 22px 0}.lane-heads{display:grid;margin:0 26px 0 46px;gap:6px}.lane-label{border:1px solid transparent;background:transparent;color:#becad7;border-radius:9px;padding:9px 2px;font-size:13px;line-height:1.3;min-height:61px}.lane-label span{display:block;font-size:10px;color:#92a4b6;letter-spacing:1px;margin-bottom:5px}.lane-label[aria-pressed=true]{background:#75eed31a;border-color:var(--mint);color:var(--mint)}.lane-label:hover{background:#ffffff0d}.gel-frame{position:relative;padding:0 26px 0 46px}.polarity{position:absolute;left:0;top:2px;width:32px;text-align:center;color:#b8c9db;font-size:24px;line-height:1}.polarity.bottom{top:auto;bottom:0;color:#ffb8a2}.direction{position:absolute;left:2px;top:38%;writing-mode:vertical-rl;font-size:10px;letter-spacing:2px;color:#8ea7bd}.gel{height:clamp(320px,40vh,490px);position:relative;border:1px solid #4d6d803d;border-radius:8px;background:linear-gradient(180deg,#23374580,#17374735),repeating-linear-gradient(0deg,transparent,transparent 39px,#8aa6c107 40px);overflow:hidden}.lanes{position:absolute;inset:0;display:grid}.lane{position:relative;border-right:1px solid #b2def208}.lane:last-child{border:0}.lane.selected{background:#75eed306}.well{position:absolute;width:45%;height:10px;left:27.5%;top:9px;background:#080f19;border:1px solid #56778c70;border-radius:0 0 4px 4px}.band{position:absolute;left:20%;width:60%;height:24px;transform:translateY(-50%);border:0;background:transparent;padding:0;z-index:2}.band:before{content:"";display:block;position:absolute;top:10px;left:9%;right:9%;height:4px;border-radius:3px;background:#78efd5;box-shadow:0 0 7px #65efd6aa,0 0 18px #65efd633}.band.ladder:before{background:#c3cedc;box-shadow:0 0 5px #c3cedc70}.band.match:before{background:#ffda90;box-shadow:0 0 10px #ffcf78}.band:hover:before,.band:focus-visible:before{height:6px;top:9px;background:#fff}.band .bp{display:none;position:absolute;left:87%;top:2px;color:#d2deea;font-size:10px;white-space:nowrap}.band.ladder .bp,.show-sizes .band .bp{display:block}.guide{position:absolute;left:0;right:0;height:1px;border-top:1px dashed #ffda90;pointer-events:none;z-index:1;display:none}.inspect{margin:14px 0;color:#b9c9d6;font-size:13px;min-height:40px}.inspect b{color:var(--mint)}.toolbar{padding:17px 24px;background:#ffffff05;border-top:1px solid #ffffff10}.transport{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.primary{background:var(--purple);color:#fff;border:0;border-radius:11px;padding:12px 19px;font-weight:650}.primary:hover{background:#5241b6}.run{background:var(--mint);color:#092d28;min-width:132px}.run:hover{background:#a1f7e4}.darkbtn{background:#ffffff08;border:1px solid #ffffff25;color:#d3deea;border-radius:10px;padding:10px 14px}.toggles{display:flex;gap:20px;margin-top:13px;color:#b9c9d6;font-size:13px;flex-wrap:wrap}.toggles label{cursor:pointer;display:flex;align-items:center;gap:7px}input[type=checkbox]{accent-color:var(--mint);width:16px;height:16px}.timeline{display:flex;align-items:center;gap:14px;margin-top:15px}.timeline label{font-size:12px;color:#b9c9d6;white-space:nowrap}input[type=range]{accent-color:var(--mint);width:100%;min-width:0}.timeline output{font:12px ui-monospace,monospace;color:#d2deea;min-width:34px}.lab-foot{display:flex;align-items:center;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;padding:14px 4px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:#42bda3}.dot.silver{background:#97a4b7}.dot.gold{background:#d6a340}.analysis{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px}.analysis h2{font-size:22px;letter-spacing:-.5px;margin:8px 0 18px}.qmeta{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:10px}.qtrack{display:flex;gap:5px;margin-bottom:22px}.qtrack i{flex:1;height:4px;border-radius:4px;background:#ecebf1}.qtrack i.done{background:var(--purple)}.question{font-size:19px;line-height:1.4;font-weight:650;margin-bottom:18px}.options{display:grid;gap:9px}.option{display:flex;gap:11px;align-items:center;border:1px solid var(--line);border-radius:11px;padding:11px;text-align:left;background:#fff;color:var(--ink);font-size:15px;line-height:1.4}.option .letter{display:grid;place-items:center;flex:0 0 26px;height:26px;font-size:12px;border:1px solid #dedee7;border-radius:7px;color:var(--muted)}.option.chosen{border-color:var(--purple);background:#f3f0ff}.option.correct{background:#eaf8f1;border-color:#53a784}.option.wrong{background:#fff2eb;border-color:#d69a76}.option:disabled{opacity:1}.submit{width:100%;margin-top:18px}.feedback{padding:14px;border-radius:11px;background:#f3f0ff;font-size:14px;margin-top:15px;color:#4c426a}.feedback b{display:block;margin-bottom:4px}.hint{margin-top:18px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:15px}.hint summary{cursor:pointer;font-weight:650}.hint p{margin-top:8px}.note{padding:18px 21px;background:#ece9e1;border-radius:14px;margin-top:15px;font-size:13px;color:#596170}.note b{color:#323c47}.score{font-size:48px;font-weight:750;color:var(--purple);letter-spacing:-2px;margin:14px 0}.summary-copy{font-size:15px;color:var(--muted)}footer{margin-top:22px;color:#707785;font-size:12px;display:flex;justify-content:space-between;gap:20px}dialog{border:0;border-radius:18px;padding:26px;max-width:440px;color:var(--ink);box-shadow:0 20px 70px #0003}dialog::backdrop{background:#101c2a88}dialog h2{margin-top:0}dialog p{margin-bottom:20px}.dialog-actions{display:flex;justify-content:flex-end;gap:10px}@media(min-width:1600px){.workspace{grid-template-columns:minmax(0,1fr) minmax(370px,25%)}.gel{height:clamp(420px,46vh,620px)}.question{font-size:21px}}@media(max-width:1000px){.workspace{grid-template-columns:minmax(0,1fr) 320px;gap:16px}.analysis{padding:19px}.lab-inner{padding:12px 12px 0}.lab-top,.toolbar{padding:16px}.lane-heads{margin-left:35px;margin-right:16px}.gel-frame{padding-left:35px;padding-right:16px}.band .bp{font-size:9px}.intro p{font-size:15px}.module{padding:12px;gap:9px}.module b{font-size:14px}}@media(max-width:760px){header{padding:14px 5vw}.brand{font-size:21px}.progress-text{display:none}.top-actions .quiet{font-size:12px;padding:8px}.intro{margin-bottom:20px}main{padding:22px 4vw}.journey{gap:7px}.module{padding:10px 7px;display:block}.module .num{width:25px;min-width:25px;height:25px;font-size:11px;margin-bottom:7px}.module b{font-size:12px}.module small{font-size:10px}.workspace{grid-template-columns:1fr}.gel{height:360px}.lane-label{font-size:10px}.lane-label span{font-size:9px}.lab-top h2{font-size:17px}.lab-top p{font-size:11px}.status{font-size:10px}.analysis{padding:22px}.question{font-size:19px}.band{left:12%;width:62%}.band .bp{font-size:8px}.gel-frame{padding-right:10px}.lane-heads{margin-right:10px}.lab-foot{gap:10px}footer{display:block}footer span{display:block;margin-top:6px}h1{letter-spacing:-1px}.intro .eyebrow{font-size:10px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}@media print{header,.journey,.toolbar,.top-actions,footer{display:none}main{padding:0}.workspace{display:block}.lab{print-color-adjust:exact;-webkit-print-color-adjust:exact}.analysis{margin-top:15px}.gel{height:350px}}
+
+body{background:radial-gradient(ellipse at 89% 0%,#e8e2fa80,transparent 38%),var(--paper)}
+.empty-gel{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;text-align:center;pointer-events:none;padding:25px;background:radial-gradient(ellipse at center,#75eed30b,transparent 65%)}.empty-gel strong{font-size:24px;font-weight:550;letter-spacing:-.6px;color:#d7e6ed}.empty-gel p{max-width:280px;font-size:14px;color:#91a8bb}.empty-gel svg{width:78px;height:65px;margin-bottom:3px}.empty-gel[hidden]{display:none}
+
+/* Each lane reserves a separate, fixed-width number gutter. */
+.lane-heads{gap:0}
+.gel-scroll{overflow-x:auto;scrollbar-color:#6c889b #142431;scrollbar-width:thin;padding-bottom:4px}
+.band{left:0;width:100%}.band:before{left:12%;right:42px}
+.band .bp{left:auto;right:4px;top:5px;width:32px;text-align:right;font:11px/14px ui-monospace,SFMono-Regular,Consolas,monospace;color:#e0eaf3;pointer-events:none}
+.well{left:12%;width:calc(88% - 42px)}
+
+/* Compact laptop workspace. Fitting scales the complete activity only when needed. */
+#screen{transform-origin:top left}header{padding:12px 2vw}.brand{font-size:21px}.logo{width:38px;height:38px}.brand small{font-size:10px}main{padding:14px 2vw 10px}.journey{margin-bottom:14px;gap:10px}.module{padding:10px 14px}.module .num{min-width:30px;height:30px}.workspace{gap:18px;grid-template-columns:minmax(0,1fr) minmax(330px,30%)}.lab-top{padding:12px 18px}.steps{list-style:none;display:flex;gap:16px;padding:0;margin:0}.steps li{font-size:14px;font-weight:700;color:#869bad;display:flex;align-items:center;gap:7px}.steps li.active{color:#75eed3}.steps li.done{color:#bed0dc}.steps li.active span{border-bottom:2px solid #75eed3}.lab-inner{padding:8px 16px 0}.lane-label{min-height:46px;padding:5px 2px}.gel{height:clamp(220px,calc(100dvh - 405px),400px)}.inspect{min-height:22px;margin:9px 0;font-size:12px}.toolbar{padding:10px 18px}.transport{gap:8px}.primary,.darkbtn{padding:9px 14px}.timeline{margin-top:9px}.toggles{margin-top:8px;font-size:12px}.lab-foot{padding:8px 3px;font-size:11px;gap:12px}.analysis{padding:20px}.qtrack{margin-bottom:14px}.question{font-size:18px;line-height:1.35;margin-bottom:13px}.options{gap:7px}.option{font-size:14px;padding:9px;line-height:1.35}.submit{margin-top:13px}.feedback{font-size:13px;padding:11px;margin-top:12px}.hint{font-size:12px;margin-top:12px;padding-top:11px}.locked{text-align:left;padding:16px 0}.lock-symbol{font-size:48px;line-height:1;color:var(--purple);margin-bottom:18px}.locked h2{font-size:24px;line-height:1.2;margin:0 0 12px}.locked p{font-size:16px;color:var(--muted)}.locked-caption{font-size:12px;color:var(--muted);margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+@media(max-width:899px){.workspace{grid-template-columns:1fr}#screen{width:100%!important;transform:none!important}.gel{height:330px}.steps{gap:12px}.steps li{font-size:12px}}
+@media print{#screen{transform:none!important;width:100%!important}body{overflow:visible!important;height:auto!important}}
+
+/* Readable type remains at its intended size; only the panels resize. */
+body{font-size:18px}.brand{font-size:25px}.brand small{font-size:13px;letter-spacing:1px}.progress-text{font-size:16px}.top-actions .quiet{font-size:16px}.module b{font-size:19px}.module small{font-size:15px}.module .num{font-size:16px}.steps li{font-size:18px}.status{font-size:15px}.lane-label{font-size:16px;line-height:1.25;min-height:58px}.lane-label span{font-size:13px;margin-bottom:3px}.direction{font-size:12px;letter-spacing:1px}.band .bp{font-size:18px;line-height:20px;font-weight:700;width:46px;right:5px;top:1px;color:#fff;font-variant-numeric:tabular-nums}.band:before{right:60px}.well{width:calc(88% - 60px)}.inspect{font-size:15px;line-height:1.35;min-height:40px}.primary,.darkbtn,.quiet{font-size:18px}.timeline label,.timeline output{font-size:15px}.timeline output{min-width:45px}.toggles{font-size:16px;gap:14px}input[type=checkbox]{width:19px;height:19px}.lab-foot{font-size:14px;line-height:1.3}.qmeta{font-size:16px}.question{font-size:22px;line-height:1.4}.option{font-size:18px;line-height:1.4;padding:10px}.option .letter{font-size:15px;flex-basis:29px;height:29px}.feedback{font-size:18px;line-height:1.5;padding:14px}.hint{font-size:16px;line-height:1.45}.locked p,.summary-copy{font-size:19px}.locked-caption{font-size:16px}.empty-gel p{font-size:18px;max-width:360px}.empty-gel strong{font-size:27px}.analysis{padding:20px}.workspace{grid-template-columns:minmax(0,1.45fr) minmax(390px,1fr)}
+@media(min-width:900px){
+ body{height:100dvh;overflow:hidden}#screen{height:100dvh;display:flex;flex-direction:column;transform:none!important;width:100%!important}
+ header{flex:0 0 auto;padding:10px 2vw}main{flex:1;min-height:0;display:flex;flex-direction:column;padding:12px 2vw 8px}.journey{flex:0 0 auto;margin-bottom:12px}.module{padding:8px 12px}
+ .workspace{flex:1;min-height:0;grid-template-rows:minmax(0,1fr);align-items:stretch}.workspace>section{min-height:0;display:flex;flex-direction:column;overflow:auto}.lab{flex:1;min-height:620px;display:flex;flex-direction:column}.lab-top{flex:0 0 auto;padding:10px 16px}.lab-inner{flex:1;min-height:0;display:flex;flex-direction:column;padding:5px 12px 0}.gel-scroll{flex:1;min-height:0}#gelCanvas{height:100%;display:flex;flex-direction:column}.lane-heads{flex:0 0 auto}.gel-frame{flex:1;min-height:0}.gel{height:100%;min-height:320px}.inspect{flex:0 0 auto;margin:7px 0}.toolbar{flex:0 0 auto;padding:8px 16px}.lab-foot{flex:0 0 auto;padding:6px 2px}.workspace>aside{min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:#b6aedb transparent}.analysis{min-height:100%}.transport .primary,.transport .darkbtn{padding:8px 13px}
+}
+@media(max-width:1150px) and (min-width:900px){.workspace{grid-template-columns:minmax(0,1fr) minmax(350px,.9fr)}.module b{font-size:18px}.module small{font-size:14px}.toggles{gap:8px;font-size:15px}.lab-top{gap:6px}.steps{gap:9px}.steps li{font-size:16px}}
+@media(max-width:899px){.workspace{grid-template-columns:1fr}.gel{height:360px}.lane-label{font-size:16px}.steps li{font-size:17px}.status{font-size:14px}.question{font-size:22px}.brand{font-size:23px}.module b{font-size:16px}.module small{font-size:14px}.inspect{font-size:16px}.top-actions .quiet{font-size:15px}}
+@media print{body,#screen{height:auto!important;overflow:visible!important;display:block!important}main,.workspace,.workspace>section,.lab,.lab-inner{display:block!important}.workspace>aside{overflow:visible!important}.gel{height:350px!important}.gel-scroll{overflow:visible!important}}
+</style></head><body><div id="screen">
+<header><div class="brand"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><div>Gel Lab<small>DNA ELECTROPHORESIS</small></div></div><div class="top-actions"><span class="progress-text" id="overall"></span><button class="quiet" id="clear">Reset progress</button></div></header>
+<main><nav class="journey" id="nav" aria-label="Investigations"></nav>
+<div class="workspace"><section aria-label="Gel simulation"><div class="lab"><div class="lab-top"><ol class="steps" aria-label="Lab steps"><li id="step1">1 <span>Load</span></li><li id="step2">2 <span>Run</span></li><li id="step3">3 <span>Analyze</span></li></ol><span class="status" id="status" role="status"></span></div><div class="lab-inner"><div class="gel-scroll"><div id="gelCanvas"><div class="lane-heads" id="heads"></div><div class="gel-frame"><span class="polarity" aria-label="Negative electrode">−</span><span class="direction">DNA MIGRATION ↓</span><span class="polarity bottom" aria-label="Positive electrode">+</span><div class="gel" id="gel"><div class="lanes" id="lanes"></div><div class="guide" id="guide"></div><div class="empty-gel" id="emptyGel"><svg viewBox="0 0 78 65" aria-hidden="true" fill="none" stroke="#75eed3" stroke-width="4" stroke-linecap="round"><path opacity=".3" d="M14 10v44M39 10v44M64 10v44"/><path d="M7 20h14M7 43h14M32 15h14M32 33h14M57 26h14M57 50h14"/></svg><strong>Start by loading the samples.</strong><p>Select “Load samples” to place DNA into the wells.</p></div></div></div></div></div><div class="inspect" id="inspector" aria-live="polite"></div></div><div class="toolbar"><div class="transport"><button class="primary run" id="run">Load samples</button><button class="darkbtn" id="resetGel" title="Generate fresh samples and restart this investigation’s questions">New samples</button></div><div class="timeline"><label for="time">Run progress</label><input id="time" type="range" min="0" max="150" value="0" step="1" aria-label="Run progress, percent of standard run"><output id="timeOut" for="time">0%</output></div><div class="toggles"><label><input id="sizes" type="checkbox">Show sample sizes</label><label><input id="matches" type="checkbox">Highlight shared bands</label></div></div></div><div class="lab-foot"><span><i class="dot silver"></i>DNA ladder</span><span><i class="dot"></i>Sample DNA</span><span><i class="dot gold"></i>Shared bands when comparing</span></div></section>
+<aside><section class="analysis" id="quiz" aria-label="Investigation questions"></section></aside></div>
+</main></div>
+<dialog id="resetDialog"><h2>Start fresh?</h2><p>This clears answers and progress for all three investigations on this browser.</p><div class="dialog-actions"><button class="quiet" id="cancelReset">Keep progress</button><button class="primary" id="confirmReset">Reset everything</button></div></dialog>
+<script>
+const scenarios = {
+  "crimeScene": {
+    "title": "Crime Scene Investigation",
+    "description": "Compare DNA samples from suspects to the evidence found at the crime scene.",
+    "lanes": [
+      {
+        "id": "ladder",
+        "label": "DNA Ladder",
+        "bands": [
+          1000,
+          800,
+          600,
+          400,
+          200,
+          100
+        ],
+        "type": "ladder"
+      },
+      {
+        "id": "evidence",
+        "label": "Crime Scene Evidence",
+        "bands": [
+          850,
+          620,
+          350,
+          150
+        ],
+        "type": "evidence"
+      },
+      {
+        "id": "suspect1",
+        "label": "Suspect 1",
+        "bands": [
+          900,
+          500,
+          350,
+          100
+        ],
+        "type": "suspect"
+      },
+      {
+        "id": "suspect2",
+        "label": "Suspect 2",
+        "bands": [
+          850,
+          620,
+          350,
+          150
+        ],
+        "type": "suspect"
+      },
+      {
+        "id": "suspect3",
+        "label": "Suspect 3",
+        "bands": [
+          700,
+          620,
+          400,
+          250
+        ],
+        "type": "suspect"
+      }
+    ],
+    "questions": [
+      {
+        "question": "Which suspect has the same DNA band pattern as the crime scene sample?",
+        "options": [
+          "Suspect 1",
+          "Suspect 2",
+          "Suspect 3",
+          "None"
+        ],
+        "correctAnswer": "Suspect 2",
+        "explanation": "Suspect 2 has a band at every position shown in the crime scene sample, with no extra bands. The whole pattern must match; one shared band is not enough. A DNA match alone does not prove that someone committed a crime."
+      },
+      {
+        "question": "Why do DNA fragments (pieces of DNA) move toward the positive end (+) of the gel?",
+        "options": [
+          "DNA has a positive charge",
+          "DNA has a negative charge",
+          "Gravity pulls DNA downward",
+          "The gel pushes DNA forward"
+        ],
+        "correctAnswer": "DNA has a negative charge",
+        "explanation": "DNA has a negative electrical charge. When the current is turned on, DNA moves toward the positive end because opposite charges attract. The electrical force, not gravity, causes this movement."
+      },
+      {
+        "question": "A restriction enzyme cuts DNA at specific places. If a different restriction enzyme cuts the same DNA, what will likely happen to its band pattern?",
+        "options": [
+          "The pattern will stay exactly the same",
+          "All of the bands will disappear",
+          "The pattern will change",
+          "The DNA will move backward"
+        ],
+        "correctAnswer": "The pattern will change",
+        "explanation": "Different restriction enzymes can cut the same DNA at different places. This produces pieces with different lengths. Because a piece’s length affects how far it moves through the gel, the band pattern will likely change."
+      },
+      {
+        "question": "How does the gel help separate DNA fragments?",
+        "options": [
+          "It supplies the electric current",
+          "It separates DNA pieces by length",
+          "It makes DNA visible without a stain",
+          "It cuts DNA into smaller pieces"
+        ],
+        "correctAnswer": "It separates DNA pieces by length",
+        "explanation": "The gel has tiny openings that DNA can move through. Shorter pieces move through these openings more easily, so they travel farther than longer pieces during the same run. The gel separates the pieces; it does not cut them."
+      },
+      {
+        "question": "If a DNA band is brighter than the other bands, what does this usually mean?",
+        "options": [
+          "The DNA pieces in it are longer",
+          "The DNA pieces in it are shorter",
+          "There is more DNA in that band",
+          "The DNA sample contains something that should not be there"
+        ],
+        "correctAnswer": "There is more DNA in that band",
+        "explanation": "A brighter band usually contains a greater amount of DNA. Its position shows the length of the DNA pieces, while its brightness shows how much DNA is there. Brightness alone does not tell you the length."
+      }
+    ]
+  },
+  "paternity": {
+    "title": "Paternity Testing",
+    "description": "Identify the biological father of the child. The child receives half of their DNA from the mother and half from the father. Every band in the child's profile must be present in either the mother's or the father's profile.",
+    "lanes": [
+      {
+        "id": "ladder",
+        "label": "DNA Ladder",
+        "bands": [
+          1000,
+          800,
+          600,
+          400,
+          200,
+          100
+        ],
+        "type": "ladder"
+      },
+      {
+        "id": "mother",
+        "label": "Mother",
+        "bands": [
+          900,
+          750,
+          450,
+          250
+        ],
+        "type": "parent"
+      },
+      {
+        "id": "child",
+        "label": "Child",
+        "bands": [
+          900,
+          600,
+          450,
+          150
+        ],
+        "type": "child"
+      },
+      {
+        "id": "father1",
+        "label": "Potential Father 1",
+        "bands": [
+          800,
+          500,
+          300,
+          100
+        ],
+        "type": "suspect"
+      },
+      {
+        "id": "father2",
+        "label": "Potential Father 2",
+        "bands": [
+          750,
+          600,
+          350,
+          150
+        ],
+        "type": "suspect"
+      },
+      {
+        "id": "father3",
+        "label": "Potential Father 3",
+        "bands": [
+          950,
+          650,
+          400,
+          200
+        ],
+        "type": "suspect"
+      }
+    ],
+    "questions": [
+      {
+        "question": "In this activity, which potential father has the bands needed to explain the child’s DNA pattern?",
+        "options": [
+          "Potential Father 1",
+          "Potential Father 2",
+          "Potential Father 3",
+          "None"
+        ],
+        "correctAnswer": "Potential Father 2",
+        "explanation": "First find the child’s bands that also appear in the mother’s lane. Then check the remaining child bands against each potential father. Potential Father 2 has both of the remaining bands, so he fits the pattern in this activity."
+      },
+      {
+        "question": "If Potential Father 2 is the father, which DNA lengths did the child inherit (receive) from the mother? Lengths are given in base pairs (bp).",
+        "options": [
+          "900 bp and 450 bp",
+          "600 bp and 150 bp",
+          "900 bp and 600 bp",
+          "450 bp and 150 bp"
+        ],
+        "correctAnswer": "900 bp and 450 bp",
+        "explanation": "The child and mother both have bands at 900 bp and 450 bp. Potential Father 2 does not have these bands, so they came from the mother in this activity. The child’s other two bands match the father’s bands."
+      },
+      {
+        "question": "Why is a DNA ladder included in the first lane?",
+        "options": [
+          "To add more DNA to the parent samples",
+          "To estimate the length of the DNA pieces",
+          "To make the DNA move faster",
+          "To stain the DNA so it can be seen"
+        ],
+        "correctAnswer": "To estimate the length of the DNA pieces",
+        "explanation": "The DNA ladder contains pieces whose lengths are already known. Compare a sample band’s position with the ladder bands to estimate its length. Bands at the same height have pieces of about the same length."
+      },
+      {
+        "question": "In this activity, a child has a 700 bp band, but neither the mother nor the tested father has that band. What does this suggest?",
+        "options": [
+          "The tested father must be the biological father",
+          "The tested father does not fit the child’s DNA pattern",
+          "The gel must have run incorrectly",
+          "The child’s DNA changed during the test"
+        ],
+        "correctAnswer": "The tested father does not fit the child’s DNA pattern",
+        "explanation": "In this activity, each child band must match a band from one of the parents. The mother cannot explain the 700 bp band, and the tested father cannot explain it either. His sample therefore does not fit the child’s pattern."
+      },
+      {
+        "question": "True or false: A child’s DNA band pattern must be exactly the same as one parent’s pattern.",
+        "options": [
+          "True",
+          "False"
+        ],
+        "correctAnswer": "False",
+        "explanation": "False. A child receives DNA from both parents, so the child’s pattern can include bands from each parent. The child’s whole pattern does not have to match either parent’s whole pattern."
+      }
+    ]
+  },
+  "fragmentLength": {
+    "title": "Fragment Length Estimation",
+    "description": "Analyze the position of the bands relative to the DNA ladder to determine relative fragment lengths. Remember, smaller fragments travel further (faster) through the gel.",
+    "lanes": [
+      {
+        "id": "ladder",
+        "label": "DNA Ladder (bp)",
+        "bands": [
+          1000,
+          800,
+          600,
+          400,
+          200,
+          100
+        ],
+        "type": "ladder"
+      },
+      {
+        "id": "sampleA",
+        "label": "Sample A",
+        "bands": [
+          850,
+          450,
+          150
+        ],
+        "type": "sample"
+      },
+      {
+        "id": "sampleB",
+        "label": "Sample B",
+        "bands": [
+          950,
+          550,
+          250
+        ],
+        "type": "sample"
+      }
+    ],
+    "questions": [
+      {
+        "question": "Which sample contains the shortest piece of DNA?",
+        "options": [
+          "Sample A",
+          "Sample B",
+          "They are the same"
+        ],
+        "correctAnswer": "Sample A",
+        "explanation": "Sample A has the band farthest from the wells at the top. Shorter DNA pieces move faster through the gel, so they travel farther during the same run. The lowest band therefore shows the shortest pieces."
+      },
+      {
+        "question": "About how long are the DNA pieces in Sample B’s middle band? Compare it with the ladder. Lengths are given in base pairs (bp).",
+        "options": [
+          "About 800 bp",
+          "About 550 bp",
+          "About 450 bp",
+          "About 200 bp"
+        ],
+        "correctAnswer": "About 550 bp",
+        "explanation": "The middle band in Sample B is between the 600 bp and 400 bp ladder bands. It is closer to 600 bp, so about 550 bp is the best estimate. A band’s position lets you estimate the length of its DNA pieces."
+      },
+      {
+        "question": "At the end of this standard run, where would a 1000 bp DNA band appear?",
+        "options": [
+          "Near the wells at the top (−)",
+          "Near the bottom (+)",
+          "Exactly halfway down the gel",
+          "Past the bottom of the gel"
+        ],
+        "correctAnswer": "Near the wells at the top (−)",
+        "explanation": "A 1000 bp piece is longer than the other pieces shown in the ladder. It moves more slowly through the gel, so it stays closer to the wells. Its band would line up with the ladder’s 1000 bp band."
+      },
+      {
+        "question": "What does “bp” mean in the DNA ladder labels?",
+        "options": [
+          "Base pairs",
+          "Band position",
+          "Biological parts",
+          "Basic proportion"
+        ],
+        "correctAnswer": "Base pairs",
+        "explanation": "“Bp” stands for base pairs. Each base pair is two DNA bases joined across the two strands. The number of base pairs tells you a piece’s length: a 1000 bp piece is longer than a 200 bp piece."
+      },
+      {
+        "question": "Before any DNA leaves the gel, what happens to the distance between bands as the run continues?",
+        "options": [
+          "The bands join into one band",
+          "The bands move farther apart",
+          "The bands move closer together at the bottom",
+          "The bands start moving backward"
+        ],
+        "correctAnswer": "The bands move farther apart",
+        "explanation": "Shorter DNA pieces move faster than longer pieces. As the run continues, they get farther ahead, increasing the distance between bands. If the run lasts too long, the shortest pieces can leave the gel."
+      },
+      {
+        "question": "When DNA pieces run through the same gel under the same conditions, what mainly determines how fast they move?",
+        "options": [
+          "The electrical charge by itself",
+          "The order of the DNA bases (A, T, C, and G)",
+          "The length of each DNA piece",
+          "The room temperature"
+        ],
+        "correctAnswer": "The length of each DNA piece",
+        "explanation": "The length of each DNA piece is the main factor. Shorter pieces move through the gel’s tiny openings more easily than longer pieces, so they travel faster. All the samples share the same gel and running conditions."
+      }
+    ]
+  }
+};
+
+const $=id=>document.getElementById(id), keys=Object.keys(scenarios), short=['Crime scene','Paternity','Fragment length'], subtitles=['Match DNA bands','Trace DNA from parents','Estimate fragment sizes'];
+const templates=JSON.parse(JSON.stringify(scenarios));
+function generate(k,seed){
+ let r=seed>>>0;const random=()=>{r=(Math.imul(r,1664525)+1013904223)>>>0;return r/4294967296};
+ const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+ const sc=JSON.parse(JSON.stringify(templates[k]));
+ const sizes=[...new Set(sc.lanes.slice(1).flatMap(l=>l.bands))].sort((a,b)=>a-b);
+ const mapped=new Map(sizes.map(bp=>[bp,bp+(Math.floor(random()*5)-2)*10]));
+ sc.lanes.slice(1).forEach(l=>l.bands=l.bands.map(bp=>mapped.get(bp)));
+ if(k==='crimeScene'){
+  const patterns=shuffle(sc.lanes.slice(2).map(l=>l.bands));sc.lanes.slice(2).forEach((l,i)=>l.bands=patterns[i]);
+  const match=sc.lanes.slice(2).find(l=>l.bands.join()===sc.lanes[1].bands.join());
+  sc.questions[0].correctAnswer=match.label;
+  sc.questions[0].explanation=`${match.label} has a band at every position shown in the crime scene sample, with no extra bands. The whole pattern must match; one shared band is not enough. A DNA match alone does not prove that someone committed a crime.`;
+ }else if(k==='paternity'){
+  const patterns=shuffle(sc.lanes.slice(3).map(l=>l.bands));sc.lanes.slice(3).forEach((l,i)=>l.bands=patterns[i]);
+  const child=sc.lanes[2].bands,maternal=child.filter(bp=>sc.lanes[1].bands.includes(bp)),paternal=child.filter(bp=>!maternal.includes(bp));
+  const father=sc.lanes.slice(3).find(l=>paternal.every(bp=>l.bands.includes(bp)));
+  const pair=a=>a.map(bp=>bp+' bp').join(' and ');
+  sc.questions[0].correctAnswer=father.label;
+  sc.questions[0].explanation=`The child and mother share bands at ${pair(maternal)}. Base pairs (bp) measure DNA length. The child's remaining bands are at ${pair(paternal)}. Only ${father.label} has both remaining bands, so he fits the child's pattern in this activity.`;
+  const q=sc.questions[1];q.question=`If ${father.label} is the father, which DNA lengths did the child inherit (receive) from the mother? Lengths are given in base pairs (bp).`;
+  q.options=[pair(maternal),pair(paternal),pair([maternal[0],paternal[0]]),pair([maternal[1],paternal[1]])];q.correctAnswer=q.options[0];q.explanation=`The child and mother both have bands at ${pair(maternal)}. ${father.label} does not have these bands, so they came from the mother in this activity. The child’s other bands, at ${pair(paternal)}, match the father’s bands.`;
+ }else{
+  if(random()<.5)[sc.lanes[1].bands,sc.lanes[2].bands]=[sc.lanes[2].bands,sc.lanes[1].bands];
+  const winner=sc.lanes[1].bands.at(-1)<sc.lanes[2].bands.at(-1)?sc.lanes[1]:sc.lanes[2];
+  sc.questions[0].correctAnswer=winner.label;sc.questions[0].explanation=`${winner.label} has the band farthest from the wells at the top. That band contains DNA pieces ${winner.bands.at(-1)} base pairs (bp) long. Shorter pieces move faster through the gel, so the lowest band shows the shortest pieces.`;
+  const bp=sc.lanes[2].bands[1],q=sc.questions[1];q.options=[`About ${bp+200} bp`,`About ${bp} bp`,`About ${bp-100} bp`,`About ${bp-250} bp`];q.correctAnswer=q.options[1];
+  const ladder=sc.lanes[0].bands,above=Math.min(...ladder.filter(n=>n>bp)),below=Math.max(...ladder.filter(n=>n<bp));
+  q.explanation=`Sample B’s middle band is between the ${above} bp and ${below} bp ladder bands. Of the choices given, about ${bp} bp is the best estimate. The ladder’s known lengths help you estimate the length of the DNA pieces in a sample band.`;
+ }
+ scenarios[k]=sc;
+}
+const STORE='gel-lab-v2';let storageMessage='',progress={},current='crimeScene',loaded=false,running=false,t=0,selected=[],inspection=null,last=0;
+try{const raw=JSON.parse(localStorage.getItem(STORE)||'{}');for(const k of keys){const a=raw[k];if(a&&Number.isInteger(a.seed)&&a.seed>0&&a.seed<=4294967295&&Array.isArray(a.answers)){const answers=[];for(let i=0;i<Math.min(a.answers.length,scenarios[k].questions.length);i++){const v=a.answers[i];if(!Number.isInteger(v)||v<0||v>=scenarios[k].questions[i].options.length)break;answers.push(v)}progress[k]={seed:a.seed,answers,index:answers.length,ran:a.ran===true};generate(k,a.seed)}}}catch(e){storageMessage='Progress is available for this session only.';}
+function newSeed(){return Math.floor(Math.random()*4294967294)+1}
+function state(){return progress[current]||(progress[current]={seed:newSeed(),answers:[],index:0})}
+let choice=null,submitted=false;
+function save(){try{localStorage.setItem(STORE,JSON.stringify(progress))}catch(e){storageMessage='Browser storage is unavailable; progress lasts for this session.'}}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function nav(){let done=keys.filter(k=>(progress[k]?.answers.length||0)===scenarios[k].questions.length).length;$('overall').textContent=`${done} / 3 investigations complete`;$('nav').innerHTML=keys.map((k,i)=>`<button class="module ${k===current?'active':''}" ${k===current?'aria-current="step"':''} data-scenario="${k}"><span class="num">${progress[k]?.answers.length===scenarios[k].questions.length?'✓':String(i+1).padStart(2,'0')}</span><span><b>${short[i]}</b><small>${subtitles[i]}</small></span></button>`).join('');}
+function scenario(k){current=k;running=false;loaded=false;t=0;selected=[];inspection=null;choice=null;submitted=false;state().index=state().answers.length;generate(k,state().seed);loaded=state().ran===true;t=loaded?100:0;save();$('sizes').checked=false;$('matches').checked=false;nav();buildGel();quiz();}
+function buildGel(){const lanes=scenarios[current].lanes;$('gelCanvas').style.minWidth=(lanes.length*96+72)+'px';const grid=`repeat(${lanes.length},minmax(0,1fr))`;$('heads').style.gridTemplateColumns=grid;$('lanes').style.gridTemplateColumns=grid;
+$('heads').innerHTML=lanes.map((l,i)=>`<button class="lane-label" data-lane="${i}" aria-pressed="${selected.includes(i)}" aria-label="Compare ${esc(l.label)}"><span>${i===0?'REFERENCE':'LANE '+i}</span>${esc(l.label.replace('Crime Scene Evidence','Evidence').replace('Potential Father','Father').replace('DNA Ladder (bp)','Ladder · bp').replace('DNA Ladder','Ladder · bp'))}</button>`).join('');
+$('lanes').innerHTML=lanes.map((l,i)=>`<div class="lane ${selected.includes(i)?'selected':''}"><div class="well"></div>${l.bands.map(bp=>`<button class="band ${i===0?'ladder':''}" data-bp="${bp}" data-lane="${i}" aria-label="${esc(l.label)}, ${i===0?bp+' base pairs':'DNA band; select to inspect'}"><span class="bp">${bp}</span></button>`).join('')}</div>`).join('');update();}
+function position(bp){return 3+(Math.log(1100/bp)/Math.log(22)*90+4)*t/100}
+function update(){const sc=scenarios[current];$('emptyGel').hidden=loaded;$('time').value=t;$('timeOut').textContent=Math.round(t)+'%';$('gel').classList.toggle('show-sizes',$('sizes').checked&&t>=95);
+$('status').textContent=running?'●  Gel running':!loaded?'Ready to load':t===0?'Samples loaded':t>=100?'Run complete':'Run paused';
+$('run').textContent=!loaded?'1 · Load samples':running?'Ⅱ Pause':state().ran?'✓ Run complete':t===0?'2 · Run electrophoresis':'▶ Resume run';$('run').disabled=state().ran===true;$('time').disabled=!state().ran;$('sizes').disabled=!state().ran;$('matches').disabled=!state().ran;for(let n=1;n<=3;n++){const active=state().ran?3:loaded?2:1;$('step'+n).classList.toggle('active',n===active);$('step'+n).classList.toggle('done',n<active)}
+const pair=selected.length===2?selected.map(i=>sc.lanes[i].bands):null;
+document.querySelectorAll('.band').forEach(b=>{const bp=+b.dataset.bp,idx=+b.dataset.lane,y=position(bp);b.style.top=y+'%';b.hidden=!loaded||y>100;b.disabled=t<4||running;b.classList.toggle('match',!!(pair&&$('matches').checked&&selected.includes(idx)&&pair.every(a=>a.includes(bp))));b.querySelector('.bp').style.visibility=t<95?'hidden':'';});
+$('guide').style.display=inspection&&!running&&t>=4&&position(inspection.bp)<=100?'block':'none';if(inspection)$('guide').style.top=position(inspection.bp)+'%';
+if(inspection&&t>=4&&!running){const l=sc.lanes[inspection.lane];$('inspector').innerHTML=`<b>${esc(l.label)}</b> · ${inspection.lane===0||($('sizes').checked&&t>=95)?inspection.bp+' bp':'Compare this band with the ladder to estimate its size.'}`;}
+else if(pair){const shared=pair[0].filter(bp=>pair[1].includes(bp));$('inspector').innerHTML=`<b>Comparing ${esc(sc.lanes[selected[0]].label)} + ${esc(sc.lanes[selected[1]].label)}.</b> ${$('matches').checked&&t>=95?shared.length+' shared band'+(shared.length!==1?'s':'')+'.':'Look for bands at the same height.'}`;}
+else $('inspector').innerHTML=!loaded?'<b>Step 1:</b> Select Load samples to fill the wells.':t===0?'<b>Step 2:</b> Samples loaded. Select Run electrophoresis.':running?'DNA is moving toward the <b>positive electrode (+)</b>. Watch the fragments separate.':'Select two lane names to compare, or select a band to inspect.';}
+function tick(now){if(running){const before=t;t=Math.min(150,t+Math.min((now-last)/1000,.08)*30);if(before<100&&t>=100){t=100;running=false;state().ran=true;save();quiz()}if(t>=150)running=false;update()}last=now;requestAnimationFrame(tick)}requestAnimationFrame(tick);
+function quiz(){fitSoon();const st=state();if(!st.ran){const title=!loaded?'1. Load the samples':running?'Separating the DNA…':t>0?'Resume the run':'2. Run electrophoresis';const detail=!loaded?'Place the DNA samples into the wells at the top of the gel.':running?'Watch the smaller fragments move farther through the gel. Questions unlock when the run finishes.':t>0?'Finish the run to unlock your questions.':'The wells are filled. Turn on the current to separate the DNA fragments.';$('quiz').innerHTML=`<div class="locked"><div class="lock-symbol" aria-hidden="true">${!loaded?'①':running?'↓':'②'}</div><h2>${title}</h2><p>${detail}</p>${running?'':`<button class="primary submit" id="guidedAction">${!loaded?'Load samples →':t>0?'Resume run →':'Run electrophoresis →'}</button>`}<div class="locked-caption">Questions unlock after electrophoresis.</div></div>`;return;}const sc=scenarios[current],n=sc.questions.length,i=st.index;const correct=st.answers.reduce((a,v,j)=>a+(sc.questions[j].options[v]===sc.questions[j].correctAnswer),0);
+if(i>=n){$('quiz').innerHTML=`<div class="eyebrow">Investigation complete</div><h2>Evidence examined.</h2><div class="score">${correct}<span style="font-size:22px;color:#7c8090"> / ${n}</span></div><p class="summary-copy">Correct on your first check. Revisit the explanations or move to the next investigation.</p><button class="primary submit" id="nextModule">${keys.indexOf(current)<2?'Next investigation →':'Return to crime scene'}</button><button class="quiet submit" id="review">Review answers</button><button class="quiet submit" id="retry">Try questions again</button>`;return;}
+const q=sc.questions[i],answered=st.answers[i]!==undefined;if(answered){choice=st.answers[i];submitted=true}const isCorrect=q.options[choice]===q.correctAnswer;
+$('quiz').innerHTML=`<div class="qmeta"><span>Question ${i+1} of ${n}</span><span>${Math.round(st.answers.length/n*100)}% explored</span></div><div class="qtrack">${sc.questions.map((_,j)=>`<i class="${j<st.answers.length?'done':''}"></i>`).join('')}</div><p class="question" id="question">${esc(q.question)}</p><div class="options" role="group" aria-labelledby="question">${q.options.map((o,j)=>`<button class="option ${choice===j?'chosen':''} ${submitted&&o===q.correctAnswer?'correct':''} ${submitted&&choice===j&&!isCorrect?'wrong':''}" data-option="${j}" aria-pressed="${choice===j}" ${submitted?'disabled':''}><span class="letter">${String.fromCharCode(65+j)}</span><span>${esc(o)}</span></button>`).join('')}</div>${submitted?`<div class="feedback" role="status"><b>${isCorrect?'That fits the evidence.':'Take another look at the evidence.'}</b>${esc(q.explanation)}</div><button class="primary submit" id="nextQuestion">${i===n-1?'Finish investigation':'Next question →'}</button>`:`<button class="primary submit" id="check" ${choice===null?'disabled':''}>Check answer</button>`}<details class="hint"><summary>A clue for reading the gel</summary><p>${current==='paternity'?'Start with the child’s bands. Find those that also appear in the mother’s lane. Look for the remaining child bands in each potential father’s lane.':current==='fragmentLength'?'The ladder contains DNA pieces with known lengths. Compare a sample band’s height with the ladder bands. A lower band has traveled farther and contains shorter DNA pieces.':'Compare every band in the crime scene lane with each suspect’s bands. A matching sample must have all the same band positions, with no extra bands.'}</p></details>`;}
+$('nav').onclick=e=>{const b=e.target.closest('[data-scenario]');if(b)scenario(b.dataset.scenario)};
+$('heads').onclick=e=>{const b=e.target.closest('[data-lane]');if(!b)return;const i=+b.dataset.lane;inspection=null;if(selected.includes(i))selected=selected.filter(x=>x!==i);else{if(selected.length===2)selected.shift();selected.push(i)}buildGel()};
+$('lanes').onclick=e=>{const b=e.target.closest('.band');if(!b||running)return;inspection={lane:+b.dataset.lane,bp:+b.dataset.bp};update()};
+function freshSamples(){const old=state().seed;let seed=newSeed();if(seed===old)seed=seed===4294967295?1:seed+1;progress[current]={seed,answers:[],index:0};scenario(current)}
+$('run').onclick=()=>{if(state().ran)return;if(!loaded){loaded=true;update();quiz();return}running=!running;inspection=null;update();quiz()};
+$('resetGel').onclick=freshSamples;
+$('time').oninput=e=>{if(!state().ran)return;running=false;t=+e.target.value;update()};$('sizes').onchange=update;$('matches').onchange=update;
+$('quiz').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='guidedAction'){$('run').onclick();return}if(!state().ran)return;const st=state();if(b.dataset.option!==undefined&&!submitted){choice=+b.dataset.option;quiz();return}if(b.id==='check'&&choice!==null&&!submitted){st.answers[st.index]=choice;submitted=true;save();nav();quiz();$('nextQuestion').focus()}if(b.id==='nextQuestion'){st.index++;choice=null;submitted=false;quiz();const target=$('quiz').querySelector('button');target?.focus()}if(b.id==='nextModule')scenario(keys[(keys.indexOf(current)+1)%3]);if(b.id==='review'){st.index=0;choice=null;submitted=false;quiz()}if(b.id==='retry'){progress[current]={seed:st.seed,answers:[],index:0,ran:true};choice=null;submitted=false;save();nav();quiz()}};
+$('clear').onclick=()=>$('resetDialog').showModal();$('cancelReset').onclick=()=>$('resetDialog').close();$('confirmReset').onclick=()=>{progress={};save();$('resetDialog').close();scenario('crimeScene')};
+let fitQueued=false;
+function fitSoon(){if(fitQueued)return;fitQueued=true;requestAnimationFrame(()=>{fitQueued=false;fitScreen()})}
+function fitScreen(){
+ // Fit the panels to the viewport without scaling down their text.
+ const screen=$('screen');screen.style.transform='';screen.style.width='';
+ document.body.style.height='';document.body.style.overflow='';
+}
+window.addEventListener('resize',fitSoon);document.addEventListener('toggle',fitSoon,true);
+scenario(current);
+</script></body></html>
