@@ -1057,9 +1057,9 @@ const STEPS = [
 const BONUS = {
     action: 'https://docs.google.com/forms/d/e/1FAIpQLScdMNPw91p6_vSG7Q-4DrS0ASwEvCFG_vU1zrY7ogslEBy1_Q/formResponse',
     claim: { id: 'entry.967474911', value: 'YES!' },   // "Want two points extra credit?" (multiple choice)
-    name: '',                                           // short answer: student's first & last name
-    block: '',                                          // short answer: class block
-    proof: ''                                           // short answer: completion summary (filled in automatically)
+    name: 'entry.336965874',                            // short answer: student's first & last name
+    block: 'entry.498908952',                           // short answer: class block
+    proof: 'entry.51906330'                             // short answer: completion summary (filled in automatically)
 };
 function unfinishedSteps() {
     return STEPS.map((s, i) => ({ s, i })).filter(({ s, i }) => {
