@@ -1056,7 +1056,7 @@ const STEPS = [
    Field IDs come from the form's "Get pre-filled link". Leave an ID empty to skip that field. */
 const BONUS = {
     action: 'https://docs.google.com/forms/d/e/1FAIpQLScdMNPw91p6_vSG7Q-4DrS0ASwEvCFG_vU1zrY7ogslEBy1_Q/formResponse',
-    claim: { id: 'entry.967474911', value: 'YES!' },   // "Want two points extra credit?" (multiple choice)
+    claim: { id: 'entry.967474911', value: 'YES!' },   // "Want 3 points extra credit?" (multiple choice)
     name: 'entry.336965874',                            // short answer: student's first & last name
     block: 'entry.498908952',                           // short answer: class block
     proof: 'entry.51906330'                             // short answer: completion summary (filled in automatically)
@@ -1090,7 +1090,7 @@ function bonusHTML() {
     }
     return `<div class="bonus" id="bonus">
         <div class="bonus-h">🎉 Bonus unlocked!</div>
-        <p>You finished the <b>entire</b> lesson, so you’ve earned <b>2 points of extra credit</b>. Enter your name to claim it. You can only claim it once, so check your spelling!</p>
+        <p>You finished the <b>entire</b> lesson, so you’ve earned <b>3 points of extra credit</b>. Enter your name to claim it. You can only claim it once, so check your spelling!</p>
         <form class="claim" id="claimForm" novalidate>
             <label>First &amp; last name<input id="claimName" type="text" autocomplete="name" maxlength="60" required placeholder="e.g. Maria Lopez"></label>
             <label>Block<input id="claimBlock" type="text" maxlength="10" required placeholder="e.g. 3"></label>
