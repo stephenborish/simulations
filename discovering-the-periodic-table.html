@@ -1454,7 +1454,10 @@ document.addEventListener('click', ev => {
         case 'part': state.part = v; state.partsSeen.add(v); renderLesson(); break;
         case 'cat': case 'fam': {
             const set = act === 'cat' ? state.catOn : state.famOn, mode = act === 'cat' ? 'category' : 'family';
-            if (state.mode !== mode || state.full) { setMode(mode); if (state.full) { set.clear(); } }
+            // Coming from the full-color view every chip shows as on, so start from "all on" before toggling
+            const wasFull = state.mode === mode && state.full;
+            if (state.mode !== mode || state.full) setMode(mode);
+            if (wasFull) { set.clear(); Object.keys(act === 'cat' ? CAT : FAM).forEach(k => set.add(k)); }
             set.has(v) ? set.delete(v) : set.add(v);
             setFocus(null);
             paint(true); renderLesson();
