@@ -2,803 +2,1665 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Discovering the Periodic Table</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
-
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-    body { font-family: 'Inter', sans-serif; }
-    
-    html, body { margin: 0; height: 100%; }
-    body { height: 100dvh; }
-    body > div, .main-container { min-width: 0; min-height: 0; }
-    #tableScaleWrapper { flex-shrink: 0; transform-origin: center; }
-
-    /* Main Container */
-    .main-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        padding: 20px;
-        height: 100%;
-        width: 100%;
+    :root {
+        --bg: #F4F5FA;
+        --panel: #FFFFFF;
+        --ink: #1D2233;
+        --ink2: #4D5570;
+        --ink3: #858CA5;
+        --line: #E2E5EE;
+        --accent: #4F46E5;
+        --accent-ink: #3730A3;
+        --accent-soft: #EEF0FF;
+        --amber: #F59E0B;
+        --stair: #E11D48;
+        --cell: 62px;
+        --gap: 4px;
     }
-
-    /* Grid Setup */
-    .periodic-grid {
-        display: grid;
-        grid-template-columns: repeat(18, minmax(45px, 1fr)); 
-        grid-template-rows: repeat(7, minmax(45px, 1fr));
-        gap: 6px; 
-        width: fit-content;
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+        font-family: 'Lexend', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
     }
-    
-    /* Cell Styling */
-    .cell { 
-        aspect-ratio: 1/1; 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        justify-content: center;
-        border: 1px solid #cbd5e1;
-        background-color: white;
-        border-radius: 6px;
-        cursor: default;
-        position: relative;
-        transition: all 0.2s ease; /* Smoother transition for color changes */
-        user-select: none;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    button { font-family: inherit; }
+    b, strong { font-weight: 600; }
+    .ic { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ---------- App frame ---------- */
+    .app { display: grid; grid-template-rows: auto 1fr; height: 100vh; height: 100dvh; }
+    .top {
+        display: flex; align-items: center; gap: 18px;
+        padding: 10px 20px; background: var(--panel);
+        border-bottom: 1px solid var(--line); position: relative; z-index: 30;
     }
-    
-    .cell:hover { 
-        transform: scale(1.35); 
-        z-index: 50; 
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); 
-        border-color: #3b82f6;
+    .brand { display: flex; align-items: center; gap: 12px; flex: none; }
+    .logo {
+        width: 40px; height: 40px; border-radius: 10px; background: var(--accent); color: #fff;
+        display: grid; place-items: center; position: relative; font-weight: 700; font-size: 17px;
+        box-shadow: 0 4px 12px rgba(79,70,229,.3);
     }
+    .logo small { position: absolute; top: 3px; left: 5px; font-size: 8px; font-weight: 500; opacity: .8; }
+    .brand h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+    .brand p { margin: 1px 0 0; font-size: 12px; color: var(--ink3); }
+    .steps { display: flex; gap: 4px; flex: 1; justify-content: flex-end; overflow-x: auto; scrollbar-width: none; }
+    .steps::-webkit-scrollbar { display: none; }
+    .stp {
+        all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 7px; flex: none;
+        height: 34px; padding: 0 6px; border-radius: 999px; cursor: pointer; color: var(--ink3);
+        font-size: 13px; transition: background .2s;
+    }
+    .stp:hover { background: #F1F2F8; }
+    .stp:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+    .stp .dot {
+        width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+        background: #EDEFF6; color: var(--ink2); font-size: 12px; font-weight: 600; transition: all .25s;
+    }
+    .stp.done .dot { background: #DCF5E6; color: #1E8048; }
+    .stp .lbl { display: none; white-space: nowrap; }
+    .stp[aria-current="step"] { background: var(--accent-soft); color: var(--accent-ink); padding-right: 12px; }
+    .stp[aria-current="step"] .dot { background: var(--accent); color: #fff; }
+    .stp[aria-current="step"] .lbl { display: inline; font-weight: 600; }
+    .progress { position: absolute; left: 0; bottom: -1px; height: 3px; background: var(--accent); border-radius: 0 3px 3px 0; transition: width .5s cubic-bezier(.2,.8,.2,1); }
 
-    /* Specific Visual Markers */
-    .stair-r { border-right: 3px solid #dc2626 !important; } 
-    .stair-b { border-bottom: 3px solid #dc2626 !important; }
+    .main { display: grid; grid-template-columns: minmax(360px, 420px) 1fr; min-height: 0; }
 
-    /* Animations */
-    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    /* ---------- Lesson panel ---------- */
+    .lesson { display: flex; flex-direction: column; min-height: 0; background: var(--panel); border-right: 1px solid var(--line); position: relative; z-index: 20; }
+    .lesson-body { flex: 1; overflow-y: auto; padding: 24px 26px 32px; scroll-behavior: smooth; }
+    .lesson-body > * + * { margin-top: 16px; }
+    .eyebrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); }
+    .lesson h2 { font-size: 25px; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; margin: 8px 0 0; }
+    .lesson h3 { font-size: 15px; font-weight: 600; margin: 22px 0 0; }
+    .lesson p { margin: 0; line-height: 1.6; color: var(--ink2); font-size: 15px; }
+    .lesson p b { color: var(--ink); }
+    .lead { font-size: 16px !important; }
+    .fade-in { animation: fadeUp .4s ease-out both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+    .ws {
+        display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+        background: #FFF3D1; color: #7A4F00; border: 1px solid #F3D27E; border-radius: 999px;
+        padding: 3px 10px; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none;
+    }
+    .ws.sm { padding: 1px 8px; font-size: 11px; }
+    .callout { border-radius: 14px; padding: 13px 15px; background: var(--accent-soft); border: 1px solid #DCE0FF; font-size: 14px; line-height: 1.55; color: var(--ink2); }
+    .callout b { color: var(--ink); }
+    .callout .h { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 4px; }
+    .callout.ws-call { background: #FFFAEA; border-color: #F3D98F; }
+    .callout.ws-call .h { color: #8A5A00; }
+    .callout.soft { background: #F6F7FB; border-color: var(--line); }
+    .callout.win { background: #ECFAF2; border-color: #A9E5C2; }
+    .callout.win .h { color: #1E8048; }
+
+    .goal { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink2); }
+    .goal-bar { flex: 1; height: 6px; background: #EDEFF6; border-radius: 999px; overflow: hidden; }
+    .goal-bar i { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width .4s cubic-bezier(.2,.8,.2,1); }
+    .goal.done .goal-bar i { background: #22A35A; }
+    .goal.done { color: #1E8048; font-weight: 600; }
+
+    .btn {
+        all: unset; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer;
+        transition: transform .12s, box-shadow .2s, background .2s; text-align: center;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .btn.primary { background: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(79,70,229,.32); }
+    .btn.primary:hover { background: #4338CA; }
+    .btn.ghost { background: #EFF1F7; color: var(--ink); }
+    .btn.ghost:hover { background: #E4E7F1; }
+    .btn.lg { padding: 13px 22px; font-size: 15px; }
+    .btn.sm { padding: 6px 11px; font-size: 12.5px; border-radius: 9px; }
+    .btn[disabled] { opacity: .4; pointer-events: none; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+    /* Toggle cards ("paint" buttons) */
+    .togs { display: grid; gap: 9px; }
+    .tog {
+        all: unset; box-sizing: border-box; display: flex; gap: 13px; align-items: center; width: 100%;
+        padding: 11px 13px; border-radius: 14px; border: 1.5px solid var(--line); background: #fff; cursor: pointer;
+        transition: border-color .2s, background .2s, transform .12s;
+    }
+    .tog:hover { border-color: var(--e); }
+    .tog:active { transform: scale(.985); }
+    .tog:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .tog .sw {
+        width: 36px; height: 36px; border-radius: 10px; flex: none; border: 2px dashed var(--e);
+        display: grid; place-items: center; color: var(--e); transition: background .25s;
+    }
+    .tog .sw .ic { opacity: 0; }
+    .tog[aria-pressed="true"] { border-color: var(--e); background: color-mix(in srgb, var(--c) 28%, white); }
+    .tog[aria-pressed="true"] .sw { background: var(--c); border-style: solid; color: var(--ink); }
+    .tog[aria-pressed="true"] .sw .ic { opacity: 1; }
+    .tog .t { font-weight: 600; font-size: 15px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+    .tog .t small { font-weight: 500; font-size: 12px; color: var(--ink3); }
+    .tog .d { font-size: 13px; color: var(--ink2); line-height: 1.45; margin-top: 2px; }
+
+    /* Big hint cards for groups / periods */
+    .axis-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .axis {
+        all: unset; box-sizing: border-box; border-radius: 16px; padding: 14px; cursor: pointer; border: 2px solid transparent;
+        transition: transform .12s, border-color .2s;
+    }
+    .axis:active { transform: scale(.98); }
+    .axis:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .axis.g { background: #E8F1FF; color: #1E3A8A; }
+    .axis.p { background: #FFEBEE; color: #9F1239; }
+    .axis[aria-pressed="true"].g { border-color: #3B82F6; }
+    .axis[aria-pressed="true"].p { border-color: #F43F5E; }
+    .axis .pic { height: 54px; display: flex; gap: 4px; margin-bottom: 10px; }
+    .axis.g .pic span { flex: 1; border-radius: 4px; background: currentColor; opacity: .25; }
+    .axis.g .pic span:nth-child(2) { opacity: .7; animation: barY 2.4s ease-in-out infinite; }
+    .axis.p .pic { flex-direction: column; }
+    .axis.p .pic span { flex: 1; border-radius: 4px; background: currentColor; opacity: .25; }
+    .axis.p .pic span:nth-child(2) { opacity: .7; animation: barX 2.4s ease-in-out infinite; }
+    @keyframes barY { 0%,100% { transform: scaleY(.85); } 50% { transform: scaleY(1); } }
+    @keyframes barX { 0%,100% { transform: scaleX(.92); } 50% { transform: scaleX(1); } }
+    .axis b { display: block; font-size: 16px; }
+    .axis span.s { display: block; font-size: 12.5px; line-height: 1.45; margin-top: 3px; opacity: .85; }
+
+    /* Element square anatomy */
+    .anatomy { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; }
+    .big-tile {
+        width: 150px; height: 150px; border-radius: 18px; background: #FFD99A; border: 2px solid #E3A33B;
+        position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        box-shadow: 0 10px 24px rgba(227,163,59,.28);
+    }
+    .hot {
+        all: unset; cursor: pointer; border-radius: 8px; padding: 0 6px; transition: background .2s, box-shadow .2s;
+        outline: 2px dashed transparent; outline-offset: 2px;
+    }
+    .hot:hover { background: rgba(255,255,255,.55); }
+    .hot.on { background: #fff; box-shadow: 0 0 0 3px var(--accent); }
+    .hot:focus-visible { outline-color: var(--accent); }
+    .hot.unseen { animation: pulse 1.8s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(79,70,229,.0); } 50% { box-shadow: 0 0 0 4px rgba(79,70,229,.35); } }
+    .hot-num { position: absolute; top: 9px; left: 8px; font-size: 18px; font-weight: 600; }
+    .hot-sym { font-size: 54px; font-weight: 700; line-height: 1.05; margin-top: 8px; }
+    .hot-name { font-size: 14px; font-weight: 500; margin-top: 2px; }
+    .anat-info { font-size: 14px; line-height: 1.55; color: var(--ink2); }
+    .anat-info b.k { display: block; font-size: 16px; color: var(--ink); margin-bottom: 4px; }
+
+    /* Valence chips */
+    .vgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .vchip {
+        all: unset; box-sizing: border-box; border-radius: 14px; border: 1.5px solid var(--line); padding: 10px 6px 9px;
+        text-align: center; cursor: pointer; background: #fff; transition: all .2s;
+    }
+    .vchip:hover { border-color: var(--accent); }
+    .vchip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .vchip .g { font-size: 11.5px; color: var(--ink3); font-weight: 600; }
+    .vchip .v { font-size: 24px; font-weight: 700; color: var(--ink3); line-height: 1.25; }
+    .vchip .dots { height: 8px; display: flex; gap: 3px; justify-content: center; margin-top: 2px; }
+    .vchip .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
+    .vchip.on { background: var(--accent-soft); border-color: #B9BEFB; }
+    .vchip.on .v { color: var(--accent-ink); }
+    .vchip.on .v.sm { font-size: 15px; line-height: 1.95; }
+    .vchip.cur { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,70,229,.18); }
+    .vchip.wide { grid-column: span 1; }
+
+    /* Diatomic */
+    .seven {
+        border-radius: 18px; padding: 18px; color: #fff;
+        background: linear-gradient(135deg, #4F46E5, #6D28D9); box-shadow: 0 12px 28px rgba(79,70,229,.3);
+        display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center;
+    }
+    .seven .big { font-size: 72px; font-weight: 800; line-height: .9; opacity: .95; }
+    .seven p { color: #E0E2FF !important; font-size: 14px !important; }
+    .seven p b { color: #fff !important; }
+    .seven .btn { grid-column: 1 / -1; background: #fff; color: var(--accent-ink); }
+    .pairs { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pair {
+        min-width: 54px; padding: 8px 10px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 17px;
+        border: 1.5px dashed #C9CDE0; color: var(--ink3); transition: all .3s;
+    }
+    .pair.on { border: 1.5px solid #3730A3; background: #6366F1; color: #fff; animation: pop .45s; }
+
+    /* Detective + navigator */
+    .field {
+        display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 54px; border-radius: 14px;
+        border: 2px solid var(--line); background: #fff; color: var(--ink3); transition: border-color .2s, box-shadow .2s;
+    }
+    .field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(79,70,229,.14); color: var(--accent); }
+    .field input { all: unset; flex: 1; font-size: 19px; font-weight: 500; color: var(--ink); min-width: 0; }
+    .field input::placeholder { color: #A7ADC2; font-weight: 400; }
+    .det-card { display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: stretch; border: 1.5px solid var(--line); border-radius: 16px; padding: 12px; background: #fff; }
+    .det-tile { border-radius: 12px; border: 2px solid var(--e); background: var(--c); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 96px; }
+    .det-tile .n { position: absolute; top: 5px; left: 8px; font-size: 12px; font-weight: 500; }
+    .det-tile .s { font-size: 36px; font-weight: 700; line-height: 1; }
+    .det-rows { margin: 0; display: grid; gap: 6px; align-content: center; }
+    .det-rows div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--line); padding-bottom: 5px; }
+    .det-rows div:last-child { border-bottom: 0; padding-bottom: 0; }
+    .det-rows dt { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink3); font-weight: 600; align-self: center; }
+    .det-rows dd { margin: 0; font-weight: 600; font-size: 15px; text-align: right; }
+    .why { font-size: 13px !important; }
+    .warn { font-size: 13px; color: #9A3412; background: #FFF1E6; border: 1px solid #FCD3B4; border-radius: 10px; padding: 8px 11px; }
+    .hist { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--ink3); }
+    .mini {
+        all: unset; cursor: pointer; min-width: 30px; height: 30px; padding: 0 6px; box-sizing: border-box; border-radius: 8px;
+        display: inline-grid; place-items: center; font-weight: 700; font-size: 13px; color: var(--ink);
+        background: var(--c, #fff); border: 1.5px solid var(--e, var(--line)); transition: transform .12s;
+    }
+    .mini:hover { transform: translateY(-2px); }
+    .mini:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .filters label { display: grid; gap: 5px; font-size: 12px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .05em; }
+    .filters select {
+        font: inherit; font-size: 15px; font-weight: 500; color: var(--ink); text-transform: none; letter-spacing: 0;
+        height: 46px; padding: 0 12px; border-radius: 12px; border: 2px solid var(--line); background: #fff; cursor: pointer;
+    }
+    .filters select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(79,70,229,.14); }
+    .filters .full { grid-column: 1 / -1; }
+    .typeseg { display: grid; grid-template-columns: .75fr 1fr 1.1fr 1.15fr; gap: 5px; }
+    .typeseg button {
+        all: unset; box-sizing: border-box; text-align: center; cursor: pointer; height: 42px; border-radius: 11px;
+        border: 2px solid var(--line); font-size: 12.5px; font-weight: 600; color: var(--ink2); background: #fff; white-space: nowrap; padding: 0 4px;
+        text-transform: none; letter-spacing: 0; display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .typeseg button i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); border: 1.5px solid var(--e); }
+    .typeseg button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
+    .typeseg button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .matches { border: 1.5px solid var(--line); border-radius: 14px; padding: 12px; background: #fff; }
+    .matches .cnt { font-size: 13px; color: var(--ink2); margin-bottom: 8px; }
+    .matches .cnt b { color: var(--ink); }
+
+    /* Quick checks */
+    .qc { border: 1.5px solid var(--line); border-radius: 16px; padding: 14px 15px; background: #fff; }
+    .qc .h { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--ink3); margin-bottom: 6px; }
+    .qc .q { font-weight: 600; font-size: 15px; margin-bottom: 10px; line-height: 1.45; }
+    .qc .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .qc .opt {
+        all: unset; box-sizing: border-box; padding: 9px 14px; border-radius: 11px; border: 1.5px solid var(--line);
+        cursor: pointer; font-size: 14px; font-weight: 500; transition: all .15s; background: #fff;
+    }
+    .qc .opt:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .qc .opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .qc .opt.right { background: #E6F8EE; border-color: #2FA563; color: #146238; }
+    .qc .opt.wrong { background: #FDECEC; border-color: #E06464; color: #992B2B; animation: shake .35s; }
+    .qc.solved .opt:not(.right) { opacity: .45; pointer-events: none; }
+    .qc .fb { margin-top: 10px; font-size: 13.5px; line-height: 1.5; display: flex; gap: 8px; }
+    .qc .fb.ok { color: #146238; }
+    .qc .fb.no { color: #992B2B; }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+    /* Welcome */
+    .howto { display: grid; gap: 8px; }
+    .how { display: flex; gap: 12px; align-items: flex-start; padding: 11px 13px; border-radius: 14px; background: #F6F7FB; font-size: 14px; line-height: 1.5; color: var(--ink2); }
+    .how b { color: var(--ink); }
+    .how .e { font-size: 20px; line-height: 1.2; }
+    .mission { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; }
+    .mission button {
+        all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 11px; padding: 8px 10px;
+        border-radius: 12px; cursor: pointer; font-size: 14px; transition: background .15s;
+    }
+    .mission button:hover { background: #F3F4F9; }
+    .mission button:focus-visible { outline: 3px solid var(--accent); }
+    .mission .mi { width: 26px; height: 26px; border-radius: 50%; background: #EDEFF6; color: var(--ink2); display: grid; place-items: center; font-size: 12px; font-weight: 600; flex: none; }
+    .mission .done .mi { background: #DCF5E6; color: #1E8048; }
+    .mission .mt { flex: 1; font-weight: 500; }
+
+    /* Review sheet */
+    .sheet { border: 1.5px solid var(--line); border-radius: 16px; overflow: hidden; }
+    .sheet div { display: grid; grid-template-columns: 110px 1fr; gap: 10px; padding: 10px 13px; font-size: 13.5px; line-height: 1.45; color: var(--ink2); }
+    .sheet div + div { border-top: 1px solid var(--line); }
+    .sheet dt, .sheet .k { font-weight: 600; color: var(--ink); }
+    .score { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; background: linear-gradient(135deg, #ECFAF2, #EEF0FF); }
+    .score .big { font-size: 34px; font-weight: 800; color: var(--accent-ink); }
+
+    /* End-of-lesson bonus */
+    .bonus {
+        border-radius: 18px; padding: 16px; border: 2px solid #F3C74F;
+        background: linear-gradient(160deg, #FFF8DC, #FFF 55%); box-shadow: 0 10px 28px rgba(227,163,59,.22);
+        animation: bonusIn .6s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .bonus > * + * { margin-top: 10px; }
+    .bonus-h { font-size: 19px; font-weight: 700; }
+    .bonus.locked { border: 1.5px dashed #C9CDE0; background: #F8F9FC; box-shadow: none; }
+    .claim { display: grid; gap: 10px; }
+    .claim label { display: grid; gap: 5px; font-size: 12px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .05em; }
+    .claim input {
+        font: inherit; font-size: 16px; font-weight: 500; color: var(--ink); text-transform: none; letter-spacing: 0;
+        height: 48px; padding: 0 14px; border-radius: 12px; border: 2px solid var(--line); background: #fff;
+    }
+    .claim input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(79,70,229,.14); }
+    .claim-err { font-size: 13px; color: #992B2B; min-height: 0; }
+    .claim-err:empty { display: none; }
+    .todo { display: grid; gap: 6px; }
+    .todo-item {
+        all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 12px;
+        background: #fff; border: 1.5px solid var(--line); cursor: pointer; font-size: 14px; transition: border-color .15s;
+    }
+    .todo-item:hover { border-color: var(--accent); }
+    .todo-item:focus-visible { outline: 3px solid var(--accent); }
+    .todo-item > span:nth-child(2) { flex: 1; }
+    .todo-item small { display: block; font-size: 12px; color: var(--ink3); }
+    .todo-item .mi { width: 26px; height: 26px; border-radius: 50%; background: #EDEFF6; display: grid; place-items: center; font-size: 12px; font-weight: 600; flex: none; }
+    @keyframes bonusIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+
+    /* Lesson footer nav */
+    .lesson-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; border-top: 1px solid var(--line); background: #FAFBFE; }
+    .nextbtn { flex-direction: column; align-items: flex-end; gap: 0; padding: 8px 18px; min-width: 150px; }
+    .nextbtn .l1 { display: flex; align-items: center; gap: 6px; }
+    .nextbtn .l2 { font-size: 11px; font-weight: 400; opacity: .8; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nextbtn.glow { animation: glow 1.8s ease-in-out infinite; }
+    @keyframes glow { 0%,100% { box-shadow: 0 4px 14px rgba(79,70,229,.32); } 50% { box-shadow: 0 4px 14px rgba(79,70,229,.32), 0 0 0 6px rgba(79,70,229,.18); } }
+    .kbd { font-size: 11px; color: var(--ink3); }
+    .kbd kbd { font-family: inherit; font-size: 10.5px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; background: #fff; }
+
+    /* ---------- Stage (table side) ---------- */
+    .stage { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 12px 20px 0; }
+    .tb-label { font-size: 12px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink3); }
+    .seg { display: inline-flex; flex-wrap: wrap; background: #E8EAF3; border-radius: 12px; padding: 3px; gap: 2px; }
+    .seg button {
+        all: unset; padding: 7px 12px; border-radius: 9px; font-size: 13px; font-weight: 500; color: var(--ink2); cursor: pointer;
+        transition: background .15s, color .15s;
+    }
+    .seg button:hover { color: var(--ink); }
+    .seg button[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(20,25,50,.12); font-weight: 600; }
+    .seg button:focus-visible { outline: 3px solid var(--accent); }
+    .switch { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink2); cursor: pointer; user-select: none; }
+    .switch input { appearance: none; width: 34px; height: 20px; border-radius: 999px; background: #CDD1DF; position: relative; cursor: pointer; transition: background .2s; margin: 0; }
+    .switch input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+    .switch input:checked { background: var(--accent); }
+    .switch input:checked::after { transform: translateX(14px); }
+    .switch input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .tb-spacer { flex: 1; }
+
+    .table-area { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: flex-start; padding: 10px 16px; overflow: hidden; }
+    .sizer { margin: auto; flex: none; }
+    #tableScale { transform-origin: 0 0; }
+
+    .legend { padding: 0 20px 14px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; min-height: 48px; font-size: 13px; color: var(--ink2); }
+    .chip {
+        all: unset; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+        border: 1.5px solid var(--line); background: #fff; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s;
+    }
+    .chip:hover { border-color: var(--e); }
+    .chip:focus-visible { outline: 3px solid var(--accent); }
+    .chip .sw { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--e); background: var(--c); transition: background .2s; }
+    .chip[aria-pressed="false"] { color: var(--ink3); }
+    .chip[aria-pressed="false"] .sw { background: #fff; border-style: dashed; }
+    .chip.static { cursor: default; }
+    .stairkey { display: inline-flex; align-items: center; gap: 8px; }
+    .stairkey svg { width: 26px; height: 14px; }
+    .grad { display: inline-flex; border-radius: 6px; overflow: hidden; border: 1px solid #C9CCF2; }
+    .grad span { width: 26px; height: 22px; display: grid; place-items: center; font-size: 11px; font-weight: 600; }
+
+    /* ---------- Periodic table ---------- */
+    #tableScale { width: max-content; }
+    .ptable {
+        position: relative; display: grid; width: max-content;
+        grid-template-columns: 16px 26px repeat(18, var(--cell));
+        grid-template-rows: 18px 24px repeat(7, var(--cell)) 14px repeat(2, var(--cell));
+        gap: var(--gap);
+    }
+    .axis-t { font-size: 10.5px; font-weight: 700; letter-spacing: .14em; color: var(--ink3); text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+    .axis-t.g { grid-column: 3 / 21; grid-row: 1; justify-content: center; }
+    .axis-t.p { grid-column: 1; grid-row: 3 / 10; writing-mode: vertical-rl; transform: rotate(180deg); justify-content: center; }
+    .lab {
+        all: unset; display: grid; place-items: center; border-radius: 7px; font-size: 12px; font-weight: 600; color: var(--ink3);
+        cursor: pointer; transition: background .15s, color .15s;
+    }
+    .lab:hover { background: #E3E6F1; color: var(--ink); }
+    .lab.on { background: var(--ink); color: #fff; }
+    .lab:focus-visible { outline: 3px solid var(--accent); }
+    .el {
+        all: unset; box-sizing: border-box; position: relative; border-radius: 9px; cursor: pointer;
+        background: var(--fill, #fff); border: 1.5px solid var(--edge, #D9DDE8); color: var(--txt, var(--ink));
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        box-shadow: 0 1px 2px rgba(20,25,50,.05);
+        transition: background-color .4s ease var(--delay, 0s), border-color .4s ease var(--delay, 0s), color .3s ease var(--delay, 0s), opacity .3s, transform .16s, box-shadow .16s;
+    }
+    .el .num { position: absolute; top: 4px; left: 6px; font-size: 10px; font-weight: 500; opacity: .72; }
+    .el .sym { font-size: 21px; font-weight: 700; line-height: 1; margin-top: 5px; }
+    .el .nm { font-size: 8.5px; margin-top: 4px; max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .8; }
+    .hide-names .el .nm { display: none; }
+    .hide-names .el .sym { margin-top: 0; font-size: 23px; }
+    .el .badge {
+        position: absolute; top: 3px; right: 3px; min-width: 17px; height: 17px; padding: 0 3px; border-radius: 9px;
+        background: var(--amber); color: var(--ink); font-size: 10.5px; font-weight: 700; display: grid; place-items: center;
+        box-shadow: 0 1px 2px rgba(0,0,0,.2); animation: pop .35s;
+    }
+    .el .badge[hidden] { display: none; }
+    .el.dim { opacity: .14; }
+    .el.sel { box-shadow: 0 0 0 3px var(--accent), 0 8px 20px rgba(79,70,229,.35); z-index: 7; transform: scale(1.1); }
+    .el:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; z-index: 8; }
+    @media (hover: hover) {
+        .el:hover { transform: scale(1.2); z-index: 9; box-shadow: 0 10px 24px rgba(20,25,50,.25); opacity: 1; }
+    }
+    .el.pop { animation: pop .5s; }
+    .el.enter { animation: enter .55s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--in, 0ms); }
+    @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.32); } 100% { transform: scale(1); } }
+    @keyframes enter { from { opacity: 0; transform: translateY(8px) scale(.88); } to { opacity: 1; transform: none; } }
+    .ph { border: 1.5px dashed #C9CDDC; border-radius: 9px; display: grid; place-items: center; font-size: 10px; font-weight: 600; color: var(--ink3); text-align: center; line-height: 1.2; transition: opacity .3s; }
+    .flab { grid-column: 1 / 5; font-size: 11px; font-weight: 600; color: var(--ink3); display: flex; align-items: center; justify-content: flex-end; text-align: right; padding-right: 6px; line-height: 1.25; }
+    .dimmed-f .ph, .dimmed-f .flab { opacity: .3; }
+
+    .overlay { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 6; overflow: visible; }
+    #stairPath { fill: none; stroke: var(--stair); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; opacity: .5; transition: opacity .3s, stroke-width .3s; }
+    .stair-strong #stairPath { opacity: 1; stroke-width: 5; }
+    #sevenPath { fill: none; stroke: #FCD34D; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; opacity: 0; mix-blend-mode: multiply; }
+    #sevenPath.show { opacity: .9; }
+
+    /* Detail card sitting in the table's empty space */
+    .card {
+        grid-column: 5 / 15; grid-row: 3 / 6; z-index: 5; background: #fff; border: 1px solid var(--line); border-radius: 16px;
+        box-shadow: 0 6px 22px rgba(20,25,50,.08); padding: 12px 14px; display: flex; gap: 12px; align-items: center; overflow: hidden;
+    }
+    .card-empty { display: flex; gap: 16px; align-items: center; font-size: 15px; color: var(--ink2); line-height: 1.5; padding: 0 8px; }
+    .card-empty b { color: var(--ink); font-size: 18px; }
+    .card-empty .tap { font-size: 40px; animation: bob 2s ease-in-out infinite; }
+    @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    .card-tile {
+        width: 112px; height: 120px; flex: none; border-radius: 14px; position: relative; background: var(--c); border: 2px solid var(--e); color: var(--t, var(--ink));
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .card-tile .n { position: absolute; top: 7px; left: 10px; font-size: 14px; font-weight: 600; }
+    .card-tile .s { font-size: 44px; font-weight: 700; line-height: 1; margin-top: 6px; }
+    .card-tile .nm { font-size: 13px; font-weight: 500; margin-top: 4px; }
+    .facts { flex: 1; min-width: 0; }
+    .facts h4 { margin: 0 0 7px; font-size: 22px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .facts h4 small { font-size: 12px; font-weight: 500; color: var(--ink3); margin-left: 6px; }
+    .fgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .fact {
+        all: unset; box-sizing: border-box; border-radius: 9px; background: #F4F5FA; padding: 5px 8px; min-width: 0;
+        display: flex; flex-direction: column; gap: 1px;
+    }
+    button.fact { cursor: pointer; transition: background .15s; }
+    button.fact:hover { background: #E6E9F4; }
+    button.fact:focus-visible { outline: 3px solid var(--accent); }
+    .fact > span { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--ink3); }
+    .fact b { font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .fact b i { display: inline-block; vertical-align: -1px; margin-right: 5px; width: 10px; height: 10px; border-radius: 3px; background: var(--c); border: 1.5px solid var(--e); }
+    .fact.w2 { grid-column: span 2; }
+    .fact.w3 { grid-column: span 3; }
+    .fun { font-size: 12px; color: var(--ink2); margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .diagram { width: 148px; flex: none; text-align: center; }
+    .diagram svg { width: 140px; height: 140px; display: block; margin: 0 auto; }
+    .diagram .cap { font-size: 10.5px; color: var(--ink3); margin-top: -2px; line-height: 1.3; }
+    .diagram .cap b { color: #B45309; }
+    .varies { height: 140px; display: grid; place-items: center; }
+    .varies div { font-size: 12.5px; color: var(--ink2); line-height: 1.45; padding: 0 6px; }
+    .varies b { display: block; font-size: 26px; color: var(--ink3); }
+    .spin { transform-box: view-box; transform-origin: 50% 50%; animation: spin linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 1023px) {
+        .app { height: auto; min-height: 100vh; }
+        .main { grid-template-columns: 1fr; }
+        .stage { order: -1; border-bottom: 1px solid var(--line); }
+        .table-area { overflow-x: auto; }
+        .lesson { border-right: 0; }
+        .lesson-body { overflow: visible; }
+        .lesson-nav { position: sticky; bottom: 0; z-index: 25; }
+        .brand p { display: none; }
+        .kbd { display: none; }
+    }
+    @media (max-width: 560px) {
+        .top { padding: 8px 12px; gap: 10px; }
+        .brand > div:last-child { display: none; }
+        .stp[aria-current="step"] .lbl { display: none; }
+        .lesson-body { padding: 20px 16px 28px; }
+        .toolbar { padding: 10px 12px 0; }
+        .legend { padding: 0 12px 12px; }
+        .anatomy { grid-template-columns: 1fr; justify-items: center; }
+        .filters { grid-template-columns: 1fr; }
+        .vgrid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    }
 </style>
 </head>
-<body class="bg-slate-50 text-slate-800 h-screen flex flex-col overflow-hidden">
-
-<header class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center shadow-sm shrink-0 z-30">
-    <div class="flex items-center gap-3">
-        <div class="bg-indigo-600 text-white p-2 rounded-lg shadow-sm">
-            <span class="material-symbols-outlined text-2xl">science</span>
-        </div>
-        <div>
-            <h1 class="text-xl font-bold text-slate-800">Discovering the Periodic Table</h1>
-            <p class="text-xs text-slate-500 font-medium">Interactive Lesson</p>
-        </div>
-    </div>
-    <div class="flex items-center gap-4">
-        <div class="flex flex-col items-end">
-            <span class="text-xs text-slate-400 uppercase tracking-wider font-bold">Progress</span>
-            <div class="w-32 h-2 bg-slate-100 rounded-full mt-1 overflow-hidden">
-                <div class="h-full bg-indigo-600 rounded-full transition-all duration-500 ease-out" id="progressBar" style="width: 14%;"></div>
+<body>
+<div class="app">
+    <header class="top">
+        <div class="brand">
+            <div class="logo" aria-hidden="true"><small>1</small>Pt</div>
+            <div>
+                <h1>Discovering the Periodic Table</h1>
+                <p>Integrated Science 1 · Interactive lesson</p>
             </div>
         </div>
-    </div>
-</header>
+        <nav class="steps" id="stepper" aria-label="Lesson steps"></nav>
+        <div class="progress" id="progress"></div>
+    </header>
 
-<div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-
-    <div class="lg:w-[450px] w-full bg-white border-r border-slate-200 flex flex-col z-20 shadow-xl h-1/2 lg:h-full shrink-0">
-        <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6" id="lessonContainer">
+    <main class="main">
+        <aside class="lesson" aria-label="Lesson">
+            <div class="lesson-body" id="lesson" aria-live="polite"></div>
+            <div class="lesson-nav">
+                <button class="btn ghost" id="prevBtn" data-act="prev" title="Back (← key)">
+                    <svg class="ic" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg> Back
+                </button>
+                <button class="btn primary nextbtn" id="nextBtn" data-act="next" title="Next (→ key)"></button>
             </div>
+        </aside>
 
-        <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
-            <button class="flex items-center gap-2 px-4 py-2 text-slate-600 font-semibold hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" id="prevBtn" onclick="nav(-1)" disabled>
-                <span class="material-symbols-outlined">arrow_back</span> Back
-            </button>
-            <div class="flex gap-1.5" id="navDots">
-                </div>
-            <button class="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg shadow-md hover:bg-indigo-700 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed" id="nextBtn" onclick="nav(1)">
-                Next <span class="material-symbols-outlined">arrow_forward</span>
-            </button>
-        </div>
-    </div>
-
-    <div class="flex-1 bg-slate-100 relative overflow-hidden flex flex-col h-1/2 lg:h-full">
-        
-        <div class="absolute top-4 right-4 z-10 pointer-events-none">
-            <div class="bg-white/95 backdrop-blur shadow-lg border border-slate-200 rounded-xl p-4 w-64 pointer-events-auto transition-all duration-200 opacity-0 transform -translate-y-2" id="infoBox">
-                <div class="flex items-center gap-3 border-b border-slate-100 pb-2 mb-2">
-                    <div class="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-lg flex items-center justify-center text-indigo-700 font-bold text-lg" id="infoSymbol">H</div>
-                    <div>
-                        <h3 class="font-bold text-slate-800 leading-none" id="infoName">Hydrogen</h3>
-                        <div class="text-xs text-slate-500 mt-1">Atomic #<span id="infoNum">1</span></div>
+        <section class="stage" aria-label="Periodic table">
+            <div class="toolbar">
+                <span class="tb-label">Color by</span>
+                <div class="seg" id="modeSeg" role="group" aria-label="Color the table by"></div>
+                <span class="tb-spacer"></span>
+                <label class="switch"><input type="checkbox" id="namesToggle" checked> Names</label>
+                <button class="btn ghost sm" data-act="clear">
+                    <svg class="ic" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v5h5"/></svg> Clear
+                </button>
+            </div>
+            <div class="table-area" id="tableArea">
+                <div class="sizer" id="sizer">
+                    <div id="tableScale">
+                        <div class="ptable" id="ptable" role="grid" aria-label="Periodic table of the elements"></div>
                     </div>
                 </div>
-                <div class="text-sm text-slate-600 space-y-1" id="infoDetails"></div>
             </div>
-        </div>
-
-        <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur p-3 rounded-lg shadow border border-slate-200 text-xs hidden z-10" id="legendContainer">
-            <div class="font-bold mb-2 text-slate-500 uppercase tracking-wider">Classification Key</div>
-            <div class="space-y-1.5 font-medium text-slate-700">
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-yellow-300 border border-yellow-500 rounded"></div> Metals</div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-green-300 border border-green-500 rounded"></div> Non-Metals</div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-purple-300 border border-purple-500 rounded"></div> Noble Gases</div>
-            </div>
-        </div>
-
-        <div class="main-container bg-slate-100">
-            <div class="transform origin-center" id="tableScaleWrapper">
-                <div class="periodic-grid select-none" id="mainGrid">
-                    </div>
-            </div>
-        </div>
-    </div>
+            <div class="legend" id="legend"></div>
+        </section>
+    </main>
 </div>
 
 <script>
-    // --- Data Engine ---
-    const elementsData = [
-        {n:1, s:'H', name:'Hydrogen', g:1, p:1, cat:'nonmetal'},
-        {n:2, s:'He', name:'Helium', g:18, p:1, cat:'noble'},
-        // Period 2
-        {n:3, s:'Li', name:'Lithium', g:1, p:2, cat:'metal'},
-        {n:4, s:'Be', name:'Beryllium', g:2, p:2, cat:'metal'},
-        {n:5, s:'B', name:'Boron', g:13, p:2, cat:'nonmetal'},
-        {n:6, s:'C', name:'Carbon', g:14, p:2, cat:'nonmetal'},
-        {n:7, s:'N', name:'Nitrogen', g:15, p:2, cat:'nonmetal'},
-        {n:8, s:'O', name:'Oxygen', g:16, p:2, cat:'nonmetal'},
-        {n:9, s:'F', name:'Fluorine', g:17, p:2, cat:'nonmetal'},
-        {n:10, s:'Ne', name:'Neon', g:18, p:2, cat:'noble'},
-        // Period 3
-        {n:11, s:'Na', name:'Sodium', g:1, p:3, cat:'metal'},
-        {n:12, s:'Mg', name:'Magnesium', g:2, p:3, cat:'metal'},
-        {n:13, s:'Al', name:'Aluminum', g:13, p:3, cat:'metal'},
-        {n:14, s:'Si', name:'Silicon', g:14, p:3, cat:'nonmetal'},
-        {n:15, s:'P', name:'Phosphorus', g:15, p:3, cat:'nonmetal'},
-        {n:16, s:'S', name:'Sulfur', g:16, p:3, cat:'nonmetal'},
-        {n:17, s:'Cl', name:'Chlorine', g:17, p:3, cat:'nonmetal'},
-        {n:18, s:'Ar', name:'Argon', g:18, p:3, cat:'noble'},
-        // Period 4
-        {n:19, s:'K', name:'Potassium', g:1, p:4, cat:'metal'},
-        {n:20, s:'Ca', name:'Calcium', g:2, p:4, cat:'metal'},
-        {n:21, s:'Sc', name:'Scandium', g:3, p:4, cat:'metal'},
-        {n:22, s:'Ti', name:'Titanium', g:4, p:4, cat:'metal'},
-        {n:23, s:'V', name:'Vanadium', g:5, p:4, cat:'metal'},
-        {n:24, s:'Cr', name:'Chromium', g:6, p:4, cat:'metal'},
-        {n:25, s:'Mn', name:'Manganese', g:7, p:4, cat:'metal'},
-        {n:26, s:'Fe', name:'Iron', g:8, p:4, cat:'metal'},
-        {n:27, s:'Co', name:'Cobalt', g:9, p:4, cat:'metal'},
-        {n:28, s:'Ni', name:'Nickel', g:10, p:4, cat:'metal'},
-        {n:29, s:'Cu', name:'Copper', g:11, p:4, cat:'metal'},
-        {n:30, s:'Zn', name:'Zinc', g:12, p:4, cat:'metal'},
-        {n:31, s:'Ga', name:'Gallium', g:13, p:4, cat:'metal'},
-        {n:32, s:'Ge', name:'Germanium', g:14, p:4, cat:'nonmetal'},
-        {n:33, s:'As', name:'Arsenic', g:15, p:4, cat:'nonmetal'},
-        {n:34, s:'Se', name:'Selenium', g:16, p:4, cat:'nonmetal'},
-        {n:35, s:'Br', name:'Bromine', g:17, p:4, cat:'nonmetal'},
-        {n:36, s:'Kr', name:'Krypton', g:18, p:4, cat:'noble'},
-        // Period 5
-        {n:37, s:'Rb', name:'Rubidium', g:1, p:5, cat:'metal'},
-        {n:38, s:'Sr', name:'Strontium', g:2, p:5, cat:'metal'},
-        {n:39, s:'Y', name:'Yttrium', g:3, p:5, cat:'metal'},
-        {n:40, s:'Zr', name:'Zirconium', g:4, p:5, cat:'metal'},
-        {n:41, s:'Nb', name:'Niobium', g:5, p:5, cat:'metal'},
-        {n:42, s:'Mo', name:'Molybdenum', g:6, p:5, cat:'metal'},
-        {n:43, s:'Tc', name:'Technetium', g:7, p:5, cat:'metal'},
-        {n:44, s:'Ru', name:'Ruthenium', g:8, p:5, cat:'metal'},
-        {n:45, s:'Rh', name:'Rhodium', g:9, p:5, cat:'metal'},
-        {n:46, s:'Pd', name:'Palladium', g:10, p:5, cat:'metal'},
-        {n:47, s:'Ag', name:'Silver', g:11, p:5, cat:'metal'},
-        {n:48, s:'Cd', name:'Cadmium', g:12, p:5, cat:'metal'},
-        {n:49, s:'In', name:'Indium', g:13, p:5, cat:'metal'},
-        {n:50, s:'Sn', name:'Tin', g:14, p:5, cat:'metal'},
-        {n:51, s:'Sb', name:'Antimony', g:15, p:5, cat:'nonmetal'},
-        {n:52, s:'Te', name:'Tellurium', g:16, p:5, cat:'nonmetal'},
-        {n:53, s:'I', name:'Iodine', g:17, p:5, cat:'nonmetal'},
-        {n:54, s:'Xe', name:'Xenon', g:18, p:5, cat:'noble'},
-        // Period 6 (Simplified)
-        {n:55, s:'Cs', name:'Cesium', g:1, p:6, cat:'metal'},
-        {n:56, s:'Ba', name:'Barium', g:2, p:6, cat:'metal'},
-        {n:72, s:'Hf', name:'Hafnium', g:4, p:6, cat:'metal'},
-        {n:73, s:'Ta', name:'Tantalum', g:5, p:6, cat:'metal'},
-        {n:74, s:'W', name:'Tungsten', g:6, p:6, cat:'metal'},
-        {n:75, s:'Re', name:'Rhenium', g:7, p:6, cat:'metal'},
-        {n:76, s:'Os', name:'Osmium', g:8, p:6, cat:'metal'},
-        {n:77, s:'Ir', name:'Iridium', g:9, p:6, cat:'metal'},
-        {n:78, s:'Pt', name:'Platinum', g:10, p:6, cat:'metal'},
-        {n:79, s:'Au', name:'Gold', g:11, p:6, cat:'metal'},
-        {n:80, s:'Hg', name:'Mercury', g:12, p:6, cat:'metal'},
-        {n:81, s:'Tl', name:'Thallium', g:13, p:6, cat:'metal'},
-        {n:82, s:'Pb', name:'Lead', g:14, p:6, cat:'metal'},
-        {n:83, s:'Bi', name:'Bismuth', g:15, p:6, cat:'metal'},
-        {n:84, s:'Po', name:'Polonium', g:16, p:6, cat:'metal'},
-        {n:85, s:'At', name:'Astatine', g:17, p:6, cat:'nonmetal'},
-        {n:86, s:'Rn', name:'Radon', g:18, p:6, cat:'noble'},
-        // Period 7 (Simplified)
-        {n:87, s:'Fr', name:'Francium', g:1, p:7, cat:'metal'},
-        {n:88, s:'Ra', name:'Radium', g:2, p:7, cat:'metal'},
-        {n:104, s:'Rf', name:'Rutherfordium', g:4, p:7, cat:'metal'},
-        {n:105, s:'Db', name:'Dubnium', g:5, p:7, cat:'metal'},
-        {n:106, s:'Sg', name:'Seaborgium', g:6, p:7, cat:'metal'},
-        {n:107, s:'Bh', name:'Bohrium', g:7, p:7, cat:'metal'},
-        {n:108, s:'Hs', name:'Hassium', g:8, p:7, cat:'metal'},
-        {n:109, s:'Mt', name:'Meitnerium', g:9, p:7, cat:'metal'},
-        {n:110, s:'Ds', name:'Darmstadtium', g:10, p:7, cat:'metal'},
-        {n:111, s:'Rg', name:'Roentgenium', g:11, p:7, cat:'metal'},
-        {n:112, s:'Cn', name:'Copernicium', g:12, p:7, cat:'metal'},
-        {n:113, s:'Nh', name:'Nihonium', g:13, p:7, cat:'metal'},
-        {n:114, s:'Fl', name:'Flerovium', g:14, p:7, cat:'metal'},
-        {n:115, s:'Mc', name:'Moscovium', g:15, p:7, cat:'metal'},
-        {n:116, s:'Lv', name:'Livermorium', g:16, p:7, cat:'metal'},
-        {n:117, s:'Ts', name:'Tennessine', g:17, p:7, cat:'metal'},
-        {n:118, s:'Og', name:'Oganesson', g:18, p:7, cat:'noble'},
-    ];
+/* =========================================================
+   DATA
+   Classification follows the class worksheet: three types only
+   (metal, non-metal, noble gas). Elements along the staircase are
+   grouped with the non-metals, except Al and Po (metals).
+   ========================================================= */
+const NONMETAL = new Set('H B C N O F Si P S Cl Ge As Se Br Sb Te I At'.split(' '));
+const NOBLE = new Set('He Ne Ar Kr Xe Rn Og'.split(' '));
+const DIATOMIC = ['H', 'N', 'O', 'F', 'Cl', 'Br', 'I'];
+const SEVEN = ['N', 'O', 'F', 'Cl', 'Br', 'I'];
+const ORIGIN = {
+    Na: 'Latin “natrium”', K: 'Latin “kalium”', Fe: 'Latin “ferrum”', Cu: 'Latin “cuprum”',
+    Ag: 'Latin “argentum”', Sn: 'Latin “stannum”', Sb: 'Latin “stibium”', Au: 'Latin “aurum”',
+    Hg: 'Latin “hydrargyrum”', Pb: 'Latin “plumbum”', W: 'German “wolfram”'
+};
 
-    // Grid Map
-    const gridMap = {};
-    elementsData.forEach(e => gridMap[`${e.p}-${e.g}`] = e);
-
-    // --- App State ---
-    let currentStep = 0;
-    
-    // --- Steps Configuration ---
-    const steps = [
-        {
-            title: "Welcome to the Table",
-            render: () => `
-                <div class="fade-in space-y-4">
-                    <p class="text-slate-600">The Periodic Table is a map of all elements. We will learn to navigate it to find valence electrons, classify elements, and identify families.</p>
-                    <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl">
-                        <h3 class="font-bold text-indigo-900 mb-2">Key Skills</h3>
-                        <ul class="text-sm text-indigo-800 space-y-1 list-disc list-inside">
-                            <li>Reading an element square</li>
-                            <li>Identifying Groups vs. Periods</li>
-                            <li>Finding Valence Electrons</li>
-                            <li>Classifying Metals, Non-Metals, & Noble Gases</li>
-                        </ul>
-                    </div>
-                </div>
-            `,
-            action: resetView
-        },
-        {
-            title: "1. Reading the Square",
-            render: () => `
-                <div class="fade-in space-y-6">
-                    <p class="text-slate-600">Every square represents one element. You need to identify three key pieces of information:</p>
-                    
-                    <div class="flex justify-center py-4">
-                        <div class="w-40 h-40 bg-white border-2 border-slate-800 rounded-xl shadow-xl relative flex flex-col items-center justify-center group cursor-help transition-transform hover:scale-105">
-                            <div class="absolute top-2 left-3 text-lg font-bold text-slate-400 group-hover:text-indigo-600 transition-colors">20</div>
-                            <div class="text-6xl font-black text-slate-800 mb-1">Ca</div>
-                            <div class="text-sm font-bold text-slate-500 uppercase tracking-widest">Calcium</div>
-                            
-                            <div class="absolute -right-28 top-4 bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold">
-                                Atomic Number<br><span class="font-normal">(Protons)</span>
-                            </div>
-                            <div class="absolute -left-20 top-16 bg-slate-200 text-slate-700 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity font-bold">
-                                Symbol
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="text-sm text-slate-600 bg-slate-50 p-3 rounded border">
-                        <strong>Tip:</strong> The Symbol always has a Capital first letter. If there is a second letter, it is lowercase (e.g. <strong>C</strong>a).
-                    </div>
-                </div>
-            `,
-            action: () => highlightElement('Ca')
-        },
-        {
-            title: "2. Groups & Periods",
-            render: () => `
-                <div class="fade-in space-y-5">
-                    <p class="text-slate-600">The table is a grid. The direction you look is important.</p>
-                    
-                    <div class="grid grid-cols-1 gap-4">
-                        <button onmouseenter="highlightGroups()" onmouseleave="resetView()" class="flex items-start gap-4 p-4 rounded-xl border-2 border-blue-200 bg-blue-50 text-left hover:bg-blue-100 transition-colors group shadow-sm">
-                            <div class="bg-blue-600 text-white p-2 rounded shadow-sm group-hover:bg-blue-700">
-                                <span class="material-symbols-outlined">view_column</span>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-blue-900">Groups (Columns)</h3>
-                                <p class="text-xs text-blue-800 mt-1">Vertical columns (1-18).<br>Elements in a group are a <strong>Family</strong>.</p>
-                            </div>
-                        </button>
-
-                        <button onmouseenter="highlightPeriods()" onmouseleave="resetView()" class="flex items-start gap-4 p-4 rounded-xl border-2 border-red-200 bg-red-50 text-left hover:bg-red-100 transition-colors group shadow-sm">
-                            <div class="bg-red-600 text-white p-2 rounded shadow-sm group-hover:bg-red-700">
-                                <span class="material-symbols-outlined">table_rows</span>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-red-900">Periods (Rows)</h3>
-                                <p class="text-xs text-red-800 mt-1">Horizontal rows (1-7).<br>Tells you the number of <strong>energy levels</strong>.</p>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            `,
-            action: resetView
-        },
-        {
-            title: "3. Valence Electrons",
-            render: () => `
-                <div class="fade-in space-y-4">
-                    <div class="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500">
-                        <h4 class="font-bold text-indigo-900 text-sm mb-1">Definition:</h4>
-                        <p class="text-sm text-indigo-800 leading-snug">
-                            <strong>Valence Electrons</strong> are the electrons in the <span class="underline decoration-2 decoration-indigo-400">outermost shell</span> of an atom. They are the specific electrons used for bonding.
-                        </p>
-                    </div>
-                    
-                    <p class="text-xs font-bold text-slate-500 uppercase mt-2">Valence Electrons by Group:</p>
-                    <div class="bg-white border rounded-lg overflow-hidden shadow-sm">
-                         <div class="grid grid-cols-[1fr_2fr] bg-slate-100 text-xs font-bold text-slate-500 uppercase border-b p-2">
-                            <div>Group</div>
-                            <div>Valence Count</div>
-                         </div>
-                         <div class="divide-y divide-slate-50 text-sm">
-                            <div class="grid grid-cols-[1fr_2fr] p-2 hover:bg-indigo-50 cursor-pointer" onmouseenter="highlightValence(1)" onmouseleave="resetView()">
-                                <span class="font-bold text-indigo-600">Group 1</span>
-                                <span>1 valence electron</span>
-                            </div>
-                            <div class="grid grid-cols-[1fr_2fr] p-2 hover:bg-indigo-50 cursor-pointer" onmouseenter="highlightValence(2)" onmouseleave="resetView()">
-                                <span class="font-bold text-indigo-600">Group 2</span>
-                                <span>2 valence electrons</span>
-                            </div>
-                            <div class="grid grid-cols-[1fr_2fr] p-2 hover:bg-yellow-50 cursor-pointer bg-yellow-50/50" onmouseenter="highlightRange(3,12)" onmouseleave="resetView()">
-                                <span class="font-bold text-yellow-700">Groups 3-12</span>
-                                <span class="text-yellow-800 italic">Varies (Transition Metals)</span>
-                            </div>
-                            <div class="grid grid-cols-[1fr_2fr] p-2 hover:bg-indigo-50 cursor-pointer" onmouseenter="highlightValence(13)" onmouseleave="resetView()">
-                                <span class="font-bold text-indigo-600">Group 13</span>
-                                <span>3 valence electrons</span>
-                            </div>
-                            <div class="grid grid-cols-[1fr_2fr] p-2 hover:bg-indigo-50 cursor-pointer" onmouseenter="highlightValence(14)" onmouseleave="resetView()">
-                                <span class="font-bold text-indigo-600">Group 14</span>
-                                <span>4 valence electrons</span>
-                            </div>
-                            <div class="grid grid-cols-[1fr_2fr] p-2 hover:bg-indigo-50 cursor-pointer" onmouseenter="highlightValence(15)" onmouseleave="resetView()">
-                                <span class="font-bold text-indigo-600">Group 15</span>
-                                <span>5 valence electrons</span>
-                            </div>
-                            <div class="grid grid-cols-[1fr_2fr] p-2 hover:bg-indigo-50 cursor-pointer" onmouseenter="highlightValence(16)" onmouseleave="resetView()">
-                                <span class="font-bold text-indigo-600">Group 16</span>
-                                <span>6 valence electrons</span>
-                            </div>
-                            <div class="grid grid-cols-[1fr_2fr] p-2 hover:bg-indigo-50 cursor-pointer" onmouseenter="highlightValence(17)" onmouseleave="resetView()">
-                                <span class="font-bold text-indigo-600">Group 17</span>
-                                <span>7 valence electrons</span>
-                            </div>
-                            <div class="grid grid-cols-[1fr_2fr] p-2 hover:bg-indigo-50 cursor-pointer" onmouseenter="highlightValence(18)" onmouseleave="resetView()">
-                                <span class="font-bold text-indigo-600">Group 18</span>
-                                <span>8 valence electrons</span>
-                            </div>
-                         </div>
-                    </div>
-                </div>
-            `,
-            action: resetView
-        },
-        {
-            title: "4. Classifying Elements",
-            render: () => `
-                <div class="fade-in space-y-4">
-                    <p class="text-slate-600">We classify elements using the <strong>Staircase Line</strong> (shown in red).</p>
-                    
-                    <div class="space-y-3">
-                        <button onclick="highlightType('metal')" class="w-full text-left p-3 rounded-lg bg-yellow-50 border border-yellow-200 hover:bg-yellow-100 transition-colors flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-yellow-300 border border-yellow-400 flex items-center justify-center font-bold text-yellow-800">M</div>
-                            <div>
-                                <div class="font-bold text-yellow-900">Metals</div>
-                                <div class="text-xs text-yellow-800">Left of the staircase. Includes Aluminum (Al).</div>
-                            </div>
-                        </button>
-
-                        <button onclick="highlightType('nonmetal')" class="w-full text-left p-3 rounded-lg bg-green-50 border border-green-200 hover:bg-green-100 transition-colors flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-green-300 border border-green-400 flex items-center justify-center font-bold text-green-800">NM</div>
-                            <div>
-                                <div class="font-bold text-green-900">Non-Metals</div>
-                                <div class="text-xs text-green-800">Right of the staircase + Hydrogen.</div>
-                            </div>
-                        </button>
-
-                        <button onclick="highlightType('noble')" class="w-full text-left p-3 rounded-lg bg-purple-50 border border-purple-200 hover:bg-purple-100 transition-colors flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-purple-300 border border-purple-400 flex items-center justify-center font-bold text-purple-800">NG</div>
-                            <div>
-                                <div class="font-bold text-purple-900">Noble Gases</div>
-                                <div class="text-xs text-purple-800">Group 18. Unreactive.</div>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            `,
-            action: () => {
-                document.getElementById('legendContainer').classList.remove('hidden');
-                resetView();
-            }
-        },
-        {
-            title: "5. Chemical Families",
-            render: () => `
-                <div class="fade-in space-y-4">
-                    <p class="text-slate-600">Find these 5 specific families on the table:</p>
-                    
-                    <div class="grid grid-cols-1 gap-2 text-sm">
-                        <div class="p-2.5 bg-red-50 border-l-4 border-red-400 hover:bg-red-100 cursor-pointer transition-colors" onmouseenter="highlightFamily('alkali')" onmouseleave="resetView()">
-                            <strong class="text-red-900">Alkali Metals</strong> 
-                            <span class="block text-xs text-slate-500">Group 1 (except H). Very reactive.</span>
-                        </div>
-                        <div class="p-2.5 bg-orange-50 border-l-4 border-orange-400 hover:bg-orange-100 cursor-pointer transition-colors" onmouseenter="highlightFamily('alkaline')" onmouseleave="resetView()">
-                            <strong class="text-orange-900">Alkaline Earth Metals</strong> 
-                            <span class="block text-xs text-slate-500">Group 2.</span>
-                        </div>
-                        <div class="p-2.5 bg-yellow-50 border-l-4 border-yellow-400 hover:bg-yellow-100 cursor-pointer transition-colors" onmouseenter="highlightFamily('transition')" onmouseleave="resetView()">
-                            <strong class="text-yellow-900">Transition Metals</strong> 
-                            <span class="block text-xs text-slate-500">Groups 3-12.</span>
-                        </div>
-                        <div class="p-2.5 bg-green-50 border-l-4 border-green-400 hover:bg-green-100 cursor-pointer transition-colors" onmouseenter="highlightFamily('halogen')" onmouseleave="resetView()">
-                            <strong class="text-green-900">Halogens</strong> 
-                            <span class="block text-xs text-slate-500">Group 17. Reactive non-metals.</span>
-                        </div>
-                        <div class="p-2.5 bg-purple-50 border-l-4 border-purple-400 hover:bg-purple-100 cursor-pointer transition-colors" onmouseenter="highlightFamily('noble')" onmouseleave="resetView()">
-                            <strong class="text-purple-900">Noble Gases</strong> 
-                            <span class="block text-xs text-slate-500">Group 18. Inert (stable).</span>
-                        </div>
-                    </div>
-                </div>
-            `,
-            action: resetView
-        },
-        {
-            title: "6. Diatomic Elements",
-            render: () => `
-                <div class="fade-in space-y-5">
-                    <p class="text-slate-600"><strong>Diatomic elements</strong> are so reactive they never exist alone in nature (e.g. O₂).</p>
-                    
-                    <div class="bg-indigo-600 text-white rounded-xl p-6 text-center shadow-lg cursor-pointer transform hover:scale-105 transition-transform" onmouseenter="highlightDiatomic()" onmouseleave="resetView()">
-                        <h3 class="text-2xl font-black tracking-widest text-indigo-100 mb-2">THE "7" + 1</h3>
-                        <p class="text-xs uppercase font-bold text-indigo-300 mb-4">Make a "7" starting at Nitrogen</p>
-                        
-                        <div class="flex flex-wrap justify-center gap-2 font-mono font-bold">
-                            <span class="bg-indigo-800 px-2 py-1 rounded">N</span>
-                            <span class="bg-indigo-800 px-2 py-1 rounded">O</span>
-                            <span class="bg-indigo-800 px-2 py-1 rounded">F</span>
-                            <span class="bg-indigo-800 px-2 py-1 rounded">Cl</span>
-                            <span class="bg-indigo-800 px-2 py-1 rounded">Br</span>
-                            <span class="bg-indigo-800 px-2 py-1 rounded">I</span>
-                            <span class="bg-yellow-600 px-2 py-1 rounded">+ H</span>
-                        </div>
-                    </div>
-                    <p class="text-xs text-center text-slate-400">Hover the card to see the shape.</p>
-                </div>
-            `,
-            action: highlightDiatomic
-        }
-    ];
-
-    // --- Core Functions ---
-
-    function init() {
-        renderTable();
-        updateNavDots();
-        loadStep(0);
-        const tableContainer = document.querySelector('.main-container');
-        new ResizeObserver(fitTable).observe(tableContainer);
-        fitTable();
-    }
-
-    function fitTable() {
-        const container = document.querySelector('.main-container');
-        const wrapper = document.getElementById('tableScaleWrapper');
-        const scale = Math.max(0.1, Math.min(1,
-            (container.clientWidth - 48) / wrapper.offsetWidth,
-            (container.clientHeight - 48) / wrapper.offsetHeight));
-        wrapper.style.transform = `scale(${scale})`;
-    }
-
-    function renderTable() {
-        const grid = document.getElementById('mainGrid');
-        
-        // Render 18x7 Main Grid
-        for (let r = 1; r <= 7; r++) {
-            for (let c = 1; c <= 18; c++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                
-                // Gap Logic
-                let isGap = false;
-                if (r === 1 && c > 1 && c < 18) isGap = true;
-                if ((r === 2 || r === 3) && c > 2 && c < 13) isGap = true;
-
-                const el = gridMap[`${r}-${c}`];
-
-                if (isGap && !el && !((r===6||r===7)&&c===3)) {
-                    cell.style.visibility = 'hidden';
-                    cell.style.pointerEvents = 'none';
-                } else if (el) {
-                    cell.id = `el-${el.s}`;
-                    cell.dataset.symbol = el.s;
-                    cell.dataset.g = el.g;
-                    cell.dataset.p = el.p;
-                    cell.dataset.cat = el.cat;
-                    
-                    cell.innerHTML = `
-                        <span class="absolute top-0.5 left-1 text-[9px] font-bold text-slate-400">${el.n}</span>
-                        <span class="font-bold text-sm text-slate-800">${el.s}</span>
-                    `;
-
-                    // Staircase Borders
-                    const stairRight = ['B','Si','Ge','As','Sb','Te','Po'];
-                    const stairBottom = ['B','Si','Ge','As','Sb','Te'];
-                    if (stairRight.includes(el.s)) cell.classList.add('stair-r');
-                    if (stairBottom.includes(el.s)) cell.classList.add('stair-b');
-
-                    cell.onmouseenter = () => showInfo(el);
-                    cell.onmouseleave = () => {};
-                } else if ((r===6 || r===7) && c===3) {
-                     // Detached placeholders (Just visual gap markers)
-                     cell.style.backgroundColor = 'transparent';
-                     cell.style.border = '1px dashed #cbd5e1';
-                     cell.innerHTML = `<span class="text-[8px] text-slate-400 font-bold">${r===6?'57-71':'89-103'}</span>`;
-                }
-                grid.appendChild(cell);
-            }
-        }
-    }
-
-    function updateNavDots() {
-        const container = document.getElementById('navDots');
-        container.innerHTML = steps.map((_, i) => `
-            <div class="h-1.5 rounded-full transition-all duration-300 ${i === currentStep ? 'w-4 bg-indigo-600' : 'w-1.5 bg-slate-300'}"></div>
-        `).join('');
-        
-        // Progress Bar
-        const pct = ((currentStep + 1) / steps.length) * 100;
-        document.getElementById('progressBar').style.width = `${pct}%`;
-    }
-
-    function nav(dir) {
-        const next = currentStep + dir;
-        if (next >= 0 && next < steps.length) {
-            loadStep(next);
-        }
-    }
-
-    function loadStep(idx) {
-        currentStep = idx;
-        document.getElementById('lessonContainer').scrollTop = 0;
-        const data = steps[idx];
-        
-        document.getElementById('lessonContainer').innerHTML = `
-            <h2 class="text-2xl font-bold text-slate-800 mb-2 tracking-tight">${data.title}</h2>
-            ${data.render()}
-        `;
-        
-        updateNavDots();
-        
-        // Buttons
-        document.getElementById('prevBtn').disabled = idx === 0;
-        document.getElementById('nextBtn').disabled = idx === steps.length - 1;
-        document.getElementById('nextBtn').innerHTML = idx === steps.length - 1 ? 
-            `Finish <span class="material-symbols-outlined">check</span>` : 
-            `Next <span class="material-symbols-outlined">arrow_forward</span>`;
-
-        document.getElementById('legendContainer').classList.add('hidden');
-        if(data.action) data.action();
-    }
-
-    // --- Visual Logic ---
-
-    function resetView() {
-        document.querySelectorAll('.cell').forEach(c => {
-            if (c.style.visibility !== 'hidden' && c.id) {
-                c.style.backgroundColor = 'white';
-                c.style.opacity = '1';
-                c.style.borderColor = '#cbd5e1';
-                c.style.transform = '';
-                c.style.zIndex = '0';
-                c.style.color = '';
-                c.style.boxShadow = '';
-                
-                // Reset internal text colors
-                const n = c.querySelector('span:first-child');
-                const s = c.querySelector('span:last-child');
-                if(n) n.classList.replace('text-white', 'text-slate-400');
-                if(s) s.classList.replace('text-white', 'text-slate-800');
-            }
+const ELEMENTS = [];
+function addRow(n, g, p, list, fBlock) {
+    list.split(',').forEach((item, i) => {
+        const [s, name] = item.trim().split(' ');
+        ELEMENTS.push({
+            n: n + i, s, name, p,
+            g: fBlock ? null : g + i,
+            f: !!fBlock, fi: fBlock ? i : null,
+            cat: NOBLE.has(s) ? 'noble' : NONMETAL.has(s) ? 'nonmetal' : 'metal'
         });
-        document.getElementById('infoBox').classList.add('opacity-0', '-translate-y-2');
+    });
+}
+addRow(1, 1, 1, 'H Hydrogen');
+addRow(2, 18, 1, 'He Helium');
+addRow(3, 1, 2, 'Li Lithium,Be Beryllium');
+addRow(5, 13, 2, 'B Boron,C Carbon,N Nitrogen,O Oxygen,F Fluorine,Ne Neon');
+addRow(11, 1, 3, 'Na Sodium,Mg Magnesium');
+addRow(13, 13, 3, 'Al Aluminum,Si Silicon,P Phosphorus,S Sulfur,Cl Chlorine,Ar Argon');
+addRow(19, 1, 4, 'K Potassium,Ca Calcium,Sc Scandium,Ti Titanium,V Vanadium,Cr Chromium,Mn Manganese,Fe Iron,Co Cobalt,Ni Nickel,Cu Copper,Zn Zinc,Ga Gallium,Ge Germanium,As Arsenic,Se Selenium,Br Bromine,Kr Krypton');
+addRow(37, 1, 5, 'Rb Rubidium,Sr Strontium,Y Yttrium,Zr Zirconium,Nb Niobium,Mo Molybdenum,Tc Technetium,Ru Ruthenium,Rh Rhodium,Pd Palladium,Ag Silver,Cd Cadmium,In Indium,Sn Tin,Sb Antimony,Te Tellurium,I Iodine,Xe Xenon');
+addRow(55, 1, 6, 'Cs Cesium,Ba Barium');
+addRow(57, 0, 6, 'La Lanthanum,Ce Cerium,Pr Praseodymium,Nd Neodymium,Pm Promethium,Sm Samarium,Eu Europium,Gd Gadolinium,Tb Terbium,Dy Dysprosium,Ho Holmium,Er Erbium,Tm Thulium,Yb Ytterbium,Lu Lutetium', true);
+addRow(72, 4, 6, 'Hf Hafnium,Ta Tantalum,W Tungsten,Re Rhenium,Os Osmium,Ir Iridium,Pt Platinum,Au Gold,Hg Mercury,Tl Thallium,Pb Lead,Bi Bismuth,Po Polonium,At Astatine,Rn Radon');
+addRow(87, 1, 7, 'Fr Francium,Ra Radium');
+addRow(89, 0, 7, 'Ac Actinium,Th Thorium,Pa Protactinium,U Uranium,Np Neptunium,Pu Plutonium,Am Americium,Cm Curium,Bk Berkelium,Cf Californium,Es Einsteinium,Fm Fermium,Md Mendelevium,No Nobelium,Lr Lawrencium', true);
+addRow(104, 4, 7, 'Rf Rutherfordium,Db Dubnium,Sg Seaborgium,Bh Bohrium,Hs Hassium,Mt Meitnerium,Ds Darmstadtium,Rg Roentgenium,Cn Copernicium,Nh Nihonium,Fl Flerovium,Mc Moscovium,Lv Livermorium,Ts Tennessine,Og Oganesson');
+ELEMENTS.sort((a, b) => a.n - b.n);
+
+const byN = {}, bySym = {}, byPos = {};
+ELEMENTS.forEach(e => {
+    byN[e.n] = e; bySym[e.s.toLowerCase()] = e;
+    if (!e.f) byPos[`${e.p}-${e.g}`] = e;
+});
+
+const CAT = {
+    metal:    { label: 'Metal',     plural: 'Metals',      c: '#FFD99A', e: '#E3A33B' },
+    nonmetal: { label: 'Non-metal', plural: 'Non-metals',  c: '#B6EEC6', e: '#3DB56B' },
+    noble:    { label: 'Noble gas', plural: 'Noble gases', c: '#D9C9FF', e: '#8E6BE8' }
+};
+const FAM = {
+    alkali:     { label: 'Alkali metals',         one: 'Alkali metal',         where: 'Group 1 (not H)', fact: 'The most reactive metals. They fizz and even explode in water!', c: '#FFB4B4', e: '#E25C5C' },
+    alkaline:   { label: 'Alkaline earth metals', one: 'Alkaline earth metal', where: 'Group 2',         fact: 'Reactive metals, but calmer than the alkali metals.',           c: '#FFD3A3', e: '#E08A3C' },
+    transition: { label: 'Transition metals',     one: 'Transition metal',     where: 'Groups 3–12',     fact: 'The “classic” metals: iron, copper, silver, gold.',              c: '#BBDDFF', e: '#4C93DE' },
+    halogen:    { label: 'Halogens',              one: 'Halogen',              where: 'Group 17',        fact: 'Very reactive non-metals. “Halogen” means “salt-maker.”',        c: '#B5EEE2', e: '#2FAE95' },
+    noble:      { label: 'Noble gases',           one: 'Noble gas',            where: 'Group 18',        fact: 'Super stable. They almost never react with anything.',           c: '#D9C9FF', e: '#8E6BE8' }
+};
+const VAL_FILL = ['', '#EEF0FF', '#DDE1FF', '#C7CCFF', '#B0B6FF', '#9499F7', '#7A7EEC', '#6164DE', '#4B4CCB'];
+const VAL_KEYS = ['1', '2', '3-12', '13', '14', '15', '16', '17', '18'];
+const VAL_REP = { '1': 'Na', '2': 'Mg', '3-12': 'Fe', '13': 'Al', '14': 'Si', '15': 'P', '16': 'S', '17': 'Cl', '18': 'Ar' };
+
+function valence(e) {
+    if (e.f || (e.g >= 3 && e.g <= 12)) return null;
+    if (e.s === 'He') return 2;
+    return e.g <= 2 ? e.g : e.g - 10;
+}
+function valKey(e) { return (e.f || (e.g >= 3 && e.g <= 12)) ? '3-12' : String(e.g); }
+function family(e) {
+    if (e.f) return 'inner';
+    if (e.g === 1) return e.s === 'H' ? null : 'alkali';
+    if (e.g === 2) return 'alkaline';
+    if (e.g <= 12 && e.g >= 3) return 'transition';
+    if (e.g === 17) return 'halogen';
+    if (e.g === 18) return 'noble';
+    return null;
+}
+function shells(n) {
+    const caps = [2, 8, 8, 8], out = [];
+    let left = n;
+    for (const c of caps) { if (left <= 0) break; out.push(Math.min(c, left)); left -= c; }
+    return out;
+}
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const state = {
+    step: 0,
+    visited: new Set([0]),
+    mode: 'plain',          // plain | category | family | valence | diatomic | bandG | bandP
+    full: false,            // true = color everything (ignore the per-step "paint" toggles)
+    catOn: new Set(), famOn: new Set(), valOn: new Set(), diaOn: new Set(),
+    focus: null,            // Set of atomic numbers to keep bright (others dim)
+    focusLabel: null,       // 'g5' / 'p3' when a group/period label is spotlighted
+    selected: null, hover: null,
+    lastVal: null,
+    part: null, partsSeen: new Set(), explored: new Set(),
+    flags: {},
+    checks: {},
+    det: { history: [] },
+    nav: { g: 'any', p: 'any', t: 'any' },
+    traced: false
+};
+const STORE_KEY = 'ptable-lesson-v2';
+const BONUS_KEY = 'ptable-bonus-claimed';
+// Progress toward each step's goal is saved too, so a reload doesn't lock a student out of the finish
+const SAVED_SETS = ['visited', 'catOn', 'famOn', 'valOn', 'diaOn', 'partsSeen', 'explored'];
+function save() {
+    try {
+        const d = { step: state.step, flags: state.flags, checks: state.checks, history: state.det.history, traced: state.traced };
+        SAVED_SETS.forEach(k => d[k] = [...state[k]]);
+        localStorage.setItem(STORE_KEY, JSON.stringify(d));
+    } catch (e) { /* storage unavailable: lesson still works */ }
+}
+function load() {
+    // Kept under its own key so "Start over" doesn't let a student claim twice
+    try {
+        const b = JSON.parse(localStorage.getItem(BONUS_KEY) || 'null');
+        if (b && b.name) state.bonusDone = b;
+    } catch (e) { /* ignore */ }
+    try {
+        const d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+        if (!d || !Number.isInteger(d.step) || d.step < 0 || d.step >= STEPS.length) return;
+        state.step = d.step;
+        SAVED_SETS.forEach(k => (d[k] || []).forEach(v => state[k].add(v)));
+        if (d.flags) state.flags = d.flags;
+        if (d.checks) state.checks = d.checks;
+        if (Array.isArray(d.history)) state.det.history = d.history.filter(n => byN[n]);
+        state.traced = !!d.traced;
+    } catch (e) { /* ignore */ }
+}
+
+/* =========================================================
+   ICONS & SMALL HELPERS
+   ========================================================= */
+const I = {
+    right: '<svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+    check: '<svg class="ic" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+    x: '<svg class="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    pencil: '<svg class="ic" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>',
+    search: '<svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+    bulb: '<svg class="ic" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
+    play: '<svg class="ic" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><path d="M8 5v14l11-7z"/></svg>',
+    brain: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 4v16M8 4a3 3 0 0 0-3 3 3 3 0 0 0-1 5 3 3 0 0 0 2 5 3 3 0 0 0 4 3M16 4a3 3 0 0 1 3 3 3 3 0 0 1 1 5 3 3 0 0 1-2 5 3 3 0 0 1-4 3"/></svg>'
+};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const sub2 = '₂';
+
+function wsCall(q, html) {
+    return `<div class="callout ws-call"><div class="h">${I.pencil} On your worksheet · ${q}</div>${html}</div>`;
+}
+function goalBar(done, total, text) {
+    const ok = done >= total;
+    return `<div class="goal ${ok ? 'done' : ''}">
+        <span>${ok ? I.check : ''}${ok ? ' Goal complete!' : esc(text)}</span>
+        <div class="goal-bar"><i style="width:${Math.min(100, done / total * 100)}%"></i></div>
+        <span>${Math.min(done, total)}/${total}</span>
+    </div>`;
+}
+
+/* =========================================================
+   QUICK CHECKS (retrieval practice with instant feedback)
+   ========================================================= */
+const QC = {
+    sq1: { q: 'In calcium’s square, what does the number <b>20</b> tell you?', o: [
+        ['The number of protons', 1, 'Yes! The atomic number = the number of protons. No two elements share one.'],
+        ['How heavy the atom is', 0, 'Not quite. That’s atomic mass. The whole number at the top is the atomic number.'],
+        ['Its group number', 0, 'Not quite. Calcium is in Group 2. The 20 is its atomic number (protons).']] },
+    gp1: { q: 'Oxygen (O) is in which <b>group</b>?', o: [
+        ['Group 2', 0, '2 is oxygen’s period (row). For the group, read the number at the top of its column.'],
+        ['Group 16', 1, 'Correct! Read the number at the top of the column.'],
+        ['Group 8', 0, '8 is oxygen’s atomic number, not its group. Look at the top of its column.']] },
+    gp2: { q: 'Sodium (Na) is in which <b>period</b>?', o: [
+        ['Period 1', 0, 'Count the rows from the top. Period 1 only has H and He.'],
+        ['Period 3', 1, 'Yes! It’s the third row, so sodium atoms have 3 energy levels.'],
+        ['Period 11', 0, '11 is sodium’s atomic number. There are only 7 periods.']] },
+    val1: { q: 'How many valence electrons does chlorine (Cl) have?', o: [
+        ['7', 1, 'Right! Cl is in Group 17, so it has 7 valence electrons.'],
+        ['17', 0, 'Close! It’s in Group 17, but for groups 13–18 you drop the 1: 17 → 7.'],
+        ['1', 0, 'Not quite. Find chlorine’s group first, then use the pattern.']] },
+    cls1: { q: 'Is sulfur (S) a metal, non-metal, or noble gas?', o: [
+        ['Metal', 0, 'Sulfur is to the right of the staircase line, so it’s not a metal.'],
+        ['Non-metal', 1, 'Yes! Right of the staircase (and not in Group 18) means non-metal.'],
+        ['Noble gas', 0, 'Noble gases are only in Group 18. Sulfur is in Group 16.']] },
+    fam1: { q: 'Fluorine (F) belongs to which family?', o: [
+        ['Halogens', 1, 'Correct! Group 17 is the halogen family.'],
+        ['Noble gases', 0, 'Noble gases are in Group 18. Fluorine is one column to the left.'],
+        ['Alkali metals', 0, 'Alkali metals are on the far left, in Group 1.']] },
+    dia1: { q: 'Which of these is <b>NOT</b> a diatomic element?', o: [
+        ['N', 0, 'Nitrogen starts the “7”, so it IS diatomic (N₂).'],
+        ['Ne', 1, 'Right! Neon is a noble gas. It’s happy on its own.'],
+        ['Cl', 0, 'Chlorine is part of the “7”, so it IS diatomic (Cl₂).']] },
+    r1: { q: 'Elements in the same <b>column</b> belong to the same…', o: [
+        ['Group (family)', 1, 'Yes! Columns are groups, and elements in a group act alike.'],
+        ['Period', 0, 'Periods are rows (left to right).'],
+        ['Staircase', 0, 'The staircase separates metals from non-metals.']] },
+    r2: { q: 'How many valence electrons do Group 18 elements (except He) have?', o: [
+        ['2', 0, 'That’s just helium, the exception.'],
+        ['8', 1, 'Correct! 18 → 8. A full outer shell is why they’re so stable.'],
+        ['18', 0, 'Remember: for groups 13–18, drop the 1.']] },
+    r3: { q: 'Elements to the <b>left</b> of the staircase line are…', o: [
+        ['Metals', 1, 'Yes! Metals are left of the staircase. That’s most of the table.'],
+        ['Non-metals', 0, 'Non-metals are to the right (plus hydrogen).'],
+        ['Noble gases', 0, 'Noble gases are only in Group 18.']] },
+    r4: { q: 'Which family is the most reactive group of metals?', o: [
+        ['Transition metals', 0, 'Transition metals are fairly unreactive. Think gold jewelry!'],
+        ['Alkali metals', 1, 'Correct! Group 1 metals react strongly, even with water.'],
+        ['Noble gases', 0, 'Noble gases are the LEAST reactive, and they aren’t metals.']] },
+    r5: { q: 'Which element is diatomic?', o: [
+        ['Iron (Fe)', 0, 'Iron is a metal. It isn’t one of the 7.'],
+        ['Helium (He)', 0, 'Helium is a noble gas. It stays single.'],
+        ['Iodine (I)', 1, 'Yes! Iodine is the bottom of the “7” (I₂).']] },
+    r6: { q: 'Hydrogen sits in Group 1. What type of element is it?', o: [
+        ['Metal', 0, 'Tricky! Hydrogen sits with the metals but is NOT a metal.'],
+        ['Non-metal', 1, 'Correct! Hydrogen is a non-metal, so it is not an alkali metal.'],
+        ['Noble gas', 0, 'Noble gases are in Group 18.']] }
+};
+function qcHTML(id, label = 'Quick check') {
+    const d = QC[id], st = state.checks[id] || { picked: [] };
+    const solved = st.picked.some(i => d.o[i][1]);
+    const last = st.picked[st.picked.length - 1];
+    const fb = last == null ? '' :
+        `<div class="fb ${d.o[last][1] ? 'ok' : 'no'}">${d.o[last][1] ? I.check : I.bulb}<span>${d.o[last][2]}</span></div>`;
+    return `<div class="qc ${solved ? 'solved' : ''}" data-qc="${id}">
+        <div class="h">${I.brain} ${label}</div>
+        <div class="q">${d.q}</div>
+        <div class="opts">${d.o.map((o, i) => {
+            const cls = st.picked.includes(i) ? (o[1] ? 'right' : 'wrong') : '';
+            return `<button class="opt ${cls}" data-act="qc" data-q="${id}" data-v="${i}">${o[0]}</button>`;
+        }).join('')}</div>${fb}</div>`;
+}
+function answerQC(id, i) {
+    const st = state.checks[id] || (state.checks[id] = { picked: [] });
+    if (st.picked.some(k => QC[id].o[k][1]) || st.picked.includes(i)) return;
+    st.picked.push(i);
+    const node = document.querySelector(`[data-qc="${id}"]`);
+    if (node) node.outerHTML = qcHTML(id, node.querySelector('.h').textContent.trim());
+    if (STEPS[state.step].key === 'review') renderLesson();
+    updateNav();
+}
+
+/* =========================================================
+   LESSON STEPS
+   ========================================================= */
+const STEPS = [
+{
+    key: 'welcome', short: 'Welcome', title: 'Welcome, element explorer!',
+    enter() { setMode('plain'); },
+    render() {
+        return `
+        <p class="lead">The periodic table is a <b>map of every element</b> in the universe. Learn to read the map and you can predict how an element behaves.</p>
+        <p>As you go, you’ll find every answer you need for your <b>Discovering the Periodic Table</b> worksheet.</p>
+        <div class="howto">
+            <div class="how"><span class="e">👆</span><div><b>Tap any element</b> to see its details in the card on the table.</div></div>
+            <div class="how"><span class="e">✏️</span><div><b>Look for the yellow badge.</b> It tells you which worksheet question a step helps you answer.</div></div>
+            <div class="how"><span class="e">🎨</span><div><b>Use “Color by”</b> above the table any time to explore on your own.</div></div>
+        </div>
+        <h3>Your mission map</h3>
+        <ol class="mission">${STEPS.slice(1).map((s, k) => {
+            const i = k + 1, done = state.visited.has(i);
+            return `<li><button data-act="goto" data-v="${i}" class="${done ? 'done' : ''}">
+                <span class="mi">${done ? I.check : i}</span><span class="mt">${s.title}</span>
+                ${s.ws ? `<span class="ws sm">✏️ ${s.ws}</span>` : ''}</button></li>`;
+        }).join('')}</ol>
+        <button class="btn primary lg" data-act="next" style="width:100%">Let’s start ${I.right}</button>`;
     }
-
-    function highlightElement(s) {
-        resetView();
-        document.querySelectorAll('.cell').forEach(c => { if(c.id) c.style.opacity = '0.1'; });
-        const el = document.getElementById(`el-${s}`);
-        if(el) {
-            el.style.opacity = '1';
-            el.style.backgroundColor = '#fef08a';
-            el.style.transform = 'scale(1.3)';
-            el.style.zIndex = '50';
-            el.style.borderColor = '#000';
-        }
-    }
-
-    function highlightGroups() {
-        resetView();
-        // Bold Blue Pillars
-        document.querySelectorAll('.cell').forEach(c => {
-            if(c.id) {
-                const g = parseInt(c.dataset.g);
-                // Alternating distinct blues
-                if(g % 2 === 0) c.style.backgroundColor = '#2563eb'; // Blue 600
-                else c.style.backgroundColor = '#60a5fa'; // Blue 400
-                
-                c.style.borderColor = '#1e3a8a'; // Dark Blue Border
-                
-                // Make text white for contrast
-                const n = c.querySelector('span:first-child');
-                const s = c.querySelector('span:last-child');
-                if(n) n.classList.replace('text-slate-400', 'text-white');
-                if(s) s.classList.replace('text-slate-800', 'text-white');
-            }
-        });
-    }
-
-    function highlightPeriods() {
-        resetView();
-        // Bold Red Rows
-        document.querySelectorAll('.cell').forEach(c => {
-            if(c.id) {
-                const p = parseInt(c.dataset.p);
-                // Alternating distinct reds/pinks
-                if(p % 2 === 0) c.style.backgroundColor = '#e11d48'; // Rose 600
-                else c.style.backgroundColor = '#fb7185'; // Rose 400
-                
-                c.style.borderColor = '#9f1239'; // Dark Red Border
-                
-                // Make text white for contrast
-                const n = c.querySelector('span:first-child');
-                const s = c.querySelector('span:last-child');
-                if(n) n.classList.replace('text-slate-400', 'text-white');
-                if(s) s.classList.replace('text-slate-800', 'text-white');
-            }
-        });
-    }
-
-    function highlightValence(g) {
-        resetView();
-        document.querySelectorAll(`.cell[data-g="${g}"]`).forEach(c => {
-            c.style.backgroundColor = '#c7d2fe'; // indigo-200
-            c.style.borderColor = '#4f46e5';
-        });
-        document.querySelectorAll(`.cell:not([data-g="${g}"])`).forEach(c => {
-             if(c.id) c.style.opacity = '0.1'; // Faded more for drama
-        });
-    }
-
-    function highlightRange(start, end) {
-        resetView();
-        document.querySelectorAll('.cell').forEach(c => {
-            if(!c.id) return;
-            const g = parseInt(c.dataset.g);
-            if(g >= start && g <= end) {
-                c.style.backgroundColor = '#fef08a'; // yellow-200
-                c.style.borderColor = '#ca8a04';
-            } else {
-                c.style.opacity = '0.1'; // Faded more
-            }
-        });
-    }
-
-    function highlightType(type) {
-        resetView();
-        const colors = { metal: '#fef08a', nonmetal: '#bbf7d0', noble: '#e9d5ff' };
-        document.querySelectorAll('.cell').forEach(c => {
-            if(!c.id) return;
-            const cat = c.dataset.cat;
-            let match = false;
-            if(type === 'metal' && cat === 'metal') match = true;
-            if(type === 'nonmetal' && cat === 'nonmetal') match = true;
-            if(type === 'noble' && cat === 'noble') match = true;
-
-            if(match) {
-                c.style.backgroundColor = colors[type];
-                c.style.borderColor = '#475569';
-            } else {
-                c.style.opacity = '0.1'; // Faded more
-            }
-        });
-    }
-
-    function highlightFamily(fam) {
-        resetView();
-        const colors = { alkali: '#fca5a5', alkaline: '#fdba74', transition: '#fde047', halogen: '#86efac', noble: '#d8b4fe' };
-        
-        const check = (g, s) => {
-            if(fam === 'transition') return g>=3 && g<=12;
-            if(fam === 'alkali') return g===1 && s!=='H';
-            if(fam === 'alkaline') return g===2;
-            if(fam === 'halogen') return g===17;
-            if(fam === 'noble') return g===18;
-            return false;
+},
+{
+    key: 'square', short: 'The square', title: 'Reading an element square',
+    goal: () => [state.partsSeen.size + Math.min(state.explored.size, 3), 6, 'Explore the 3 parts + tap 3 elements'],
+    enter() { setMode('plain'); select(20); },
+    render() {
+        const P = {
+            num: ['Atomic number', 'The number of <b>protons</b> in the atom. Every element has its own number, and the table is in order: 1, 2, 3… all the way to 118.'],
+            sym: ['Chemical symbol', 'A 1- or 2-letter shorthand. The first letter is always a <b>capital</b>; the second is always <b>lowercase</b> (Ca, never CA).'],
+            name: ['Element name', 'Some symbols don’t match the English name! <b>K</b> is potassium, from the Latin word <i>kalium</i>.']
         };
-
-        document.querySelectorAll('.cell').forEach(c => {
-            if(!c.id) return;
-            const g = parseInt(c.dataset.g);
-            const s = c.dataset.symbol;
-            
-            if(check(g, s)) {
-                c.style.backgroundColor = colors[fam];
-                c.style.borderColor = '#475569';
-            } else {
-                c.style.opacity = '0.1'; // Faded more
-            }
-        });
+        const part = state.part;
+        const hot = (k, txt) => `<button class="hot hot-${k} ${part === k ? 'on' : ''} ${state.partsSeen.has(k) ? '' : 'unseen'}" data-act="part" data-v="${k}" aria-label="${P[k][0]}">${txt}</button>`;
+        return `
+        <p class="lead">Each square on the table is <b>one element</b>. Every square tells you the same three things.</p>
+        <div class="anatomy">
+            <div class="big-tile">${hot('num', '20')}${hot('sym', 'Ca')}${hot('name', 'Calcium')}</div>
+            <div class="anat-info">${part ? `<b class="k">${P[part][0]}</b>${P[part][1]}` : '<b class="k">Tap each part of the square</b>The glowing parts are clickable. Tap the number, the symbol, and the name.'}</div>
+        </div>
+        <div class="callout soft">👀 Calcium is highlighted on the table. Now <b>tap 3 other elements</b> and read their squares in the card. <b>${Math.min(state.explored.size, 3)}/3</b> explored.</div>
+        ${qcHTML('sq1')}`;
     }
-
-    function highlightDiatomic() {
-        resetView();
-        const diatoms = ['H','N','O','F','Cl','Br','I'];
-        document.querySelectorAll('.cell').forEach(c => {
-            if(!c.id) return;
-            const s = c.dataset.symbol;
-            if(diatoms.includes(s)) {
-                c.style.backgroundColor = '#6366f1';
-                c.style.color = 'white';
-                c.style.borderColor = '#312e81';
-                c.style.transform = 'scale(1.1)';
-                c.style.zIndex = '50';
-            } else {
-                c.style.opacity = '0.1'; // Faded more
-            }
-        });
+},
+{
+    key: 'gp', short: 'Groups & periods', title: 'Groups & periods',
+    goal: () => [(state.flags.g ? 1 : 0) + (state.flags.p ? 1 : 0), 2, 'Spotlight a group and a period'],
+    enter() { setMode('plain'); },
+    render() {
+        return `
+        <p class="lead">The table is a grid, and the direction you read matters.</p>
+        <div class="axis-cards">
+            <button class="axis g" data-act="bands" data-v="G" aria-pressed="${state.mode === 'bandG'}">
+                <div class="pic"><span></span><span></span><span></span><span></span></div>
+                <b>Groups ↓</b><span class="s">The <b>columns</b>, numbered 1–18. Elements in a group are a <b>family</b>. They act alike.</span>
+            </button>
+            <button class="axis p" data-act="bands" data-v="P" aria-pressed="${state.mode === 'bandP'}">
+                <div class="pic"><span></span><span></span><span></span></div>
+                <b>Periods →</b><span class="s">The <b>rows</b>, numbered 1–7. The period tells you how many <b>energy levels</b> the atom has.</span>
+            </button>
+        </div>
+        <div class="callout"><div class="h">${I.bulb} Memory trick</div>A <b>period</b> ends a sentence, and sentences go <b>across</b>. So periods are rows!</div>
+        <p>👉 Tap any <b>number at the top</b> of the table to spotlight that group, or a <b>number on the left</b> to spotlight a period.</p>
+        ${qcHTML('gp1')}
+        ${qcHTML('gp2')}`;
     }
-
-    function showInfo(el) {
-        const box = document.getElementById('infoBox');
-        box.classList.remove('opacity-0', '-translate-y-2');
-        
-        document.getElementById('infoSymbol').innerText = el.s;
-        document.getElementById('infoName').innerText = el.name;
-        document.getElementById('infoNum').innerText = el.n;
-
-        let content = `<p>Group ${el.g} • Period ${el.p}</p>`;
-        
-        if(currentStep === 3) { // Valence
-            let v = el.g;
-            if(el.g > 12) v = el.g - 10;
-            let text = `Valence: ${v}`;
-            let color = 'text-indigo-600';
-            if(el.g >= 3 && el.g <= 12) { text = 'Valence: Varies'; color = 'text-yellow-600'; }
-            if(el.s === 'He') { text = 'Valence: 2'; color = 'text-indigo-600'; }
-            content += `<p class="font-bold ${color}">${text}</p>`;
-        } else if (currentStep === 4) { // Classify
-            let type = 'Metal';
-            if(el.cat === 'nonmetal') type = 'Non-Metal';
-            if(el.cat === 'noble') type = 'Noble Gas';
-            content += `<p class="font-bold text-slate-700">${type}</p>`;
+},
+{
+    key: 'valence', short: 'Valence', title: 'Valence electrons', ws: 'Q1',
+    goal: () => [state.valOn.size, 9, 'Discover all 9 columns'],
+    enter() { setMode('valence'); },
+    render() {
+        const all = state.valOn.size === 9;
+        return `
+        ${wsCall('Q1', 'Fill in the <b># valence electrons</b> row for columns 1, 2, 3–12, and 13–18.')}
+        <div class="callout"><div class="h">Key idea</div><b>Valence electrons</b> are the electrons in an atom’s <b>outermost shell</b>. They are the electrons an atom uses to bond.</div>
+        <p>Tap each column to find out how many valence electrons it has. Then look at the atom in the card: the <b style="color:#B45309">orange</b> electrons are the valence electrons.</p>
+        <div class="vgrid">${VAL_KEYS.map(k => {
+            const on = state.valOn.has(k), v = k === '3-12' ? null : (+k <= 2 ? +k : +k - 10);
+            return `<button class="vchip ${on ? 'on' : ''} ${state.lastVal === k ? 'cur' : ''}" data-act="val" data-v="${k}">
+                <div class="g">${k === '3-12' ? 'Groups 3–12' : 'Group ' + k}</div>
+                <div class="v ${on && v == null ? 'sm' : ''}">${on ? (v == null ? 'Varies' : v) : '?'}</div>
+                <div class="dots">${on && v ? '<i></i>'.repeat(v) : ''}</div>
+            </button>`;
+        }).join('')}</div>
+        ${all ? `<div class="callout win fade-in"><div class="h">${I.check} Pattern found!</div>
+            <b>Groups 1 & 2:</b> valence = the group number.<br>
+            <b>Groups 13–18:</b> drop the 1 (13 → 3, 17 → 7).<br>
+            <b>Groups 3–12</b> (transition metals): it varies.</div>`
+            : `<button class="btn ghost sm" data-act="valAll">Reveal all at once</button>`}
+        <div class="callout soft">⚠️ <b>Helium (He)</b> is the exception in Group 18. It has only <b>2</b> valence electrons, because its one and only shell is full with 2.</div>
+        ${qcHTML('val1')}`;
+    }
+},
+{
+    key: 'classify', short: 'Metals & non-metals', title: 'Metals, non-metals & noble gases', ws: 'Q2',
+    goal: () => [state.catOn.size, 3, 'Color in all 3 types'],
+    enter() { setMode('category'); },
+    render() {
+        const D = {
+            metal: 'Left of the staircase. Shiny, bendable, and they conduct electricity. Most elements are metals!',
+            nonmetal: 'Right of the staircase, <b>plus hydrogen</b> way over on the left. Often gases or dull, brittle solids.',
+            noble: 'Group 18, the last column. Very stable gases.'
+        };
+        return `
+        ${wsCall('Q2', 'Color the metals, non-metals, and noble gases, each a different color. Don’t forget your <b>key</b>!')}
+        <p>A <b style="color:var(--stair)">red staircase line</b> zig-zags across the right side of the table. It’s the border between <b>metals</b> and <b>non-metals</b>.</p>
+        <p>Tap each type to color it in, just like your worksheet:</p>
+        <div class="togs">${Object.keys(CAT).map(k => togHTML('cat', k, CAT[k].plural, D[k], CAT[k], state.catOn.has(k))).join('')}</div>
+        ${state.catOn.size < 3 ? `<button class="btn ghost sm" data-act="catAll">Color all three</button>` : ''}
+        <div class="callout soft"><b>Tricky spots:</b> <b>Hydrogen (H)</b> is a non-metal even though it sits on the left. <b>Aluminum (Al)</b> touches the staircase but is a metal.</div>
+        ${qcHTML('cls1')}`;
+    }
+},
+{
+    key: 'families', short: 'Families', title: 'Element families', ws: 'Q3',
+    goal: () => [state.famOn.size, 5, 'Color in all 5 families'],
+    enter() { setMode('family'); },
+    render() {
+        return `
+        ${wsCall('Q3', 'Color these 5 special groups, each a different color. Include a <b>key</b>!')}
+        <p>Some groups are so important they have their own family names. Tap each one to color it in:</p>
+        <div class="togs">${Object.keys(FAM).map(k => togHTML('fam', k, FAM[k].label, FAM[k].fact, FAM[k], state.famOn.has(k), FAM[k].where)).join('')}</div>
+        ${state.famOn.size < 5 ? `<button class="btn ghost sm" data-act="famAll">Color all five</button>` : ''}
+        <div class="callout soft">⚠️ <b>Hydrogen</b> sits in Group 1 but is <b>not</b> an alkali metal. It’s a non-metal!</div>
+        ${qcHTML('fam1')}`;
+    }
+},
+{
+    key: 'diatomic', short: 'Diatomic', title: 'Diatomic elements', ws: 'Q4',
+    goal: () => [state.diaOn.size, 7, 'Find all 7 diatomic elements'],
+    enter() { setMode('diatomic'); },
+    render() {
+        return `
+        ${wsCall('Q4', 'Color in the <b>seven</b> diatomic elements.')}
+        <p><b>Diatomic</b> means “two atoms.” These elements are never found alone in nature. Their atoms always pair up, like the O${sub2} in the air you breathe.</p>
+        <div class="seven">
+            <div class="big">7</div>
+            <p><b>Memory trick:</b> start at element <b>#7</b> (nitrogen) and draw a big <b>7</b> across the table. Then add <b>H</b>!</p>
+            <button class="btn" data-act="dia">${I.play} ${state.traced ? 'Draw it again' : 'Draw the 7'}</button>
+        </div>
+        <div class="pairs">${DIATOMIC.map(s => `<span class="pair ${state.diaOn.has(s) ? 'on' : ''}">${state.diaOn.has(s) ? s + sub2 : '?'}</span>`).join('')}</div>
+        ${qcHTML('dia1')}`;
+    }
+},
+{
+    key: 'detective', short: 'Detective', title: 'Element detective', ws: 'Q5',
+    goal: () => [state.det.history.length, 6, 'Look up 6 elements'],
+    enter() { setMode('category', true); },
+    render() {
+        return `
+        ${wsCall('Q5', 'For each symbol, write the element’s <b>name</b>, <b>classification</b> (metal, non-metal, or noble gas), and number of <b>valence electrons</b>.')}
+        <p>Type a chemical symbol and the table will find it for you. You can also hunt for it yourself on the table!</p>
+        <label class="field">${I.search}<input id="detInput" type="text" placeholder="Type a symbol, like Na" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="14" aria-label="Chemical symbol or element name" value="${esc(state.det.q || '')}"></label>
+        <div id="detResult">${detResultHTML()}</div>
+        <div class="callout soft"><div class="h" style="color:var(--ink3)">${I.bulb} Symbol tips</div>
+            First letter <b>capital</b>, second <b>lowercase</b>: <b>Co</b> is cobalt, but <b>CO</b> is carbon + oxygen!<br>
+            Some symbols come from old names: <b>Na</b> = <i>natrium</i> (sodium), <b>Fe</b> = <i>ferrum</i> (iron).</div>`;
+    },
+    after() {
+        const inp = $('#detInput');
+        inp.addEventListener('input', () => detSearch(inp.value));
+        inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') detSearch(inp.value, true); });
+        if (window.matchMedia('(hover: hover)').matches) inp.focus({ preventScroll: true });
+    }
+},
+{
+    key: 'navigator', short: 'Navigator', title: 'Table navigator', ws: 'Q6–9',
+    enter() { setMode('category', true); applyNav(); },
+    render() {
+        const opt = (n, v) => `<option value="${n}" ${String(v) === String(n) ? 'selected' : ''}>${n}</option>`;
+        const types = [['any', 'Any'], ['metal', 'Metal'], ['nonmetal', 'Non-metal'], ['noble', 'Noble gas']];
+        return `
+        ${wsCall('Q6–9', 'Use the filters to find an element that fits each clue, like “a metal in Group 15.”')}
+        <p>Set the clues, and the matching elements light up on the table.</p>
+        <div class="filters">
+            <label>Group (column)<select id="fG"><option value="any">Any group</option>${Array.from({ length: 18 }, (_, i) => opt(i + 1, state.nav.g)).join('')}</select></label>
+            <label>Period (row)<select id="fP"><option value="any">Any period</option>${Array.from({ length: 7 }, (_, i) => opt(i + 1, state.nav.p)).join('')}</select></label>
+            <label class="full">Type
+                <div class="typeseg" role="group">${types.map(([k, l]) => `<button type="button" data-act="navT" data-v="${k}" aria-pressed="${state.nav.t === k}" style="${k !== 'any' ? `--c:${CAT[k].c};--e:${CAT[k].e}` : ''}">${k !== 'any' ? '<i></i>' : ''}${l}</button>`).join('')}</div>
+            </label>
+        </div>
+        <div id="navResult">${navResultHTML()}</div>
+        <div class="callout"><div class="h">${I.bulb} Worked example</div>
+            “Name a metal in Group 14.” Set <b>Group = 14</b> and <b>Type = Metal</b>. Sn, Pb, and Fl light up, and <b>any one</b> of them is a correct answer!
+            <div style="margin-top:8px" class="row"><button class="btn ghost sm" data-act="navEx">Show me</button><button class="btn ghost sm" data-act="navReset">Reset filters</button></div></div>`;
+    },
+    after() {
+        $('#fG').addEventListener('change', e => { state.nav.g = e.target.value; applyNav(); });
+        $('#fP').addEventListener('change', e => { state.nav.p = e.target.value; applyNav(); });
+    }
+},
+{
+    key: 'review', short: 'Review', title: 'Review & quiz',
+    goal: () => [['r1', 'r2', 'r3', 'r4', 'r5', 'r6'].filter(id => (state.checks[id] || { picked: [] }).picked.some(i => QC[id].o[i][1])).length, 6, 'Answer all 6 quiz questions'],
+    enter() { setMode('family', true); },
+    render() {
+        const ids = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6'];
+        const answered = ids.filter(id => (state.checks[id] || { picked: [] }).picked.some(i => QC[id].o[i][1]));
+        const firstTry = answered.filter(id => QC[id].o[state.checks[id].picked[0]][1]).length;
+        return `
+        <p class="lead">Amazing work! Here’s everything you learned on one page.</p>
+        <div class="sheet">
+            <div><span class="k">Groups</span><span>Columns, 1–18. A group is a family.</span></div>
+            <div><span class="k">Periods</span><span>Rows, 1–7. The period = the number of energy levels.</span></div>
+            <div><span class="k">Valence e⁻</span><span>Outer-shell electrons. Groups 1–2: same as the group. Groups 13–18: drop the 1. Groups 3–12: varies.</span></div>
+            <div><span class="k">Types</span><span>Metals left of the staircase. Non-metals right of it (+ H). Noble gases in Group 18.</span></div>
+            <div><span class="k">Families</span><span>Alkali (1), alkaline earth (2), transition (3–12), halogens (17), noble gases (18).</span></div>
+            <div><span class="k">Diatomic</span><span>H, N, O, F, Cl, Br, I. Draw the “7”, then add H.</span></div>
+        </div>
+        <h3>Quick quiz</h3>
+        ${ids.map((id, k) => qcHTML(id, `Question ${k + 1} of 6`)).join('')}
+        ${answered.length === 6 ? `<div class="score fade-in"><div class="big">${firstTry}/6</div><div><b>right on the first try!</b><br><span style="font-size:13px;color:var(--ink2)">${firstTry >= 5 ? 'You’re a periodic table pro. 🏆' : 'Nice work. Scroll up to the cheat sheet and try any you missed again.'}</span></div></div>` : ''}
+        ${answered.length === 6 ? bonusHTML() : ''}
+        <div class="row"><button class="btn ghost" data-act="goto" data-v="0">Back to the mission map</button><button class="btn ghost" data-act="reset">Start over</button></div>`;
+    },
+    after() {
+        const bonus = $('#bonus');
+        if (bonus && !state.bonusSeen) {
+            state.bonusSeen = true;
+            bonus.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-
-        document.getElementById('infoDetails').innerHTML = content;
     }
+}];
 
-    init();
+/* ---------- End-of-lesson bonus (extra credit form) ----------
+   Shown only on the Review step, and only after every step's goal is met and the quiz is done.
+   Nothing earlier in the lesson mentions it. */
+/* Answers are posted straight to the Google Form's response endpoint through a hidden iframe,
+   so students never see or get a link to the form itself. For Google to accept these posts the
+   form must NOT require sign-in: turn off "Collect email addresses" and "Limit to 1 response".
+   Field IDs come from the form's "Get pre-filled link". Leave an ID empty to skip that field. */
+const BONUS = {
+    action: 'https://docs.google.com/forms/d/e/1FAIpQLScdMNPw91p6_vSG7Q-4DrS0ASwEvCFG_vU1zrY7ogslEBy1_Q/formResponse',
+    claim: { id: 'entry.967474911', value: 'YES!' },   // "Want 3 points extra credit?" (multiple choice)
+    name: 'entry.336965874',                            // short answer: student's first & last name
+    block: 'entry.498908952',                           // short answer: class block
+    proof: 'entry.51906330'                             // short answer: completion summary (filled in automatically)
+};
+function unfinishedSteps() {
+    return STEPS.map((s, i) => ({ s, i })).filter(({ s, i }) => {
+        if (i === 0 || i === STEPS.length - 1) return false;
+        if (!state.visited.has(i)) return true;
+        if (!s.goal) return false;
+        const [d, t] = s.goal();
+        return d < t;
+    });
+}
+function bonusHTML() {
+    const todo = unfinishedSteps();
+    if (todo.length) {
+        return `<div class="bonus locked fade-in">
+            <div class="bonus-h">🔒 One more surprise is waiting…</div>
+            <p>It unlocks when you’ve finished <b>every</b> step. You still need to complete:</p>
+            <div class="todo">${todo.map(({ s, i }) => {
+                const g = s.goal ? s.goal() : null;
+                return `<button class="todo-item" data-act="goto" data-v="${i}"><span class="mi">${i + 1}</span><span><b>${s.title}</b>${g ? `<small>${esc(g[2])} · ${Math.min(g[0], g[1])}/${g[1]}</small>` : '<small>Visit this step</small>'}</span>${I.right}</button>`;
+            }).join('')}</div>
+        </div>`;
+    }
+    if (state.bonusDone) {
+        return `<div class="bonus" id="bonus">
+            <div class="bonus-h">✅ Extra credit claimed!</div>
+            <p>Sent for <b>${esc(state.bonusDone.name)}</b>${state.bonusDone.block ? ` (Block ${esc(state.bonusDone.block)})` : ''} on ${esc(state.bonusDone.at)}. Nice work finishing the whole lesson!</p>
+        </div>`;
+    }
+    return `<div class="bonus" id="bonus">
+        <div class="bonus-h">🎉 Bonus unlocked!</div>
+        <p>You finished the <b>entire</b> lesson, so you’ve earned <b>3 points of extra credit</b>. Enter your name to claim it. You can only claim it once, so check your spelling!</p>
+        <form class="claim" id="claimForm" novalidate>
+            <label>First &amp; last name<input id="claimName" type="text" autocomplete="name" maxlength="60" required placeholder="e.g. Maria Lopez"></label>
+            <label>Block<input id="claimBlock" type="text" maxlength="10" required placeholder="e.g. 3"></label>
+            <div class="claim-err" id="claimErr" role="alert"></div>
+            <button type="submit" class="btn primary lg" id="claimBtn">Claim my extra credit ${I.right}</button>
+        </form>
+        <iframe name="bonusSink" id="bonusSink" title="" aria-hidden="true" tabindex="-1" style="display:none"></iframe>
+    </div>`;
+}
+function proofText() {
+    const ids = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6'];
+    const firstTry = ids.filter(id => { const p = (state.checks[id] || { picked: [] }).picked; return p.length && QC[id].o[p[0]][1]; }).length;
+    return `All ${STEPS.length} steps done · quiz ${firstTry}/6 first try · ${new Date().toLocaleString()}`;
+}
+function submitClaim(ev) {
+    ev.preventDefault();
+    const name = $('#claimName').value.trim().replace(/\s+/g, ' ');
+    const block = $('#claimBlock').value.trim();
+    const err = $('#claimErr');
+    if (name.split(' ').length < 2) { err.textContent = 'Please type your first AND last name.'; $('#claimName').focus(); return; }
+    if (!block) { err.textContent = 'Please type your block.'; $('#claimBlock').focus(); return; }
+    err.textContent = '';
+    // Build a real form aimed at the hidden iframe: a plain cross-site POST, so no CORS issues
+    const f = document.createElement('form');
+    f.method = 'POST'; f.action = BONUS.action; f.target = 'bonusSink'; f.style.display = 'none';
+    const add = (k, v) => { if (!k) return; const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i); };
+    add(BONUS.claim.id, BONUS.claim.value);
+    add(BONUS.name, name);
+    add(BONUS.block, block);
+    add(BONUS.proof, proofText());
+    document.body.appendChild(f);
+    const btn = $('#claimBtn');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    let done = false;
+    const finish = () => {
+        if (done) return; done = true;
+        f.remove();
+        state.bonusDone = { name, block, at: new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) };
+        try { localStorage.setItem(BONUS_KEY, JSON.stringify(state.bonusDone)); } catch (e) { /* ignore */ }
+        renderLesson();
+    };
+    // Google's reply can't be read across origins, so treat the iframe loading (or a short wait) as sent
+    $('#bonusSink').addEventListener('load', finish, { once: true });
+    setTimeout(finish, 2500);
+    f.submit();
+}
+document.addEventListener('submit', ev => { if (ev.target.id === 'claimForm') submitClaim(ev); });
+
+function togHTML(act, k, title, desc, colors, on, small) {
+    return `<button class="tog" data-act="${act}" data-v="${k}" aria-pressed="${on}" style="--c:${colors.c};--e:${colors.e}">
+        <span class="sw">${I.check}</span>
+        <span><span class="t">${title}${small ? `<small>${small}</small>` : ''}</span><span class="d">${desc}</span></span>
+    </button>`;
+}
+
+/* =========================================================
+   TABLE RENDERING
+   ========================================================= */
+const cells = [];
+function buildTable() {
+    const t = $('#ptable');
+    let html = `<div class="axis-t g">Group (column) →</div><div class="axis-t p">Period (row) →</div>`;
+    for (let g = 1; g <= 18; g++) html += `<button class="lab" data-act="group" data-v="${g}" style="grid-column:${g + 2};grid-row:2" aria-label="Spotlight group ${g}">${g}</button>`;
+    for (let p = 1; p <= 7; p++) html += `<button class="lab" data-act="period" data-v="${p}" style="grid-column:2;grid-row:${p + 2}" aria-label="Spotlight period ${p}">${p}</button>`;
+    html += `<div class="ph" style="grid-column:5;grid-row:8">57–71<br>↓</div><div class="ph" style="grid-column:5;grid-row:9">89–103<br>↓</div>`;
+    html += `<div class="flab" style="grid-row:11">57–71<br>Lanthanides</div><div class="flab" style="grid-row:12">89–103<br>Actinides</div>`;
+    html += `<div class="card" id="card" aria-live="polite"></div>`;
+    t.innerHTML = html;
+
+    ELEMENTS.forEach(e => {
+        const b = document.createElement('button');
+        b.className = 'el enter';
+        b.dataset.n = e.n;
+        b.style.gridColumn = e.f ? 5 + e.fi : e.g + 2;
+        b.style.gridRow = e.f ? (e.p === 6 ? 11 : 12) : e.p + 2;
+        b.style.setProperty('--in', ((e.f ? e.fi + 3 : e.g) * 18 + e.p * 28) + 'ms');
+        b.setAttribute('aria-label', `${e.name}, ${e.s}, atomic number ${e.n}`);
+        b.innerHTML = `<span class="num">${e.n}</span><span class="sym">${e.s}</span><span class="nm">${e.name}</span><span class="badge" hidden></span>`;
+        b.addEventListener('animationend', ev => { if (ev.animationName === 'enter') b.classList.remove('enter'); if (ev.animationName === 'pop') b.classList.remove('pop'); });
+        b.addEventListener('mouseenter', () => { state.hover = e.n; renderCard(); });
+        b.addEventListener('mouseleave', () => { state.hover = null; renderCard(); });
+        b.addEventListener('click', () => onElementClick(e));
+        b.addEventListener('keydown', ev => arrowMove(ev, e));
+        t.appendChild(b);
+        cells.push({ e, node: b });
+    });
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.classList.add('overlay');
+    svg.id = 'overlay';
+    svg.innerHTML = '<path id="stairPath"/><path id="sevenPath"/>';
+    t.appendChild(svg);
+}
+
+function cellNode(n) { return document.querySelector(`.el[data-n="${n}"]`); }
+
+function drawOverlay() {
+    const t = $('#ptable'), svg = $('#overlay');
+    const W = t.offsetWidth, H = t.offsetHeight, gap = 4;
+    svg.setAttribute('width', W); svg.setAttribute('height', H);
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const box = e => { const c = cellNode(e.n); return { l: c.offsetLeft, t: c.offsetTop, r: c.offsetLeft + c.offsetWidth, b: c.offsetTop + c.offsetHeight }; };
+    const differs = (a, b) => a && b && a.cat !== 'noble' && b.cat !== 'noble' && (a.cat === 'metal') !== (b.cat === 'metal');
+    let d = '';
+    ELEMENTS.filter(e => !e.f && e.g >= 13 && e.g <= 17).forEach(e => {
+        const A = box(e);
+        const right = byPos[`${e.p}-${e.g + 1}`], below = byPos[`${e.p + 1}-${e.g}`];
+        if (differs(e, right)) { const x = (A.r + box(right).l) / 2; d += `M${x} ${A.t - gap / 2}V${A.b + gap / 2}`; }
+        if (differs(e, below)) { const y = (A.b + box(below).t) / 2; d += `M${A.l - gap / 2} ${y}H${A.r + gap / 2}`; }
+    });
+    $('#stairPath').setAttribute('d', d);
+    const pts = SEVEN.map(s => { const B = box(bySym[s.toLowerCase()]); return `${(B.l + B.r) / 2} ${(B.t + B.b) / 2}`; });
+    const seven = $('#sevenPath');
+    seven.setAttribute('d', 'M' + pts.join('L'));
+    const len = seven.getTotalLength();
+    seven.style.strokeDasharray = len;
+    if (!seven.classList.contains('show')) seven.style.strokeDashoffset = len;
+}
+
+function look(e) {
+    const m = state.mode, full = state.full;
+    if (m === 'category' && (full || state.catOn.has(e.cat))) return { c: CAT[e.cat].c, e: CAT[e.cat].e };
+    if (m === 'family') {
+        const f = family(e);
+        if (f && f !== 'inner' && (full || state.famOn.has(f))) return { c: FAM[f].c, e: FAM[f].e };
+    }
+    if (m === 'valence' && (full || state.valOn.has(valKey(e)))) {
+        const v = valence(e);
+        if (v == null) return { c: '#ECEEF4', e: '#C5CAD6' };
+        return { c: VAL_FILL[v], e: v >= 5 ? '#3B3BA8' : '#9DA2EE', t: v >= 5 ? '#fff' : '' };
+    }
+    if (m === 'diatomic' && DIATOMIC.includes(e.s) && (full || state.diaOn.has(e.s))) return { c: '#6366F1', e: '#312E81', t: '#fff' };
+    if (m === 'bandG') return e.f ? { c: '#F1F5F9', e: '#CBD5E1' } : e.g % 2 ? { c: '#DBEAFE', e: '#93C5FD' } : { c: '#93C5FD', e: '#3B82F6' };
+    if (m === 'bandP') return e.p % 2 ? { c: '#FFE4E6', e: '#FDA4AF' } : { c: '#FDA4AF', e: '#F43F5E' };
+    return null;
+}
+
+function paint(wave) {
+    cells.forEach(({ e, node }) => {
+        const L = look(e);
+        node.style.setProperty('--fill', L ? L.c : '#fff');
+        node.style.setProperty('--edge', L ? L.e : '#D9DDE8');
+        if (L && L.t) node.style.setProperty('--txt', L.t); else node.style.removeProperty('--txt');
+        node.style.setProperty('--delay', wave ? ((e.f ? e.fi + 3 : e.g) * 24 + e.p * 14) + 'ms' : '0ms');
+        node.classList.toggle('dim', !!state.focus && !state.focus.has(e.n));
+        node.classList.toggle('sel', state.selected === e.n);
+        const badge = node.querySelector('.badge'), v = valence(e);
+        const showBadge = state.mode === 'valence' && v != null && (state.full || state.valOn.has(valKey(e)));
+        badge.hidden = !showBadge;
+        if (showBadge) badge.textContent = v;
+    });
+    document.querySelectorAll('.lab').forEach(l => {
+        const key = (l.dataset.act === 'group' ? 'g' : 'p') + l.dataset.v;
+        l.classList.toggle('on', state.focusLabel === key);
+    });
+    $('#ptable').classList.toggle('stair-strong', state.mode === 'category');
+    $('#ptable').classList.toggle('dimmed-f', !!state.focus);
+    const seven = $('#sevenPath');
+    const showSeven = state.mode === 'diatomic' && (state.full || state.tracing || SEVEN.every(s => state.diaOn.has(s)));
+    if (showSeven && !seven.classList.contains('show')) {
+        seven.classList.add('show');
+        seven.style.transition = 'none';
+        seven.style.strokeDashoffset = 0;
+    } else if (!showSeven && seven.classList.contains('show')) {
+        seven.classList.remove('show');
+        seven.style.transition = 'none';
+        seven.style.strokeDashoffset = seven.getTotalLength();
+    }
+    renderToolbar();
+    renderLegend();
+    renderCard();
+}
+
+/* ---------- Detail card ---------- */
+function bohrSVG(e) {
+    const sh = shells(e.n), R = [30, 46, 62, 76];
+    let g = `<circle cx="85" cy="85" r="18" fill="#EEF0FF" stroke="#C7CCFF" stroke-width="1.5"/>
+             <text x="85" y="86" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#3730A3" font-family="Lexend, sans-serif">${e.s}</text>`;
+    sh.forEach((count, i) => {
+        const outer = i === sh.length - 1, r = R[i];
+        g += `<circle cx="85" cy="85" r="${r}" fill="none" stroke="${outer ? '#F5C26B' : '#D5D9E6'}" stroke-width="${outer ? 2 : 1.4}" ${outer ? '' : 'stroke-dasharray="3 3"'}/>`;
+        let dots = '';
+        for (let k = 0; k < count; k++) {
+            const a = (-90 + k * 360 / count + i * 17) * Math.PI / 180;
+            dots += `<circle cx="${85 + r * Math.cos(a)}" cy="${85 + r * Math.sin(a)}" r="${outer ? 5 : 3.8}" fill="${outer ? '#F59E0B' : '#7A8299'}" stroke="#fff" stroke-width="1.2"/>`;
+        }
+        g += `<g class="spin" style="animation-duration:${24 + i * 10}s">${dots}</g>`;
+    });
+    return `<svg viewBox="0 0 170 170" role="img" aria-label="Bohr model of ${e.name}: ${sh.join(', ')} electrons by shell">${g}</svg>`;
+}
+function lewisSVG(e) {
+    const v = valence(e), counts = [0, 0, 0, 0];
+    if (e.s === 'He') counts[0] = 2; else for (let i = 0; i < v; i++) counts[i % 4]++;
+    const c = 60, o = 9, near = 27, far = 93;
+    const spots = [
+        n => n === 1 ? [[c, near - 4]] : [[c - o, near - 4], [c + o, near - 4]],
+        n => n === 1 ? [[far + 4, c]] : [[far + 4, c - o], [far + 4, c + o]],
+        n => n === 1 ? [[c, far + 4]] : [[c - o, far + 4], [c + o, far + 4]],
+        n => n === 1 ? [[near - 4, c]] : [[near - 4, c - o], [near - 4, c + o]]
+    ];
+    let dots = '';
+    counts.forEach((n, side) => { if (n) spots[side](n).forEach(([x, y]) => dots += `<circle cx="${x}" cy="${y}" r="5" fill="#F59E0B" stroke="#B45309" stroke-width="1"/>`); });
+    return `<svg viewBox="0 0 120 120" role="img" aria-label="Electron dot diagram of ${e.name}: ${v} valence electrons">
+        <text x="60" y="62" text-anchor="middle" dominant-baseline="middle" font-size="${e.s.length > 1 ? 36 : 42}" font-weight="700" fill="#1D2233" font-family="Lexend, sans-serif">${e.s}</text>${dots}</svg>`;
+}
+function renderCard() {
+    const card = $('#card'), n = state.hover ?? state.selected;
+    if (!n) {
+        card.innerHTML = `<div class="card-empty"><span class="tap">👆</span><div><b>Tap any element</b> to see its details here.<br>
+            <span style="font-size:13px">Tip: tap a number at the top (a group) or on the left (a period) to spotlight it.</span></div></div>`;
+        return;
+    }
+    const e = byN[n], v = valence(e), f = family(e), C = CAT[e.cat];
+    const famText = f === 'inner' ? (e.p === 6 ? 'Lanthanides' : 'Actinides') : f ? FAM[f].label : e.s === 'H' ? 'None (not alkali!)' : 'None of the 5';
+    let fun = '';
+    if (DIATOMIC.includes(e.s)) fun = `🔗 Diatomic: found in nature as <b>${e.s}${sub2}</b>`;
+    else if (ORIGIN[e.s]) fun = `📜 The symbol ${e.s} comes from ${ORIGIN[e.s]}`;
+    else if (e.s === 'He') fun = '⚠️ Helium is the Group 18 exception: only 2 valence electrons';
+    let diagram;
+    if (e.n <= 20) diagram = `${bohrSVG(e)}<div class="cap">Outer shell = <b>${v} valence e⁻</b></div>`;
+    else if (v != null) diagram = `${lewisSVG(e)}<div class="cap">Dots = <b>${v} valence e⁻</b></div>`;
+    else diagram = `<div class="varies"><div><b>?</b>${f === 'inner' ? 'Inner transition metal' : 'Transition metal'}:<br>valence electrons <b style="display:inline;font-size:inherit;color:var(--ink)">vary</b></div></div>`;
+
+    card.innerHTML = `
+        <div class="card-tile" style="--c:${C.c};--e:${C.e}"><span class="n">${e.n}</span><span class="s">${e.s}</span><span class="nm">${e.name}</span></div>
+        <div class="facts">
+            <h4>${e.name} <small>atomic # ${e.n} · ${e.n} proton${e.n > 1 ? 's' : ''}</small></h4>
+            <div class="fgrid">
+                ${e.f ? `<div class="fact"><span>Group</span><b>f-block</b></div>` : `<button class="fact" data-act="group" data-v="${e.g}"><span>Group</span><b>${e.g}</b></button>`}
+                <button class="fact" data-act="period" data-v="${e.p}"><span>Period</span><b>${e.p}</b></button>
+                <div class="fact"><span>Valence <span style="text-transform:none">e⁻</span></span><b>${v == null ? 'Varies' : v}</b></div>
+                <div class="fact"><span>Type</span><b><i style="--c:${C.c};--e:${C.e}"></i>${C.label}</b></div>
+                <div class="fact w2" title="${famText}"><span>Family</span><b>${famText}</b></div>
+            </div>
+            ${fun ? `<div class="fun">${fun}</div>` : ''}
+        </div>
+        <div class="diagram">${diagram}</div>`;
+}
+
+/* ---------- Toolbar & legend ---------- */
+const MODES = [['plain', 'Plain'], ['category', 'Metal / Non-metal'], ['family', 'Families'], ['valence', 'Valence e⁻'], ['diatomic', 'Diatomic']];
+function renderToolbar() {
+    $('#modeSeg').innerHTML = MODES.map(([k, l]) => `<button data-act="mode" data-v="${k}" aria-pressed="${state.mode === k}">${l}</button>`).join('');
+}
+function renderLegend() {
+    const L = $('#legend'), m = state.mode;
+    const chip = (act, k, label, col, on) => `<button class="chip" data-act="${act}" data-v="${k}" aria-pressed="${on}" style="--c:${col.c};--e:${col.e}"><span class="sw"></span>${label}</button>`;
+    const stair = `<span class="stairkey"><svg viewBox="0 0 26 14"><path d="M1 2H9V8H17V13H25" fill="none" stroke="#E11D48" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Staircase line</span>`;
+    if (m === 'category') L.innerHTML = Object.keys(CAT).map(k => chip('cat', k, CAT[k].plural, CAT[k], state.full || state.catOn.has(k))).join('') + stair;
+    else if (m === 'family') L.innerHTML = Object.keys(FAM).map(k => chip('fam', k, FAM[k].label, FAM[k], state.full || state.famOn.has(k))).join('');
+    else if (m === 'valence') L.innerHTML = `<span>Valence electrons:</span><span class="grad">${[1, 2, 3, 4, 5, 6, 7, 8].map(v => `<span style="background:${VAL_FILL[v]};color:${v >= 5 ? '#fff' : '#3730A3'}">${v}</span>`).join('')}</span>
+        <span class="chip static" style="--c:#ECEEF4;--e:#C5CAD6"><span class="sw"></span>Varies (transition metals)</span>`;
+    else if (m === 'diatomic') L.innerHTML = `<span class="chip static" style="--c:#6366F1;--e:#312E81"><span class="sw"></span>Diatomic elements: H, N, O, F, Cl, Br, I</span>`;
+    else if (m === 'bandG') L.innerHTML = `<span><b>Groups</b> are the 18 <b>columns</b> ↓. Tap a number at the top to spotlight one.</span>`;
+    else if (m === 'bandP') L.innerHTML = `<span><b>Periods</b> are the 7 <b>rows</b> →. Tap a number on the left to spotlight one.</span>`;
+    else L.innerHTML = `<span>👆 Tap an element for details · Tap a group or period number to spotlight it · Pick a “Color by” view to explore</span>`;
+}
+
+/* ---------- Fit table to the available space ---------- */
+const stacked = window.matchMedia('(max-width: 1023px)');
+function fitTable() {
+    const area = $('#tableArea'), t = $('#ptable');
+    const natW = t.offsetWidth, natH = t.offsetHeight;
+    const cs = getComputedStyle(area);
+    const availW = area.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const availH = area.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    let s = availW / natW;
+    if (stacked.matches) s = Math.max(.55, Math.min(1, s));
+    else s = Math.max(.3, Math.min(1.25, s, availH / natH));
+    $('#tableScale').style.transform = `scale(${s})`;
+    $('#sizer').style.width = natW * s + 'px';
+    $('#sizer').style.height = natH * s + 'px';
+}
+
+/* =========================================================
+   INTERACTIONS
+   ========================================================= */
+function setMode(m, full = false) { state.mode = m; state.full = full; }
+function setFocus(set, label = null) { state.focus = set; state.focusLabel = label; }
+function select(n) { state.selected = n; }
+
+function onElementClick(e) {
+    state.selected = e.n;
+    if (STEPS[state.step].key === 'square' && e.n !== 20 && !state.explored.has(e.n)) {
+        state.explored.add(e.n);
+        renderLesson();
+    }
+    if (state.focus && !state.focus.has(e.n)) setFocus(null);
+    paint();
+}
+
+function spotlight(kind, v) {
+    const key = kind + v;
+    if (state.focusLabel === key) { setFocus(null); paint(); return; }
+    const set = new Set(ELEMENTS.filter(e => kind === 'g' ? e.g === +v : e.p === +v).map(e => e.n));
+    setFocus(set, key);
+    state.flags[kind] = true;
+    if (STEPS[state.step].key === 'gp') renderLesson();
+    paint();
+}
+
+function popCells(ns, stagger = 0) {
+    ns.forEach((n, i) => setTimeout(() => {
+        const c = cellNode(n);
+        if (!c) return;
+        c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+    }, i * stagger));
+}
+
+let diaTimers = [];
+function traceSeven() {
+    diaTimers.forEach(clearTimeout); diaTimers = [];
+    state.diaOn.clear(); state.traced = true; state.tracing = true;
+    setMode('diatomic'); setFocus(null);
+    const seven = $('#sevenPath'), len = seven.getTotalLength();
+    seven.classList.add('show');
+    seven.style.transition = 'none';
+    seven.style.strokeDashoffset = len;
+    paint(); renderLesson();
+    void seven.getBoundingClientRect();
+    seven.style.transition = 'stroke-dashoffset 2.4s ease-in-out, opacity .3s';
+    seven.style.strokeDashoffset = 0;
+    SEVEN.forEach((s, i) => diaTimers.push(setTimeout(() => {
+        state.diaOn.add(s); paint(); renderLesson(); updateNav(); popCells([bySym[s.toLowerCase()].n]);
+    }, 150 + i * 430)));
+    diaTimers.push(setTimeout(() => {
+        state.tracing = false;
+        state.diaOn.add('H'); select(1);
+        paint(); renderLesson(); popCells([1]);
+    }, 150 + SEVEN.length * 430 + 500));
+}
+
+/* ---------- Detective ---------- */
+function detFind(q) {
+    q = q.trim();
+    if (!q) return null;
+    const exact = bySym[q.toLowerCase()];
+    if (exact) return exact;
+    if (q.length >= 3) return ELEMENTS.find(e => e.name.toLowerCase().startsWith(q.toLowerCase())) || null;
+    return null;
+}
+let detTimer = null;
+function detSearch(q, now) {
+    state.det.q = q;
+    const e = detFind(q);
+    clearTimeout(detTimer);
+    if (e) {
+        select(e.n); setFocus(new Set([e.n]));
+        popCells([e.n]);
+        // Only log an element once the student stops typing, so "C" on the way to "Ca" isn't counted
+        const log = () => {
+            const h = state.det.history;
+            if (!h.includes(e.n)) { h.push(e.n); if (h.length > 12) h.shift(); }
+            const r = $('#detResult');
+            if (r) r.innerHTML = detResultHTML();
+            updateGoal(); updateNav();
+        };
+        if (now) log(); else detTimer = setTimeout(log, 900);
+    } else if (!q.trim()) { setFocus(null); }
+    $('#detResult').innerHTML = detResultHTML();
+    paint();
+}
+function detResultHTML() {
+    const q = (state.det.q || '').trim(), e = detFind(q);
+    let out = '';
+    if (q && !e) {
+        out += `<div class="warn">🤔 No element matches “${esc(q)}”. Check the spelling, or try just the symbol (1–2 letters).</div>`;
+    } else if (e) {
+        const v = valence(e), C = CAT[e.cat], f = family(e);
+        const caseWarn = q.length === e.s.length && q !== e.s && q.toLowerCase() === e.s.toLowerCase() && e.s.length === 2
+            ? `<div class="warn">✍️ Careful when you write it: it’s <b>${e.s}</b>, not “${esc(q)}”. Second letter lowercase!</div>` : '';
+        const why = [];
+        why.push(e.f ? `It’s in the f-block (period ${e.p}).` : `It’s in <b>Group ${e.g}</b>, <b>Period ${e.p}</b>.`);
+        if (e.s === 'H') why.push('Hydrogen is the special one: a non-metal on the left side.');
+        else if (e.cat === 'noble') why.push('Group 18 means noble gas.');
+        else why.push(e.cat === 'metal' ? 'It’s left of the staircase, so it’s a metal.' : 'It’s right of the staircase, so it’s a non-metal.');
+        if (v == null) why.push(`${f === 'inner' ? 'Inner transition' : 'Transition'} metals’ valence electrons vary.`);
+        else if (e.s === 'He') why.push('Helium is the exception: 2 valence electrons.');
+        else why.push(e.g <= 2 ? `Group ${e.g} means ${v} valence electron${v > 1 ? 's' : ''}.` : `Group ${e.g}: drop the 1, so ${v} valence electrons.`);
+        out += `${caseWarn}<div class="det-card fade-in">
+            <div class="det-tile" style="--c:${C.c};--e:${C.e}"><span class="n">${e.n}</span><span class="s">${e.s}</span></div>
+            <dl class="det-rows">
+                <div><dt>Name</dt><dd>${e.name}</dd></div>
+                <div><dt>Classify</dt><dd>${C.label}</dd></div>
+                <div><dt>Valence <span style="text-transform:none">e⁻</span></dt><dd>${v == null ? 'Varies' : v}</dd></div>
+            </dl></div>
+            <p class="why"><b>How we know:</b> ${why.join(' ')}</p>`;
+    }
+    const h = state.det.history;
+    if (h.length) out += `<div class="hist" style="margin-top:12px">Found so far: ${h.map(n => { const x = byN[n]; return `<button class="mini" data-act="detPick" data-v="${x.s}" style="--c:${CAT[x.cat].c};--e:${CAT[x.cat].e}">${x.s}</button>`; }).join('')}</div>`;
+    return out;
+}
+
+/* ---------- Navigator ---------- */
+function navMatches() {
+    const { g, p, t } = state.nav;
+    if (g === 'any' && p === 'any' && t === 'any') return null;
+    return ELEMENTS.filter(e => (g === 'any' || e.g === +g) && (p === 'any' || e.p === +p) && (t === 'any' || e.cat === t));
+}
+function navResultHTML() {
+    const m = navMatches();
+    if (!m) return `<div class="matches"><div class="cnt">Choose a group, period, or type to start the search.</div></div>`;
+    const { g, p, t } = state.nav;
+    const desc = [t !== 'any' ? `<b>${CAT[t].label.toLowerCase()}s</b>` : '<b>elements</b>', g !== 'any' ? `in <b>Group ${g}</b>` : '', p !== 'any' ? `in <b>Period ${p}</b>` : ''].filter(Boolean).join(' ');
+    if (!m.length) return `<div class="matches"><div class="cnt">No ${desc}. Try changing one of the clues.</div></div>`;
+    return `<div class="matches fade-in"><div class="cnt"><b>${m.length}</b> ${desc}${m.length > 1 ? '. Any one is a correct answer!' : ''}</div>
+        <div class="hist">${m.slice(0, 40).map(x => `<button class="mini" data-act="pick" data-v="${x.n}" style="--c:${CAT[x.cat].c};--e:${CAT[x.cat].e}" title="${x.name}">${x.s}</button>`).join('')}${m.length > 40 ? '…' : ''}</div></div>`;
+}
+function applyNav() {
+    const m = navMatches();
+    setFocus(m ? new Set(m.map(e => e.n)) : null);
+    if (m && m.length && !m.some(e => e.n === state.selected)) select(m[0].n);
+    const r = $('#navResult');
+    if (r) r.innerHTML = navResultHTML();
+    document.querySelectorAll('[data-act="navT"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === state.nav.t));
+    paint();
+}
+
+/* ---------- Keyboard: arrows move around the table ---------- */
+function arrowMove(ev, e) {
+    const d = { ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0] }[ev.key];
+    if (!d) return;
+    ev.preventDefault(); ev.stopPropagation();
+    let row = e.f ? (e.p === 6 ? 9 : 10) : e.p, col = e.f ? e.fi + 3 : e.g;
+    const at = (r, c) => r <= 7 ? byPos[`${r}-${c}`] : ELEMENTS.find(x => x.f && (x.p === (r === 9 ? 6 : 7)) && x.fi + 3 === c);
+    for (let k = 0; k < 20; k++) {
+        row += d[0]; col += d[1];
+        if (row === 8) row += d[0];
+        if (row < 1 || row > 10 || col < 1 || col > 18) return;
+        const x = at(row, col);
+        if (x) { cellNode(x.n).focus(); state.hover = x.n; renderCard(); return; }
+    }
+}
+
+/* ---------- Lesson rendering & navigation ---------- */
+function renderStepper() {
+    $('#stepper').innerHTML = STEPS.map((s, i) => `<button class="stp ${state.visited.has(i) && i !== state.step ? 'done' : ''}" data-act="goto" data-v="${i}" ${i === state.step ? 'aria-current="step"' : ''} title="${s.title}">
+        <span class="dot">${state.visited.has(i) && i !== state.step ? I.check : i + 1}</span><span class="lbl">${s.short}</span></button>`).join('');
+    $('#progress').style.width = ((state.step) / (STEPS.length - 1) * 100) + '%';
+    const cur = $('#stepper [aria-current]');
+    if (cur) cur.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+function goalHTML() {
+    const s = STEPS[state.step];
+    if (!s.goal) return '';
+    const [d, t, txt] = s.goal();
+    return `<div id="goalSlot">${goalBar(d, t, txt)}</div>`;
+}
+function updateGoal() {
+    const slot = $('#goalSlot'), s = STEPS[state.step];
+    if (slot && s.goal) { const [d, t, txt] = s.goal(); slot.innerHTML = goalBar(d, t, txt); }
+}
+function renderLesson() {
+    const body = $('#lesson'), s = STEPS[state.step], top = body.scrollTop;
+    body.innerHTML = `
+        <div class="eyebrow"><span>Step ${state.step + 1} of ${STEPS.length}</span>${s.ws ? `<span class="ws">✏️ Worksheet ${s.ws}</span>` : ''}</div>
+        <h2>${s.title}</h2>
+        ${goalHTML()}
+        ${s.render()}`;
+    body.scrollTop = top;
+    if (s.after) s.after();
+    updateNav();
+}
+function updateNav() {
+    const i = state.step, last = i === STEPS.length - 1, s = STEPS[i];
+    $('#prevBtn').disabled = i === 0;
+    const nb = $('#nextBtn');
+    nb.style.visibility = last ? 'hidden' : '';
+    if (!last) nb.innerHTML = `<span class="l1">${i === 0 ? 'Start' : 'Next'} ${I.right}</span><span class="l2">${STEPS[i + 1].title}</span>`;
+    let done = false;
+    if (s.goal) { const [d, t] = s.goal(); done = d >= t; }
+    nb.classList.toggle('glow', done && !last);
+    save();
+}
+function goTo(i) {
+    if (i < 0 || i >= STEPS.length) return;
+    diaTimers.forEach(clearTimeout); diaTimers = []; state.tracing = false;
+    clearTimeout(detTimer);
+    state.step = i; state.visited.add(i);
+    // Start each step with a clean table; a step's enter() can still select its own element (e.g. Ca)
+    setFocus(null); state.selected = null; state.hover = null; state.part = null;
+    STEPS[i].enter();
+    $('#lesson').scrollTop = 0;
+    renderLesson(); renderStepper();
+    paint(true);
+    save();
+    if (stacked.matches) document.querySelector('.stage').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---------- Click delegation ---------- */
+document.addEventListener('click', ev => {
+    const t = ev.target.closest('[data-act]');
+    if (!t) return;
+    const act = t.dataset.act, v = t.dataset.v;
+    switch (act) {
+        case 'next': goTo(state.step + 1); break;
+        case 'prev': goTo(state.step - 1); break;
+        case 'goto': goTo(+v); break;
+        case 'group': spotlight('g', v); break;
+        case 'period': spotlight('p', v); break;
+        case 'bands': {
+            const m = 'band' + v;
+            setMode(state.mode === m ? 'plain' : m); setFocus(null);
+            state.flags[v === 'G' ? 'g' : 'p'] = true;
+            renderLesson(); paint(true); break;
+        }
+        case 'part': state.part = v; state.partsSeen.add(v); renderLesson(); break;
+        case 'cat': case 'fam': {
+            const set = act === 'cat' ? state.catOn : state.famOn, mode = act === 'cat' ? 'category' : 'family';
+            // Coming from the full-color view every chip shows as on, so start from "all on" before toggling
+            const wasFull = state.mode === mode && state.full;
+            if (state.mode !== mode || state.full) setMode(mode);
+            if (wasFull) { set.clear(); Object.keys(act === 'cat' ? CAT : FAM).forEach(k => set.add(k)); }
+            set.has(v) ? set.delete(v) : set.add(v);
+            setFocus(null);
+            paint(true); renderLesson();
+            if (set.has(v)) popCells(ELEMENTS.filter(e => act === 'cat' ? e.cat === v : family(e) === v).slice(0, 1).map(e => e.n));
+            break;
+        }
+        case 'catAll': setMode('category'); ['metal', 'nonmetal', 'noble'].forEach(k => state.catOn.add(k)); paint(true); renderLesson(); break;
+        case 'famAll': setMode('family'); Object.keys(FAM).forEach(k => state.famOn.add(k)); paint(true); renderLesson(); break;
+        case 'val': {
+            setMode('valence'); state.valOn.add(v); state.lastVal = v;
+            const set = new Set(ELEMENTS.filter(e => valKey(e) === v && (v !== '3-12' || !e.f)).map(e => e.n));
+            setFocus(set);
+            select(bySym[VAL_REP[v].toLowerCase()].n);
+            paint(true); renderLesson();
+            break;
+        }
+        case 'valAll': setMode('valence'); VAL_KEYS.forEach(k => state.valOn.add(k)); setFocus(null); paint(true); renderLesson(); break;
+        case 'dia': traceSeven(); break;
+        case 'mode': setMode(v, true); setFocus(null); paint(true); if (['gp'].includes(STEPS[state.step].key)) renderLesson(); break;
+        case 'clear': setFocus(null); state.selected = null; if (state.mode.startsWith('band')) setMode('plain'); paint(); break;
+        case 'qc': answerQC(t.dataset.q, +v); break;
+        case 'detPick': $('#detInput').value = v; detSearch(v, true); break;
+        case 'pick': select(+v); paint(); break;
+        case 'navT': state.nav.t = v; applyNav(); break;
+        case 'navEx': state.nav = { g: '14', p: 'any', t: 'metal' }; $('#fG').value = '14'; $('#fP').value = 'any'; applyNav(); break;
+        case 'navReset': state.nav = { g: 'any', p: 'any', t: 'any' }; $('#fG').value = 'any'; $('#fP').value = 'any'; applyNav(); break;
+        case 'reset':
+            try { localStorage.removeItem(STORE_KEY); } catch (e) { /* ignore */ }
+            location.reload(); break;
+    }
+    if (['cat', 'fam', 'val', 'valAll', 'catAll', 'famAll', 'part', 'bands'].includes(act)) updateNav();
+});
+
+document.addEventListener('keydown', ev => {
+    const tag = (ev.target.tagName || '').toLowerCase();
+    if (['input', 'select', 'textarea'].includes(tag) || ev.target.classList.contains('el')) return;
+    if (ev.key === 'ArrowRight') goTo(state.step + 1);
+    if (ev.key === 'ArrowLeft') goTo(state.step - 1);
+    if (ev.key === 'Escape') { setFocus(null); state.selected = null; paint(); }
+});
+$('#namesToggle').addEventListener('change', ev => $('#ptable').classList.toggle('hide-names', !ev.target.checked));
+
+/* =========================================================
+   INIT
+   ========================================================= */
+function init() {
+    load();
+    buildTable();
+    STEPS[state.step].enter();
+    renderStepper();
+    renderLesson();
+    paint();
+    fitTable();
+    drawOverlay();
+    new ResizeObserver(() => { fitTable(); }).observe($('#tableArea'));
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fitTable(); drawOverlay(); });
+}
+init();
 </script>
-
 </body>
 </html>
