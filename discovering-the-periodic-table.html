@@ -325,10 +325,15 @@
     .bonus > * + * { margin-top: 10px; }
     .bonus-h { font-size: 19px; font-weight: 700; }
     .bonus.locked { border: 1.5px dashed #C9CDE0; background: #F8F9FC; box-shadow: none; }
-    .bonus-frame { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
-    .bonus-frame iframe { display: block; width: 100%; height: 560px; border: 0; }
-    .bonus-alt { font-size: 13px !important; }
-    .bonus-alt a { color: var(--accent); font-weight: 600; }
+    .claim { display: grid; gap: 10px; }
+    .claim label { display: grid; gap: 5px; font-size: 12px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .05em; }
+    .claim input {
+        font: inherit; font-size: 16px; font-weight: 500; color: var(--ink); text-transform: none; letter-spacing: 0;
+        height: 48px; padding: 0 14px; border-radius: 12px; border: 2px solid var(--line); background: #fff;
+    }
+    .claim input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(79,70,229,.14); }
+    .claim-err { font-size: 13px; color: #992B2B; min-height: 0; }
+    .claim-err:empty { display: none; }
     .todo { display: grid; gap: 6px; }
     .todo-item {
         all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 12px;
@@ -675,6 +680,7 @@ const state = {
     traced: false
 };
 const STORE_KEY = 'ptable-lesson-v2';
+const BONUS_KEY = 'ptable-bonus-claimed';
 // Progress toward each step's goal is saved too, so a reload doesn't lock a student out of the finish
 const SAVED_SETS = ['visited', 'catOn', 'famOn', 'valOn', 'diaOn', 'partsSeen', 'explored'];
 function save() {
@@ -685,6 +691,11 @@ function save() {
     } catch (e) { /* storage unavailable: lesson still works */ }
 }
 function load() {
+    // Kept under its own key so "Start over" doesn't let a student claim twice
+    try {
+        const b = JSON.parse(localStorage.getItem(BONUS_KEY) || 'null');
+        if (b && b.name) state.bonusDone = b;
+    } catch (e) { /* ignore */ }
     try {
         const d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
         if (!d || !Number.isInteger(d.step) || d.step < 0 || d.step >= STEPS.length) return;
@@ -1039,7 +1050,17 @@ const STEPS = [
 /* ---------- End-of-lesson bonus (extra credit form) ----------
    Shown only on the Review step, and only after every step's goal is met and the quiz is done.
    Nothing earlier in the lesson mentions it. */
-const BONUS_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLScdMNPw91p6_vSG7Q-4DrS0ASwEvCFG_vU1zrY7ogslEBy1_Q/viewform';
+/* Answers are posted straight to the Google Form's response endpoint through a hidden iframe,
+   so students never see or get a link to the form itself. For Google to accept these posts the
+   form must NOT require sign-in: turn off "Collect email addresses" and "Limit to 1 response".
+   Field IDs come from the form's "Get pre-filled link". Leave an ID empty to skip that field. */
+const BONUS = {
+    action: 'https://docs.google.com/forms/d/e/1FAIpQLScdMNPw91p6_vSG7Q-4DrS0ASwEvCFG_vU1zrY7ogslEBy1_Q/formResponse',
+    claim: { id: 'entry.967474911', value: 'YES!' },   // "Want two points extra credit?" (multiple choice)
+    name: '',                                           // short answer: student's first & last name
+    block: '',                                          // short answer: class block
+    proof: ''                                           // short answer: completion summary (filled in automatically)
+};
 function unfinishedSteps() {
     return STEPS.map((s, i) => ({ s, i })).filter(({ s, i }) => {
         if (i === 0 || i === STEPS.length - 1) return false;
@@ -1061,15 +1082,62 @@ function bonusHTML() {
             }).join('')}</div>
         </div>`;
     }
+    if (state.bonusDone) {
+        return `<div class="bonus" id="bonus">
+            <div class="bonus-h">✅ Extra credit claimed!</div>
+            <p>Sent for <b>${esc(state.bonusDone.name)}</b>${state.bonusDone.block ? ` (Block ${esc(state.bonusDone.block)})` : ''} on ${esc(state.bonusDone.at)}. Nice work finishing the whole lesson!</p>
+        </div>`;
+    }
     return `<div class="bonus" id="bonus">
         <div class="bonus-h">🎉 Bonus unlocked!</div>
-        <p>You finished the <b>entire</b> lesson. Fill out this form to earn <b>extra credit</b>. You can only submit it once, so double-check your answers!</p>
-        <div class="bonus-frame">
-            <iframe src="${BONUS_FORM}?embedded=true" title="Extra credit form" loading="lazy">Loading…</iframe>
-        </div>
-        <p class="bonus-alt">Form not loading? <a href="${BONUS_FORM}" target="_blank" rel="noopener">Open it in a new tab</a>.</p>
+        <p>You finished the <b>entire</b> lesson, so you’ve earned <b>2 points of extra credit</b>. Enter your name to claim it. You can only claim it once, so check your spelling!</p>
+        <form class="claim" id="claimForm" novalidate>
+            <label>First &amp; last name<input id="claimName" type="text" autocomplete="name" maxlength="60" required placeholder="e.g. Maria Lopez"></label>
+            <label>Block<input id="claimBlock" type="text" maxlength="10" required placeholder="e.g. 3"></label>
+            <div class="claim-err" id="claimErr" role="alert"></div>
+            <button type="submit" class="btn primary lg" id="claimBtn">Claim my extra credit ${I.right}</button>
+        </form>
+        <iframe name="bonusSink" id="bonusSink" title="" aria-hidden="true" tabindex="-1" style="display:none"></iframe>
     </div>`;
 }
+function proofText() {
+    const ids = ['r1', 'r2', 'r3', 'r4', 'r5', 'r6'];
+    const firstTry = ids.filter(id => { const p = (state.checks[id] || { picked: [] }).picked; return p.length && QC[id].o[p[0]][1]; }).length;
+    return `All ${STEPS.length} steps done · quiz ${firstTry}/6 first try · ${new Date().toLocaleString()}`;
+}
+function submitClaim(ev) {
+    ev.preventDefault();
+    const name = $('#claimName').value.trim().replace(/\s+/g, ' ');
+    const block = $('#claimBlock').value.trim();
+    const err = $('#claimErr');
+    if (name.split(' ').length < 2) { err.textContent = 'Please type your first AND last name.'; $('#claimName').focus(); return; }
+    if (!block) { err.textContent = 'Please type your block.'; $('#claimBlock').focus(); return; }
+    err.textContent = '';
+    // Build a real form aimed at the hidden iframe: a plain cross-site POST, so no CORS issues
+    const f = document.createElement('form');
+    f.method = 'POST'; f.action = BONUS.action; f.target = 'bonusSink'; f.style.display = 'none';
+    const add = (k, v) => { if (!k) return; const i = document.createElement('input'); i.type = 'hidden'; i.name = k; i.value = v; f.appendChild(i); };
+    add(BONUS.claim.id, BONUS.claim.value);
+    add(BONUS.name, name);
+    add(BONUS.block, block);
+    add(BONUS.proof, proofText());
+    document.body.appendChild(f);
+    const btn = $('#claimBtn');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    let done = false;
+    const finish = () => {
+        if (done) return; done = true;
+        f.remove();
+        state.bonusDone = { name, block, at: new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) };
+        try { localStorage.setItem(BONUS_KEY, JSON.stringify(state.bonusDone)); } catch (e) { /* ignore */ }
+        renderLesson();
+    };
+    // Google's reply can't be read across origins, so treat the iframe loading (or a short wait) as sent
+    $('#bonusSink').addEventListener('load', finish, { once: true });
+    setTimeout(finish, 2500);
+    f.submit();
+}
+document.addEventListener('submit', ev => { if (ev.target.id === 'claimForm') submitClaim(ev); });
 
 function togHTML(act, k, title, desc, colors, on, small) {
     return `<button class="tog" data-act="${act}" data-v="${k}" aria-pressed="${on}" style="--c:${colors.c};--e:${colors.e}">
