@@ -843,7 +843,7 @@ const LABELS={
 };
 const Micro={sample:null,state:null,el:null,
  build(sample){
-  this.sample=sample;const plant=sample==='banana',R=rng(plant?7:13);
+  this.cancel();this.sample=sample;const plant=sample==='banana',R=rng(plant?7:13);
   let A='',B='';
   // ---------- Scene A: cells ----------
   if(plant){
@@ -942,7 +942,8 @@ const Micro={sample:null,state:null,el:null,
   if(instant){el.getBoundingClientRect();requestAnimationFrame(()=>el.classList.remove('instant'));}
   this.state=name;
  },
- go(from,to){this.set(from,true);if(from===to)return;setTimeout(()=>this.set(to),REDUCED?0:450);}
+ go(from,to){this.cancel();this.set(from,true);if(from===to)return;this.timer=setTimeout(()=>{this.timer=null;this.set(to);},REDUCED?0:450);},
+ cancel(){if(this.timer){clearTimeout(this.timer);this.timer=null;}}
 };
 
 /* =========================================================
@@ -1066,9 +1067,9 @@ const rackArt=`<rect x="-30" y="150" width="120" height="16" rx="4" fill="#9fb6c
    ========================================================= */
 function svgPt(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
 function inRect(el,e,pad=24){const r=el.getBoundingClientRect();return e.clientX>r.left-pad&&e.clientX<r.right+pad&&e.clientY>r.top-pad&&e.clientY<r.bottom+pad;}
-function onActivate(el,fn){el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn();}});}
+function onActivate(el,fn){el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(!e.repeat)fn();}});}
 function focusable(el,label){if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');if(!el.hasAttribute('role'))el.setAttribute('role','button');if(label&&!el.hasAttribute('aria-label'))el.setAttribute('aria-label',label);}
-function makeTap(el,fn){focusable(el,'Tap to use');el.classList.add('tap','cue');el.addEventListener('click',fn);onActivate(el,fn);}
+function makeTap(el,fn){focusable(el,'Tap to use');el.classList.add('tap','cue');let used=false;const once=()=>{if(used)return;used=true;el.classList.remove('cue');fn();};el.addEventListener('click',once);onActivate(el,once);}
 function makeDrag(svg,item,target,fn){
  focusable(item,'Drag or press Enter to use');item.classList.add('drag','cue');const bx=+item.dataset.x,by=+item.dataset.y;let st=null,moved=false,busy=false;
  const fire=()=>{if(busy)return;busy=true;item.classList.remove('cue');target.classList.remove('hint-on','over');fn();};
@@ -1139,7 +1140,7 @@ function enterStep(i){
  if(Micro.sample!==S.sample)Micro.build(S.sample);
  // micro "before" state, with a zoom transition when entering molecule view
  const before=st.micro[0];const prevAfter=i>0?STEPS[S.sample][i-1].micro.slice(-1)[0]:'intact';
- if(prevAfter!==before&&i>0){Micro.go(prevAfter,before);}else Micro.set(before,true);
+ Micro.cancel();if(prevAfter!==before&&i>0){Micro.go(prevAfter,before);}else Micro.set(before,true);
  $('#replayBtn').disabled=true;
  ctx={sample:S.sample,step:i,b:benchFor(S.sample,i),token:alive};
  IMPL[S.sample][i](ctx);
@@ -1152,7 +1153,7 @@ function taskDone(){
 }
 function stepComplete(){
  const st=STEPS[S.sample][S.step];S.phase='learn';
- const m=st.micro;Micro.set(m[m.length-2],true);setTimeout(()=>{if(ctx.token===alive)Micro.set(m[m.length-1]);},REDUCED?0:250);
+ const m=st.micro,tok0=ctx.token;Micro.set(m[m.length-2],true);setTimeout(()=>{if(tok0===alive)Micro.set(m[m.length-1]);},REDUCED?0:250);
  $('#replayBtn').disabled=false;
  const tok=ctx.token;setTimeout(()=>{if(tok!==alive)return;renderLearn();},REDUCED?200:1700);
  const was=S.prog[S.sample];
