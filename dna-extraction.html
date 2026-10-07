@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DNA Extraction Lab</title>
+<meta name="description" content="An interactive virtual lab: extract DNA from banana cells and human cheek cells, step by step, with a zoomed-in view of what happens inside the cells.">
+<style>
+:root{
+  --ink:#1c2333;--muted:#5d6676;--soft:#8a92a0;--paper:#f7f3ea;--card:#fff;--line:#e7e1d3;--line2:#efeadf;
+  --banana:#f5c400;--banana-d:#b98900;--banana-l:#fff4c2;
+  --cheek:#e2557a;--cheek-d:#b3345a;--cheek-l:#ffe4ec;
+  --dna:#5b3fd6;--dna-d:#3f2aa6;--dna-l:#ece7ff;
+  --ok:#14936b;--ok-l:#dff6ee;--warn:#c56a12;--warn-l:#fff0dd;--bad:#c93c3c;--bad-l:#fde7e7;
+  --lens:#111727;--radius:22px;--shadow:0 1px 2px rgba(28,35,51,.06),0 8px 28px rgba(28,35,51,.07);
+  --accent:var(--dna);--accent-l:var(--dna-l);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:16.5px/1.55 ui-rounded,"SF Pro Rounded",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body.s-banana{--accent:#a27800;--accent-l:var(--banana-l)}
+body.s-cheek{--accent:var(--cheek-d);--accent-l:var(--cheek-l)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+button:disabled{cursor:not-allowed}
+:focus-visible{outline:3px solid #8f7cf0;outline-offset:3px;border-radius:8px}
+h1,h2,h3,h4{margin:0;letter-spacing:-.02em;line-height:1.15}
+p{margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- header ---------- */
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:16px;padding:12px clamp(16px,3vw,36px);background:rgba(255,255,255,.86);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:19px;letter-spacing:-.02em;white-space:nowrap}
+.brand small{display:block;font-size:11px;font-weight:650;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+.logo{width:40px;height:40px;border-radius:12px;background:var(--lens);display:grid;place-items:center;flex:none}
+.nav{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav button{padding:8px 13px;border-radius:999px;font-size:14.5px;font-weight:650;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:7px}
+.nav button:hover{background:var(--line2);color:var(--ink)}
+.nav button[aria-current="page"]{background:var(--ink);color:#fff}
+.nav .dot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.5}
+.nav .dot.done{background:var(--ok);opacity:1}
+
+main{max-width:1320px;margin:0 auto;padding:clamp(18px,3vw,34px) clamp(16px,3vw,36px) 80px}
+.view{display:none;animation:fade .35s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid rgba(231,225,211,.7)}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 20px;border-radius:14px;font-weight:750;font-size:16px;transition:transform .12s,box-shadow .15s,background .15s;min-height:48px}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn.primary{background:var(--ink);color:#fff;box-shadow:0 6px 18px rgba(28,35,51,.18)}
+.btn.primary:hover:not(:disabled){background:#2b3550}
+.btn.primary:disabled{background:#c9ccd3;box-shadow:none}
+.btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+.btn.ghost:hover{border-color:#cfc6b3}
+.btn.small{padding:8px 13px;min-height:38px;font-size:14px;border-radius:11px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--line2);color:var(--muted)}
+
+/* ---------- home ---------- */
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(20px,4vw,56px);align-items:center;margin:8px 0 34px}
+.hero h1{font-size:clamp(34px,5vw,62px);font-weight:850;letter-spacing:-.035em;margin:12px 0 16px}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--dna),#b04ad8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lead{font-size:clamp(17px,1.6vw,20px);color:var(--muted);max-width:560px}
+.hero-art{aspect-ratio:1/1;max-width:460px;width:100%;justify-self:center}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.samples{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.sample{position:relative;text-align:left;padding:24px;display:grid;grid-template-columns:120px 1fr;gap:20px;align-items:center;transition:transform .18s,box-shadow .18s;overflow:hidden}
+.sample:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(28,35,51,.06),0 16px 36px rgba(28,35,51,.11)}
+.sample .art{width:120px;height:120px;border-radius:20px;display:grid;place-items:center}
+.sample.banana .art{background:var(--banana-l)}
+.sample.cheek .art{background:var(--cheek-l)}
+.sample h3{font-size:23px;margin:6px 0 6px}
+.sample p{color:var(--muted);font-size:15px}
+.meter{height:8px;border-radius:9px;background:var(--line2);overflow:hidden;margin-top:14px}
+.meter i{display:block;height:100%;border-radius:9px;background:var(--ok);transition:width .5s}
+.sample .status{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--muted);margin-top:8px}
+.sample .go{position:absolute;right:20px;top:20px;width:38px;height:38px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:18px}
+.strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:20px}
+.strip .card{padding:20px 22px;display:flex;gap:14px;align-items:flex-start}
+.strip .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;font-size:21px;background:var(--dna-l)}
+.strip h4{font-size:16px;margin-bottom:3px}
+.strip p{font-size:14.5px;color:var(--muted)}
+.strip button.card{text-align:left;transition:transform .18s}
+.strip button.card:hover{transform:translateY(-2px)}
+.section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:38px 0 14px}
+.section-title h2{font-size:22px}
+
+/* ---------- lab ---------- */
+.labhead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:12px;flex-wrap:wrap}
+.labhead h1{font-size:clamp(22px,2.4vw,30px);font-weight:850;margin-top:4px}
+.labhead .sub{color:var(--muted);margin-top:4px}
+.stepper{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-bottom:14px}
+.st{position:relative;text-align:left;padding:7px 10px 10px;border-radius:14px;background:rgba(255,255,255,.6);border:1.5px solid transparent;transition:background .2s,border-color .2s;min-width:0}
+.st:not(:disabled):hover{background:#fff}
+.st .n{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.st .n b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:var(--line);color:var(--muted);letter-spacing:0}
+.st .t{display:block;font-size:13.5px;font-weight:700;line-height:1.25;margin-top:3px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st .bar{position:absolute;left:10px;right:10px;bottom:0;height:3px;border-radius:3px;background:var(--line);overflow:hidden}
+.st .bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .4s}
+.st.done .n b{background:var(--ok);color:#fff}
+.st.done .bar i{width:100%}
+.st.skip .n b{background:#fff;border:2px dashed var(--soft);color:var(--soft)}
+.st.skip .bar i{width:100%;background:repeating-linear-gradient(90deg,var(--soft) 0 6px,transparent 6px 10px)}
+.st.cur{background:#fff;border-color:var(--ink)}
+.st.cur .n b{background:var(--ink);color:#fff}
+.st.cur .t{color:var(--ink)}
+.st.cur .bar i{width:40%;background:var(--ink)}
+.st:disabled{opacity:.55}
+.labgrid{display:grid;grid-template-columns:minmax(0,1.38fr) minmax(0,1fr);gap:20px;align-items:start}
+.bench{padding:16px 16px 14px;overflow:hidden}
+.instr{display:flex;gap:14px;align-items:center;padding:2px 4px 12px}
+.instr .big{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;flex:none;background:var(--accent-l);color:var(--accent);font-weight:850;font-size:20px}
+.instr .k{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.instr .k .chip{letter-spacing:0;text-transform:none;font-size:11.5px;padding:2px 9px}
+.instr h2{font-size:clamp(19px,2vw,24px);margin-top:3px}
+.now{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:14px;background:var(--ink);color:#fff;font-weight:700;font-size:15.5px;margin:0 0 10px;line-height:1.35}
+.now #nowText{flex:1}
+.dots{display:flex;gap:5px;flex:none}
+.dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.25)}
+.dots i.ok{background:#6fe0b7}
+.dots i.cur{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+.now .hand{font-size:20px;animation:nudge 1.4s ease-in-out infinite}
+.now.done{background:var(--ok)}
+@keyframes nudge{50%{transform:translateX(4px)}}
+.stage{position:relative;border-radius:16px;overflow:hidden;background:#f3eee2;touch-action:none;user-select:none;-webkit-user-select:none;height:clamp(290px,calc(100vh - 425px),470px)}
+.stage #benchSvg,.stage svg{display:block;width:100%;height:100%}
+.toast{position:absolute;left:50%;top:12px;transform:translate(-50%,-8px);max-width:min(92%,520px);padding:10px 14px;border-radius:12px;font-size:14.5px;font-weight:650;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.12);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:3;display:flex;gap:9px;align-items:flex-start}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.info{background:#fff;color:var(--ink)}
+.toast.warn{background:var(--warn-l);color:#7a3f05;border:1.5px solid #f2c48e}
+.toast.ok{background:var(--ok-l);color:#0b5c43;border:1.5px solid #9edcc5}
+.controls{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:7px;border-radius:18px;background:rgba(255,255,255,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 6px 20px rgba(60,45,20,.14);width:max-content;max-width:calc(100% - 20px);z-index:2}
+.controls:empty{display:none}
+.controls .choice{width:min(560px,calc(100vw - 80px))}
+.hold{position:relative;overflow:hidden;padding:13px 22px;border-radius:14px;background:var(--ink);color:#fff;font-weight:750;min-height:50px;display:inline-flex;align-items:center;gap:10px;touch-action:none;user-select:none;-webkit-user-select:none}
+.hold .fill{position:absolute;inset:0;width:0;background:rgba(255,255,255,.22);transition:width .08s linear}
+.hold span{position:relative}
+.hold.active{box-shadow:0 0 0 4px rgba(91,63,214,.25)}
+.hold:disabled{background:#c9ccd3}
+.readout{font-variant-numeric:tabular-nums;font-weight:800;font-size:15px;padding:10px 14px;border-radius:12px;background:#fff;border:1.5px solid var(--line);display:inline-flex;gap:8px;align-items:center}
+.readout small{font-weight:650;color:var(--muted)}
+.slider{display:flex;align-items:center;gap:12px;flex:1;min-width:260px;padding:6px 14px;border-radius:14px;background:#fff;border:1.5px solid var(--line)}
+.slider label{font-weight:750;font-size:14px;white-space:nowrap}
+.slider input{flex:1;accent-color:var(--dna);height:30px}
+.slider output{font-weight:800;font-variant-numeric:tabular-nums;width:44px;text-align:right}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.choice button{padding:16px;border-radius:16px;background:#fff;border:2px solid var(--line);font-weight:750;text-align:left;display:flex;gap:12px;align-items:center;transition:border-color .15s,background .15s}
+.choice button:hover{border-color:var(--ink)}
+.choice button .e{font-size:26px}
+.choice button small{display:block;font-weight:600;color:var(--muted);font-size:13px}
+
+/* svg interactive */
+.drag{cursor:grab}
+.drag:active{cursor:grabbing}
+.tap{cursor:pointer}
+.cue{animation:cue 1.6s ease-in-out infinite}
+@keyframes cue{0%,100%{filter:drop-shadow(0 0 0 rgba(91,63,214,0))}50%{filter:drop-shadow(0 0 9px rgba(91,63,214,.75))}}
+.target{transition:opacity .2s}
+.dropzone{fill:none;stroke:var(--dna);stroke-width:3;stroke-dasharray:9 7;opacity:0;transition:opacity .2s}
+.hint-on .dropzone{opacity:.55;animation:march 1s linear infinite}
+.over .dropzone{opacity:1;stroke-width:4}
+@keyframes march{to{stroke-dashoffset:-32}}
+.drop{animation:drip .7s linear infinite}
+@keyframes drip{from{transform:translateY(0);opacity:1}to{transform:translateY(46px);opacity:0}}
+.swirl{animation:spin 1s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.puffL{animation:puffL .5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.puffR{animation:puffL .5s ease-in-out infinite reverse;transform-box:fill-box;transform-origin:center}
+@keyframes puffL{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+.bubble{animation:rise 2.4s ease-in infinite}
+@keyframes rise{from{transform:translateY(0);opacity:0}20%{opacity:.9}to{transform:translateY(-34px);opacity:0}}
+.squish{animation:squish .45s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes squish{50%{transform:scale(1.04,.95)}}
+.stream{stroke-dasharray:6 8;animation:march .4s linear infinite}
+
+/* lens */
+.side{display:grid;gap:20px;position:sticky;top:86px}
+#actPane[hidden],.learn[hidden]{display:none}
+.bench.peek #actPane{display:block!important;margin-bottom:16px}
+.learn-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap}
+.learn-top .btn{white-space:nowrap}
+.lens-tools button,.st .n{white-space:nowrap}
+.lens-jump{display:none}
+.lens{background:var(--lens);color:#e8ebf4;padding:16px 16px 18px;border-radius:var(--radius);box-shadow:var(--shadow)}
+.lens-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.lens-top h3{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px}
+.lens-top .zoom{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:#273049;color:#b9c3e0;font-variant-numeric:tabular-nums}
+.lens-tools{display:flex;gap:6px}
+.lens-tools button{font-size:12.5px;font-weight:750;padding:6px 10px;border-radius:9px;background:#222a40;color:#cfd6ea}
+.lens-tools button:hover{background:#2e3753}
+.lens-tools button[aria-pressed="false"]{opacity:.55}
+.lensbox{position:relative;max-width:420px;margin:0 auto}
+.lensbox svg{display:block;width:100%;height:auto}
+.caption{margin-top:12px;font-size:15px;line-height:1.5;color:#d3d9ea;min-height:68px}
+.caption b{color:#fff}
+#micro .t{transition:transform 1.4s cubic-bezier(.45,.05,.25,1),opacity 1.1s ease}
+#micro.instant .t{transition:none!important}
+#micro .wp,#micro .nb,#micro .fb{transform-box:fill-box;transform-origin:center}
+#micro .lbl{transition:opacity .5s}
+.labels-off #micro .lbl{opacity:0!important}
+
+/* learn */
+.learn{padding:6px 6px 2px;display:none}
+.learn.on{display:block;animation:pop .45s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pop{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.learn .what{font-size:18px;font-weight:750;line-height:1.4;margin:6px 0 12px}
+.learn .why{color:#394255;line-height:1.6}
+.callout{margin-top:12px;padding:12px 14px;border-radius:14px;font-size:15px;line-height:1.5;display:flex;gap:10px}
+.callout .ic{font-size:18px;flex:none;line-height:1.3}
+.callout.analogy{background:var(--dna-l);color:#33246f}
+.callout.caution{background:var(--warn-l);color:#6d3a07}
+.callout.fact{background:#e6f3fb;color:#164a6b}
+.callout.connect{background:var(--ok-l);color:#0d5a43}
+.pl{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;align-items:center;font-size:12.5px;color:var(--muted);font-weight:700}
+.pl .chip{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+.quiz{margin-top:18px;padding-top:16px;border-top:1.5px dashed var(--line)}
+.quiz h4{font-size:16.5px;margin:5px 0 12px}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:11px;align-items:flex-start;text-align:left;padding:12px 14px;border-radius:14px;background:#fff;border:2px solid var(--line);font-weight:650;font-size:15px;line-height:1.4;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .l{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:12.5px;font-weight:850;background:var(--line2);flex:none}
+.opt.right{border-color:var(--ok);background:var(--ok-l)}
+.opt.right .l{background:var(--ok);color:#fff}
+.opt.wrong{border-color:#f0b2b2;background:var(--bad-l);opacity:.8}
+.opt.wrong .l{background:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.fb{margin-top:10px;padding:11px 14px;border-radius:12px;font-size:15px;line-height:1.45;display:none}
+.fb.on{display:block;animation:pop .3s}
+.fb.ok{background:var(--ok-l);color:#0b5c43}
+.fb.no{background:var(--bad-l);color:#842626}
+.navbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:14px;padding-top:14px;border-top:1.5px solid var(--line2);flex-wrap:wrap}
+.navbar .btn.primary.ready{animation:ready 1.8s ease-in-out infinite}
+@keyframes ready{50%{box-shadow:0 0 0 7px rgba(28,35,51,.12)}}
+
+/* glossary */
+.term{border:0;background:none;padding:0;font:inherit;color:inherit;font-weight:750;border-bottom:2px dotted var(--dna);cursor:help}
+#tip{position:fixed;z-index:60;max-width:290px;padding:12px 14px;border-radius:14px;background:var(--lens);color:#eef1f8;font-size:14px;line-height:1.45;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s}
+#tip.on{opacity:1}
+#tip b{display:block;color:#fff;margin-bottom:2px;font-size:14.5px}
+
+/* primer */
+.primer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px;align-items:center;padding:clamp(18px,3vw,34px)}
+.primer-art{background:var(--lens);border-radius:20px;aspect-ratio:1/1;position:relative;overflow:hidden}
+.primer-art svg{position:absolute;inset:0;width:100%;height:100%;opacity:0;transform:scale(.92);transition:opacity .5s,transform .6s}
+.primer-art svg.on{opacity:1;transform:none}
+.primer h2{font-size:clamp(26px,3vw,38px);font-weight:850;margin:8px 0 12px}
+.primer .txt p{color:#394255;font-size:17px;line-height:1.6}
+.scale{display:inline-block;margin-top:14px;font-weight:800;font-size:13px;padding:5px 11px;border-radius:999px;background:var(--dna-l);color:var(--dna-d)}
+.zoombar{margin-top:26px}
+.zoombar input{width:100%;accent-color:var(--dna);height:30px}
+.ticks{display:flex;justify-content:space-between;font-size:12px;font-weight:750;color:var(--soft);margin-top:2px}
+.ticks button{font-size:12px;font-weight:750;color:var(--soft);padding:2px}
+.ticks button.on{color:var(--dna)}
+.primer-nav{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+
+/* notebook */
+.book-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px}
+.book-head h1{font-size:clamp(28px,3.4vw,42px);font-weight:850;margin-top:6px}
+.book-head p{color:var(--muted);max-width:640px;margin-top:6px}
+.bookgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.bk{padding:22px}
+.bk.wide{grid-column:1/-1}
+.bk h2{font-size:21px;margin:6px 0 6px}
+.bk .intro{color:var(--muted);font-size:15px;margin-bottom:14px}
+.qtag{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--dna);background:var(--dna-l);padding:3px 9px;border-radius:999px}
+.order{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.order li{display:flex;align-items:center;gap:10px;padding:10px 10px 10px 12px;border-radius:14px;background:#fff;border:2px solid var(--line);font-weight:700;font-size:15px;transition:border-color .2s,background .2s,transform .2s}
+.order li .num{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:var(--line2);font-weight:850;font-size:13px;flex:none}
+.order li .tx{flex:1;line-height:1.3}
+.order li .tx small{display:block;font-weight:600;color:var(--muted);font-size:13px;margin-top:2px}
+.order li .mv{display:flex;gap:4px}
+.order li .mv button{width:34px;height:34px;border-radius:10px;background:var(--line2);font-weight:800}
+.order li .mv button:hover:not(:disabled){background:var(--ink);color:#fff}
+.order li .mv button:disabled{opacity:.3}
+.order li.ok{border-color:var(--ok);background:var(--ok-l)}
+.order li.ok .num{background:var(--ok);color:#fff}
+.order li.no{border-color:#f0b2b2;background:var(--bad-l)}
+.order li[draggable=true]{cursor:grab}
+.order li.dragging{opacity:.4}
+.result{margin-top:12px;font-weight:750;font-size:15px;min-height:24px}
+.row-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center}
+.match{display:grid;gap:8px}
+.mrow{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:stretch}
+.mrow .chem{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--line2);font-weight:800;font-size:14.5px;text-align:left;border:2px solid transparent}
+.mrow .chem.sel{border-color:var(--ink);background:#fff}
+.mrow .slot{display:flex;align-items:center;padding:10px 12px;border-radius:12px;border:2px dashed var(--line);font-size:14px;color:var(--soft);font-weight:650;line-height:1.35;text-align:left;min-height:48px}
+.mrow .slot.filled{border-style:solid;color:var(--ink);background:#fff}
+.mrow .slot.ok{border-color:var(--ok);background:var(--ok-l)}
+.mrow .slot.no{border-color:#f0b2b2;background:var(--bad-l)}
+.pool{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding:14px;border-radius:16px;background:var(--paper)}
+.pool button{padding:9px 12px;border-radius:12px;background:#fff;border:1.5px solid var(--line);font-size:14px;font-weight:650;text-align:left;line-height:1.35;max-width:100%}
+.pool button:hover{border-color:var(--ink)}
+.pool button.used{opacity:.35}
+.pool .lab{width:100%;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cmp figure{margin:0;background:var(--paper);border-radius:16px;padding:12px;text-align:center}
+.cmp figcaption{font-weight:800;font-size:14.5px;margin-top:6px}
+.cmp svg{width:100%;height:auto;display:block}
+.feat{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px}
+.feat button{padding:8px 13px;border-radius:999px;background:#fff;border:1.5px solid var(--line);font-weight:750;font-size:14px}
+.feat button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.featinfo{padding:12px 14px;border-radius:14px;background:var(--dna-l);color:#33246f;font-size:15px;line-height:1.5;min-height:50px}
+.hl{transition:opacity .3s,filter .3s}
+.dim .hl{opacity:.18}
+.dim .hl.lit{opacity:1;filter:drop-shadow(0 0 5px rgba(91,63,214,.9))}
+.helix-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.helix-wrap figure{margin:0;background:var(--lens);border-radius:16px;padding:12px;color:#e8ebf4;text-align:center}
+.helix-wrap figcaption{font-weight:800;font-size:14px;margin-top:6px}
+.helix-wrap svg{width:100%;height:auto}
+.seq{font:700 13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;margin-top:6px;word-break:break-all}
+.seq span{padding:1px 0;border-radius:3px}
+.seq span.diff{background:#f6c343;color:#1c2333}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.two div{padding:12px 14px;border-radius:14px;font-size:14.5px;line-height:1.5}
+.two h4{font-size:14.5px;margin-bottom:4px}
+.two ul{margin:0;padding-left:18px}
+.same{background:var(--ok-l);color:#0d5a43}
+.diffb{background:var(--warn-l);color:#6d3a07}
+.uses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.use{perspective:800px;min-height:150px;text-align:left;display:block;width:100%;padding:0}
+.use .in,.use .f,.use .b,.use .f>span{display:block}
+.use .f{display:flex}
+.use .f strong{display:block;font-size:15.5px}
+.use .in{position:relative;width:100%;height:100%;min-height:150px;transition:transform .55s cubic-bezier(.3,.8,.3,1);transform-style:preserve-3d}
+.use.flip .in{transform:rotateY(180deg)}
+.use .f,.use .b{position:absolute;inset:0;border-radius:16px;padding:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;justify-content:space-between}
+.use .f{background:var(--paper);border:1.5px solid var(--line)}
+.use .f .e{font-size:30px}
+.use .f h4{font-size:15.5px}
+.use .f small{font-size:12px;font-weight:750;color:var(--soft)}
+.use .b{background:var(--lens);color:#e3e7f2;transform:rotateY(180deg);font-size:14px;line-height:1.45;justify-content:center}
+.guide{display:grid;gap:10px}
+.gq{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:14px;border-radius:16px;background:var(--paper)}
+.gq .qn{width:44px;height:44px;border-radius:13px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:850}
+.gq h4{font-size:15.5px;line-height:1.35}
+.gq p{font-size:14px;color:var(--muted);margin-top:4px}
+.gq .words{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.gq .words span{font-size:12.5px;font-weight:750;padding:3px 9px;border-radius:999px;background:#fff;border:1px solid var(--line)}
+.gq .go{margin-top:8px;font-size:13.5px;font-weight:800;color:var(--dna);padding:0}
+.gq .go:hover{text-decoration:underline}
+
+/* celebrate */
+#celebrate{position:fixed;inset:0;z-index:50;display:none;place-items:center;background:rgba(17,23,39,.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);padding:16px}
+#celebrate.on{display:grid;animation:fade .3s}
+.cel{max-width:560px;width:100%;background:#fff;border-radius:26px;padding:28px;text-align:center;position:relative;overflow:hidden;max-height:calc(100vh - 32px);overflow-y:auto}
+.cel h2{font-size:30px;font-weight:850;margin:8px 0 8px}
+.cel p{color:var(--muted)}
+.cel .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.conf{position:absolute;width:9px;height:14px;border-radius:2px;top:-20px;animation:fall 2.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(640px) rotate(540deg);opacity:0}}
+
+@media (max-width:1020px){
+  .labgrid{grid-template-columns:1fr}
+  .side{position:static}
+  .stage{height:auto;aspect-ratio:640/420}
+  .controls{position:static;transform:none;width:auto;max-width:none;margin-top:10px;background:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;justify-content:flex-start}
+  .stage{overflow:visible}
+  .stage svg{border-radius:16px}
+  .lens-jump{display:inline-flex}
+  .stepper{grid-template-columns:repeat(6,minmax(132px,1fr));overflow-x:auto;padding-bottom:4px;scroll-snap-type:x proximity}
+  .st{scroll-snap-align:start}
+}
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr}
+  .hero-art{max-width:300px;order:-1}
+  .samples,.strip,.bookgrid,.primer{grid-template-columns:1fr}
+  .uses{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .brand .wordmark small{display:none}
+}
+@media (max-width:560px){
+  body{font-size:16px}
+  .top{gap:10px}
+  .brand .wordmark{display:none}
+  .sample{grid-template-columns:80px 1fr;padding:18px;gap:14px}
+  .sample .art{width:80px;height:80px}
+  .sample .art svg{width:64px;height:64px}
+  .choice,.cmp,.helix-wrap,.two{grid-template-columns:1fr}
+  .uses{grid-template-columns:1fr}
+  .mrow{grid-template-columns:1fr}
+  .bench{padding:12px}
+  .navbar .btn{flex:1}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+@media print{
+  .top,.navbar,.row-actions,.pool,.feat,#celebrate,.no-print{display:none!important}
+  body{background:#fff}
+  .view{display:none!important}
+  #v-book{display:block!important}
+  .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+  .use .in{transform:none!important}
+  .use .b{position:static;transform:none;background:#fff;color:#000;padding:4px 0 0}
+  .use .f{position:static}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M7 2c0 6 10 6 10 10S7 16 7 22M17 2c0 6-10 6-10 10s10 4 10 10" fill="none" stroke="#c9b8ff" stroke-width="2" stroke-linecap="round"/><path d="M8.5 5h7M10 8h4M10 16h4M8.5 19h7" stroke="#f5c400" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+    <span class="wordmark">DNA Extraction Lab<small>Virtual lab · Integrated Science</small></span>
+  </div>
+  <nav class="nav" aria-label="Sections">
+    <button data-go="home">Home</button>
+    <button data-go="primer">Where is DNA?</button>
+    <button data-go="lab:banana"><span class="dot" id="dot-banana"></span>Banana</button>
+    <button data-go="lab:cheek"><span class="dot" id="dot-cheek"></span>Cheek cells</button>
+    <button data-go="book">Post-lab notebook</button>
+  </nav>
+</header>
+
+<main>
+<!-- HOME -->
+<section class="view" id="v-home" aria-labelledby="home-title">
+  <div class="hero">
+    <div>
+      <span class="eyebrow" style="color:var(--dna)">Virtual lab · Prep for Lab #2</span>
+      <h1 id="home-title">Pull <em>real DNA</em> out of living cells.</h1>
+      <p class="lead">Every banana — and every one of your cells — carries a long molecule of instructions called DNA. Follow the same steps scientists use to break cells open and pull that DNA out where you can see it.</p>
+      <div class="hero-actions">
+        <button class="btn primary" data-go="lab:banana">Start with the banana <span aria-hidden="true">→</span></button>
+        <button class="btn ghost" data-go="primer">First: where is DNA? <span class="chip">1 min</span></button>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 400 400" width="100%">
+        <defs><radialGradient id="hg" cx=".5" cy=".45" r=".6"><stop offset="0" stop-color="#2a3352"/><stop offset="1" stop-color="#111727"/></radialGradient></defs>
+        <circle cx="200" cy="200" r="190" fill="url(#hg)"/>
+        <circle cx="200" cy="200" r="190" fill="none" stroke="#2b3450" stroke-width="10"/>
+        <g id="heroHelix"></g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="samples">
+    <button class="card sample banana" data-go="lab:banana">
+      <span class="art" aria-hidden="true"><svg width="92" height="92" viewBox="0 0 100 100"><path d="M14 66C30 40 64 24 88 30c4 1 4 6 0 7-26 0-46 12-62 36-4 6-16 1-12-7z" fill="#f7cf2e" stroke="#c9971a" stroke-width="3" stroke-linejoin="round"/><path d="M86 30l6-7 4 4-6 7" fill="#6b4f1d"/><path d="M28 62c14-14 30-22 52-26" stroke="#e4b21b" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></span>
+      <span>
+        <span class="eyebrow" style="color:#a27800">Sample 1 · Plant cells</span>
+        <h3>Banana DNA</h3>
+        <p>The same steps you'll do in class: mash, soap, salt water, filter, cold alcohol.</p>
+        <span class="meter"><i id="m-banana" style="width:0"></i></span>
+        <span class="status"><span id="s-banana">Not started</span><span>6 steps</span></span>
+      </span>
+      <span class="go" aria-hidden="true">→</span>
+    </button>
+    <button class="card sample cheek" data-go="lab:cheek">
+      <span class="art" aria-hidden="true"><svg width="92" height="92" viewBox="0 0 100 100"><path d="M50 14c18 0 34 12 34 34 0 20-16 38-34 38S16 68 16 48c0-22 16-34 34-34z" fill="#fde1e8" stroke="#d3647f" stroke-width="3"/><circle cx="48" cy="48" r="13" fill="#efe5ff" stroke="#7b57d1" stroke-width="3"/><path d="M42 47c3-4 6 4 9 0s5 3 4 3" stroke="#5b3fd6" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="70" cy="62" rx="5" ry="3" fill="#f4a259"/><ellipse cx="30" cy="66" rx="5" ry="3" fill="#f4a259"/></svg></span>
+      <span>
+        <span class="eyebrow" style="color:var(--cheek-d)">Sample 2 · Animal cells</span>
+        <h3>Your cheek DNA</h3>
+        <p>Extract your own DNA — and discover which step human cells don't need.</p>
+        <span class="meter"><i id="m-cheek" style="width:0"></i></span>
+        <span class="status"><span id="s-cheek">Not started</span><span>6 steps</span></span>
+      </span>
+      <span class="go" aria-hidden="true">→</span>
+    </button>
+  </div>
+
+  <div class="strip">
+    <div class="card"><span class="ic" aria-hidden="true">🔬</span><div><h4>See inside the cells</h4><p>A live zoom lens shows what each ingredient does to the cell — not just what you see in the bag.</p></div></div>
+    <div class="card"><span class="ic" aria-hidden="true" style="background:var(--banana-l)">🧪</span><div><h4>Matches your class lab</h4><p>The banana steps follow your Lab #2 handout. Each step shows which handout steps it matches.</p></div></div>
+    <button class="card" data-go="book"><span class="ic" aria-hidden="true" style="background:var(--ok-l)">📝</span><div><h4>Post-lab notebook</h4><p>Practice putting the steps in order, matching each chemical to its role, and comparing plant and animal cells.</p></div></button>
+  </div>
+</section>
+
+<!-- PRIMER -->
+<section class="view" id="v-primer" aria-labelledby="primer-title">
+  <div class="card primer">
+    <div class="primer-art" id="primerArt" aria-hidden="true"></div>
+    <div class="txt">
+      <span class="eyebrow" style="color:var(--dna)">Where is DNA? · <span id="pStop">1</span> of 6</span>
+      <h2 id="primer-title">A banana</h2>
+      <p id="pText"></p>
+      <span class="scale" id="pScale"></span>
+      <div class="zoombar">
+        <label class="sr" for="pRange">Zoom level</label>
+        <input type="range" id="pRange" min="0" max="5" step="1" value="0">
+        <div class="ticks" id="pTicks"></div>
+      </div>
+      <div class="primer-nav">
+        <button class="btn ghost" id="pPrev">← Zoom out</button>
+        <button class="btn primary" id="pNext">Zoom in →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LAB -->
+<section class="view" id="v-lab" aria-labelledby="lab-title">
+  <div class="labhead">
+    <div>
+      <span class="eyebrow" id="labEyebrow">Sample 1 · Banana (plant cells)</span>
+      <h1 id="lab-title">Extract DNA from a banana</h1>
+    </div>
+    <button class="btn ghost small" id="switchSample">Switch sample</button>
+  </div>
+  <nav class="stepper" id="stepper" aria-label="Lab steps"></nav>
+  <div class="labgrid">
+    <div class="card bench" id="benchCard">
+      <div id="actPane">
+        <div class="instr">
+          <span class="big" id="stepNum">1</span>
+          <div>
+            <div class="k"><span id="goalName">Collect cells</span><span class="chip" id="labLink">Lab steps 1–2</span></div>
+            <h2 id="actionTitle">Put the banana in the bag</h2>
+          </div>
+        </div>
+        <div class="now" id="now"><span class="hand" aria-hidden="true">👉</span><span id="nowText" aria-live="polite">…</span><span class="dots" id="tasks"></span></div>
+        <div class="stage" id="stage">
+          <div class="toast" id="toast" role="status" aria-live="polite"></div>
+          <div id="benchSvg"></div>
+          <div class="controls" id="controls"></div>
+        </div>
+      </div>
+      <div class="learn" id="learn" tabindex="-1"></div>
+      <div class="navbar">
+        <button class="btn ghost" id="prevBtn">← Previous</button>
+        <button class="btn primary" id="nextBtn" disabled>Next step →</button>
+      </div>
+    </div>
+    <div class="side">
+      <div class="lens" id="lensCard">
+        <div class="lens-top">
+          <h3><span aria-hidden="true">🔬</span> Inside the cells <span class="zoom" id="zoomTag">×400</span></h3>
+          <div class="lens-tools">
+            <button id="lblBtn" aria-pressed="true">Labels</button>
+            <button id="replayBtn" disabled>↺ Replay</button>
+          </div>
+        </div>
+        <div class="lensbox" id="lensBox"></div>
+        <p class="caption" id="caption" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NOTEBOOK -->
+<section class="view" id="v-book" aria-labelledby="book-title">
+  <div class="book-head">
+    <div>
+      <span class="eyebrow" style="color:var(--dna)">Post-lab notebook</span>
+      <h1 id="book-title">Make sense of what you did</h1>
+      <p>Use these activities to check your thinking before you build your slideshow or video. They follow the post-lab questions on your handout. Your answers still need to be in your own words.</p>
+    </div>
+    <div class="row-actions" style="margin:0">
+      <span class="chip" id="bookBanana">Banana: not done</span>
+      <span class="chip" id="bookCheek">Cheek: not done</span>
+      <button class="btn ghost small" onclick="window.print()">Print notes</button>
+    </div>
+  </div>
+  <div class="bookgrid">
+    <div class="card bk wide" id="bk-order">
+      <span class="qtag">Post-lab Q5</span>
+      <h2>Put the six big steps in order</h2>
+      <p class="intro">Use the arrows (or drag on a computer) to move each step into the right order, from <b>first</b> to <b>last</b>. Then check your order.</p>
+      <ol class="order" id="order"></ol>
+      <div class="row-actions"><button class="btn primary small" id="orderCheck">Check my order</button><button class="btn ghost small" id="orderShuffle">Shuffle</button><span class="result" id="orderResult" aria-live="polite"></span></div>
+    </div>
+    <div class="card bk wide" id="bk-match">
+      <span class="qtag">Post-lab Q6 · Q4</span>
+      <h2>What does each ingredient do?</h2>
+      <p class="intro">Tap an ingredient, then tap the job it does. (Mashing and enzymes are bonus rows: mashing is Q4, and enzymes are only used in the cheek version.)</p>
+      <div class="match" id="match"></div>
+      <div class="pool" id="pool"></div>
+      <div class="row-actions"><button class="btn primary small" id="matchCheck">Check my matches</button><button class="btn ghost small" id="matchReset">Clear</button><span class="result" id="matchResult" aria-live="polite"></span></div>
+    </div>
+    <div class="card bk" id="bk-cells">
+      <span class="qtag">Post-lab Q3 · Q4</span>
+      <h2>Banana cells vs. your cells</h2>
+      <p class="intro">Tap a cell part to find it in each kind of cell.</p>
+      <div class="cmp" id="cmp"></div>
+      <div class="feat" id="feat"></div>
+      <div class="featinfo" id="featInfo" aria-live="polite">Tap a cell part above to compare.</div>
+    </div>
+    <div class="card bk" id="bk-dna">
+      <span class="qtag">Post-lab Q1</span>
+      <h2>Same DNA… or not?</h2>
+      <p class="intro">Banana DNA and your DNA looked the same in the tube. Zoom in to compare their code.</p>
+      <div class="helix-wrap" id="helixWrap"></div>
+      <div class="row-actions"><button class="btn primary small" id="seqBtn">Highlight the differences</button></div>
+      <div class="two">
+        <div class="same"><h4>The same in every living thing</h4><ul><li>Double helix (twisted ladder) shape</li><li>Same 4 bases: A, T, C, G</li><li>Same sugar-phosphate backbone</li><li>Looks white and stringy when extracted</li></ul></div>
+        <div class="diffb"><h4>Different between sources</h4><ul><li>The <b>order</b> of the bases (the code / genes)</li><li>How much DNA there is</li><li>Number of chromosomes (banana 33, human 46)</li></ul></div>
+      </div>
+    </div>
+    <div class="card bk wide" id="bk-uses">
+      <span class="qtag">Post-lab Q2</span>
+      <h2>Why would someone extract DNA?</h2>
+      <p class="intro">Extraction is always step one before scientists can read or use DNA. Tap a card to see a real example.</p>
+      <div class="uses" id="uses"></div>
+    </div>
+    <div class="card bk wide" id="bk-guide">
+      <span class="qtag">Your handout</span>
+      <h2>Post-lab question guide</h2>
+      <p class="intro">Where to find the evidence for each question, and words that strong answers usually include.</p>
+      <div class="guide" id="guide"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="bananaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe25a"/><stop offset="1" stop-color="#f0b90b"/></linearGradient><linearGradient id="shine" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset=".22" stop-color="#fff" stop-opacity=".1"/><stop offset=".85" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".25"/></linearGradient></defs></svg>
+<div id="tip" role="tooltip"></div>
+<div id="celebrate" role="dialog" aria-modal="true" aria-labelledby="celTitle"></div>
+
+<script>
+(function(){
+'use strict';
+/* =========================================================
+   Utilities
+   ========================================================= */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function rng(seed){let s=seed%2147483647;if(s<=0)s+=2147483646;return()=>((s=s*16807%2147483647)-1)/2147483646;}
+function tween(ms,fn){return new Promise(res=>{if(REDUCED)ms=Math.min(ms,80);const t0=performance.now();(function f(now){const t=Math.min(1,(now-t0)/ms);fn(ease(t));t<1?requestAnimationFrame(f):res();})(t0);});}
+const wait=ms=>new Promise(r=>setTimeout(r,REDUCED?Math.min(ms,60):ms));
+const KEY='dnaExtractionLab.v1';
+const store={get(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}},set(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}};
+function smooth(pts){ // closed Catmull-Rom -> bezier
+  let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;const n=pts.length;
+  for(let i=0;i<n;i++){const p0=pts[(i-1+n)%n],p1=pts[i],p2=pts[(i+1)%n],p3=pts[(i+2)%n];
+    d+=` C${(p1[0]+(p2[0]-p0[0])/6).toFixed(1)},${(p1[1]+(p2[1]-p0[1])/6).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(1)},${(p2[1]-(p3[1]-p1[1])/6).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;}
+  return d+'Z';}
+function blob(cx,cy,r,jit,n,R){const pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,rr=r*(1+(R()-.5)*jit);pts.push([cx+Math.cos(a)*rr,cy+Math.sin(a)*rr*.86]);}return smooth(pts);}
+function wave(x0,x1,y,amp,per,ph=0){let d=`M${x0},${(y+Math.sin(ph)*amp).toFixed(1)}`;for(let x=x0+6;x<=x1;x+=6)d+=` L${x},${(y+Math.sin(ph+(x-x0)/per*Math.PI*2)*amp).toFixed(1)}`;return d;}
+function pill(text,x,y,dark){const w=text.length*6.7+18;return `<g class="lbl"><rect x="${(x-w/2).toFixed(1)}" y="${y-11}" width="${w.toFixed(1)}" height="22" rx="11" fill="${dark?'rgba(17,23,39,.86)':'rgba(255,255,255,.94)'}" stroke="${dark?'none':'rgba(17,23,39,.12)'}"/><text x="${x}" y="${y+4.3}" text-anchor="middle" font-size="12" font-weight="750" fill="${dark?'#fff':'#1c2333'}" font-family="system-ui,sans-serif">${text}</text></g>`;}
+
+/* =========================================================
+   Glossary
+   ========================================================= */
+const GLOSS={
+  dna:['DNA','A long molecule inside every cell that stores the instructions for building and running a living thing.'],
+  nucleus:['Nucleus','The control center of the cell. It holds the DNA and is wrapped in its own membrane.'],
+  wall:['Cell wall','A stiff outer layer (made of cellulose) around plant cells. Animal cells do not have one.'],
+  membrane:['Cell membrane','A thin, flexible layer made of fats (lipids) that surrounds every cell. The nucleus has a membrane too.'],
+  lipid:['Lipids','Fats and oils. Cell membranes are built from lipids, which is why soap can break them apart.'],
+  histone:['Histones','Proteins that DNA wraps around, like thread wound on spools. They keep the very long DNA packed neatly.'],
+  protein:['Proteins','Molecules that do most of the work in cells. Histones are one kind of protein.'],
+  enzyme:['Enzyme','A protein that speeds up a reaction. Proteases are enzymes that cut other proteins into pieces.'],
+  precipitate:['Precipitate','When something comes out of a liquid as a solid you can see. DNA precipitates in alcohol.'],
+  debris:['Cell debris','Leftover cell pieces — broken walls, membranes, pulp and other cell parts — that are not DNA.'],
+  dissolve:['Dissolve','Spread out evenly in a liquid so you can no longer see the pieces, like sugar in water.'],
+  chromosome:['Chromosome','One very long piece of DNA, tightly packed. Humans have 46; bananas have 33.']
+};
+const T=(k,txt)=>`<button type="button" class="term" data-term="${k}">${txt||GLOSS[k][0].toLowerCase()}</button>`;
+const tip=$('#tip');let tipFor=null;
+function showTip(el){const g=GLOSS[el.dataset.term];if(!g)return;tip.innerHTML=`<b>${g[0]}</b>${g[1]}`;tip.classList.add('on');tipFor=el;const r=el.getBoundingClientRect(),tw=tip.offsetWidth,th=tip.offsetHeight;let x=clamp(r.left+r.width/2-tw/2,10,innerWidth-tw-10),y=r.top-th-10;if(y<70)y=r.bottom+10;tip.style.left=x+'px';tip.style.top=y+'px';}
+function hideTip(){tip.classList.remove('on');tipFor=null;}
+document.addEventListener('mouseover',e=>{const t=e.target.closest('.term');if(t)showTip(t);});
+document.addEventListener('mouseout',e=>{if(e.target.closest('.term'))hideTip();});
+document.addEventListener('focusin',e=>{const t=e.target.closest('.term');t?showTip(t):hideTip();});
+document.addEventListener('click',e=>{const t=e.target.closest('.term');if(t){tipFor===t&&tip.classList.contains('on')?hideTip():showTip(t);}else hideTip();});
+addEventListener('scroll',hideTip,{passive:true});
+
+/* =========================================================
+   Content
+   ========================================================= */
+const GOALS=['Collect cells','Break down the cell wall','Break down the cell membrane & other cell structures','Unwind the DNA & separate it from histones (proteins)','Separate the DNA from cell debris','Collect the DNA to be examined'];
+const GOAL_SHORT=['Collect cells','Break the cell wall','Break the membranes','Unwind the DNA','Remove debris','Collect the DNA'];
+
+const STEPS={
+banana:[
+ {action:'Put the banana in the bag',lab:'Handout steps 1–2',micro:['intact','intact'],
+  tasks:['Tap the banana to peel it','Drag the peeled half into the ziplock bag'],
+  what:'You just collected millions of banana cells.',
+  why:`One cell holds far too little ${T('dna','DNA')} to see. But a chunk of banana is made of millions of cells — and every single one has its own copy of the DNA inside its ${T('nucleus')}. Put together, that's enough DNA to see with your own eyes.`,
+  extra:['fact','💡','Bananas are perfect for this lab: they are soft, easy to mash, and each banana cell carries three full sets of chromosomes.'],
+  pl:['Q5'],
+  quiz:{q:'Where is the DNA kept inside each banana cell?',o:[
+   ['Inside the nucleus',1,'Yes! The nucleus is the cell\'s control center. To reach the DNA we\'ll have to break through the wall, the cell membrane and the nuclear membrane.'],
+   ['In the cell wall',0,'The cell wall is the tough outer layer. It\'s a barrier we need to break — not where DNA is stored.'],
+   ['Only in the peel',0,'Every cell in the banana has DNA, peel or fruit. We use the soft fruit because it\'s easy to mash.'],
+   ['In the vacuole',0,'The vacuole stores water and nutrients. DNA is stored in the nucleus.']]}},
+ {action:'Mash the banana until there are no lumps',lab:'Handout step 2',micro:['intact','walls'],
+  tasks:['Rub back and forth on the bag to mash it — keep going until every lump is gone'],
+  what:'Mashing ripped the tough cell walls apart and separated the cells from each other.',
+  why:`Plant cells are boxed in by a stiff ${T('wall','cell wall')}. Soap and salt can't easily get through it. Mashing breaks the walls open and spreads the cells out, so the chemicals in the next steps can reach <i>every</i> cell.`,
+  extra:['analogy','🥚','It\'s like cracking an egg\'s shell before you can get to what\'s inside.'],
+  pl:['Q4','Q3','Q5'],
+  quiz:{q:'Why did we have to mash the banana first?',o:[
+   ['To dissolve the DNA so we can pour it',0,'Mashing is physical — it doesn\'t dissolve anything. It breaks walls and spreads the cells apart.'],
+   ['To break open the tough cell walls and separate the cells so the chemicals can reach them',1,'Exactly. Mashing is the "break down the cell wall" step — and more broken cells means more DNA released.'],
+   ['To make the DNA turn white',0,'DNA looks white later because millions of strands clump in alcohol, not because of mashing.'],
+   ['To remove the nucleus from each cell',0,'Mashing breaks the outer walls. The nucleus is opened later by the detergent.']]}},
+ {action:'Add detergent and mix gently — no foam!',lab:'Handout step 3',micro:['walls','membranes'],
+  tasks:['Drag the detergent onto the bag to add 6 mL','Gently rock the bag side to side — slow and steady, no foam!'],
+  what:'The detergent dissolved the cell membranes and the membrane around each nucleus. DNA is now loose in the mixture.',
+  why:`${T('membrane','Cell membranes')} and the nuclear membrane are made of fats called ${T('lipid','lipids')}. Detergent breaks up fats — the same way dish soap breaks up grease on a dirty pan. With the membranes gone, everything inside the cell, including the DNA, spills out.`,
+  extra:['caution','⚠️','Why no foam? Foam traps the material you want and makes the layers hard to see later. Rough shaking can also snap long DNA strands into tiny pieces.'],
+  pl:['Q6','Q5'],
+  quiz:{q:'What is the detergent\'s job?',o:[
+   ['Break down the cell wall',0,'Mashing took care of the wall. Detergent targets the fatty membranes.'],
+   ['Make the DNA clump together',0,'That\'s the job of the salt and the cold alcohol, later on.'],
+   ['Dissolve the fatty cell membrane and nuclear membrane',1,'Right! Soap breaks up lipids (fats), so the membranes fall apart and the DNA is released.'],
+   ['Filter out banana chunks',0,'The coffee filter removes chunks. Detergent works on membranes.']]}},
+ {action:'Add salt water and squeeze gently',lab:'Handout steps 4–6',micro:['wound','unwind'],
+  tasks:['Drag the salt into the water (6 mL salt + 150 mL water)','Hold “Stir” until the salt dissolves','Drag the beaker to the bag to pour in the salt water','Tap the zipper to seal the bag','Hold “Squeeze gently” for 30–45 seconds'],
+  what:'The salt helped pull the histone proteins off the DNA, so the long DNA strands unwound and floated free.',
+  why:`Inside the nucleus, DNA is wound tightly around proteins called ${T('histone','histones')} — like thread on spools. Salt helps knock those proteins loose so the DNA unwinds. Salt also covers up DNA's electric charges so the strands can clump together in the last step.`,
+  extra:['caution','🧂','Why dissolve the salt first? Salt crystals sitting at the bottom can\'t reach the DNA. Dissolved salt spreads through the whole mixture.'],
+  pl:['Q6','Q5'],
+  quiz:{q:'What does the salt do?',o:[
+   ['Helps separate the DNA from its histone proteins and helps the DNA strands clump together',1,'Yes — salt unwinds the DNA from histones and gets it ready to clump.'],
+   ['Dissolves the cell membrane',0,'That was the detergent\'s job in the step before.'],
+   ['Makes DNA dissolve in alcohol',0,'Actually the opposite happens later: DNA does NOT dissolve in alcohol.'],
+   ['Breaks the cell wall',0,'The wall was broken by mashing.']]}},
+ {action:'Filter out the cell debris',lab:'Handout steps 7–9',micro:['unwind','filtered'],
+  tasks:['Tap the coffee filter to place it over the beaker','Drag the bag to the filter to pour','Let it drip — tap “Collect” when you have 30–40 mL','Tap the graduated cylinder to pour the liquid into it'],
+  what:'The filter trapped the mashed-up pulp and broken cell parts. The liquid that dripped through carries the dissolved DNA.',
+  why:`The filter works like a strainer. Big chunks of ${T('debris','cell debris')} — broken cell walls, banana pulp and other cell parts — get stuck. DNA is ${T('dissolve','dissolved')} in the liquid, so it slips right through the tiny holes.`,
+  extra:['analogy','🍝','Like draining pasta: the noodles (debris) stay in the strainer and the water (with DNA) goes through.'],
+  pl:['Q6','Q5'],
+  quiz:{q:'After filtering, where is the DNA?',o:[
+   ['Stuck in the filter with the pulp',0,'The pulp stays behind — but DNA is dissolved in the liquid, so it passes through.'],
+   ['In the liquid that dripped into the beaker',1,'Correct! That liquid is what you pour into the graduated cylinder.'],
+   ['It was destroyed by the filter',0,'A filter only separates big from small. It doesn\'t destroy anything.'],
+   ['Floating as foam on top',0,'No foam, please! The DNA is dissolved in the liquid.']]}},
+ {action:'Add ice-cold alcohol, wait, then collect the DNA',lab:'Handout steps 10–13',micro:['filtered','precip','spool'],
+  tasks:['Use the slider to tilt the graduated cylinder','Hold “Pour” to slowly add 10 mL of ice-cold alcohol','Wait 4–5 minutes (tap to fast-forward)','Twirl the wooden stirrer to wind up the DNA'],
+  what:'White, cloudy strands appeared where the alcohol meets the banana liquid, and you wound them onto the stirrer. That\'s DNA — millions of strands clumped together!',
+  why:`DNA dissolves in water but <b>not</b> in alcohol. When DNA reaches the alcohol layer it ${T('precipitate','precipitates')} — it comes out of the liquid and clumps into white strands you can see. Ice-cold alcohol works best: the cold helps the DNA clump faster and protects it from breaking.`,
+  extra:['caution','🫗','Why pour slowly down the side? You want a separate alcohol layer floating on top. Pouring straight in mixes everything together and the DNA won\'t gather in one spot.'],
+  extra2:['fact','🔎','One DNA strand is about 40,000 times thinner than a human hair. You can only see it because millions of strands bundle together.'],
+  pl:['Q6','Q1','Q5'],
+  quiz:{q:'Why does the DNA show up in the alcohol layer?',o:[
+   ['Alcohol bleaches the DNA so it turns white',0,'Alcohol doesn\'t bleach DNA. It looks white because millions of strands clump together.'],
+   ['The alcohol breaks the last cell walls',0,'The walls were broken by mashing long ago.'],
+   ['DNA doesn\'t dissolve in alcohol, so it clumps together and becomes visible',1,'Exactly — the DNA precipitates out of the liquid. That\'s how you collected it!'],
+   ['The alcohol is heavier and pushes DNA up',0,'Alcohol is actually lighter, which is why it floats on top as a layer.']]}}
+],
+cheek:[
+ {action:'Swish salt water to collect cheek cells',lab:'Virtual lab only',micro:['intact','intact'],
+  tasks:['Tap the cup to take a sip of salt water','Hold “Swish” for 30 seconds','Tap the cup to spit the water back in','Drag the cup to the test tube to pour it in'],
+  what:'Your cup now holds thousands of cells from the lining of your cheeks.',
+  why:`The inside of your cheek is always shedding old cells, and swishing knocks them loose. Each one has a ${T('nucleus')} with a complete copy of <i>your</i> DNA. Using salt water also adds the salt now, so it can help later.`,
+  extra:['fact','💡','You shed tens of thousands of cheek cells every few minutes — they\'re constantly replaced.'],
+  pl:['Q3','Q5'],
+  quiz:{q:'Why can we get DNA from a mouthful of salt water?',o:[
+   ['Salt water naturally contains DNA',0,'Plain salt water has no DNA. The DNA comes from the cells you rinsed off.'],
+   ['Cheek cells shed into the water, and each one has DNA in its nucleus',1,'Yes! Thousands of cheek cells = thousands of copies of your DNA.'],
+   ['Saliva is made of pure DNA',0,'Saliva is mostly water. The DNA comes from cheek cells floating in it.'],
+   ['Your teeth release DNA when you swish',0,'The cells come from the soft lining of your cheeks.']]}},
+ {action:'Do cheek cells need to be mashed?',lab:'Compare to the banana',micro:['nowall','nowall'],decision:true,
+  tasks:['Look at the zoom view, then choose: mash or skip?'],
+  what:'Skipped! Animal cells, like yours, have no cell wall.',
+  why:`Plant cells, like banana cells, are wrapped in a stiff ${T('wall','cell wall')} that has to be mashed open. Animal cells only have a thin, flexible ${T('membrane','cell membrane')} — so the soap alone can get in. This is one of the biggest differences between plant and animal cells.`,
+  extra:['connect','🍌','Compare: the banana needed a whole minute of mashing. Your cheek cells needed zero.'],
+  pl:['Q3','Q4'],
+  quiz:{q:'Which kind of cell has a cell wall?',o:[
+   ['Both banana and human cells',0,'Look back at the zoom views — only the banana cells had the thick outer wall.'],
+   ['Human (animal) cells only',0,'Animal cells only have a flexible membrane.'],
+   ['Banana (plant) cells only',1,'Right — that\'s why only the banana had to be mashed.'],
+   ['Neither — walls are only in bacteria',0,'Plant cells have walls too. That\'s why we mashed the banana.']]}},
+ {action:'Add soap and gently mix',lab:'Virtual lab only',micro:['intact','membranes'],
+  tasks:['Drag the soap onto the test tube','Gently rock the tube back and forth — no bubbles!'],
+  what:'The soap dissolved the cell membranes and the nuclear membranes. Your DNA is now loose in the tube.',
+  why:`Even without a cell wall, each cheek cell is wrapped in a ${T('membrane','membrane')} made of ${T('lipid','lipids')} (fats), and the nucleus has its own membrane too. Soap breaks apart fats, so both membranes fall apart and the DNA spills out.`,
+  extra:['connect','🍌','Same job as the detergent in the banana lab: break down the membranes.'],
+  pl:['Q6','Q5'],
+  quiz:{q:'Cheek cells have no wall. What does the soap still need to break?',o:[
+   ['The cell membrane and the nuclear membrane',1,'Yes. Every cell has a membrane, and the DNA is also inside the nuclear membrane.'],
+   ['The cell wall',0,'Cheek cells have no wall — we skipped that step.'],
+   ['The DNA itself',0,'We want the DNA in one piece! Soap only breaks the fatty membranes.'],
+   ['Nothing, it just cleans the tube',0,'The soap has an important job: breaking the fatty membranes.']]}},
+ {action:'Add enzymes to free the DNA',lab:'Virtual lab only',micro:['wound','unwind'],
+  tasks:['Drag the meat tenderizer (enzymes) into the tube','Gently rock the tube to mix'],
+  what:'The enzymes chopped up the histone proteins, so your DNA unwound into long, free strands.',
+  why:`Meat tenderizer contains ${T('enzyme','enzymes')} called proteases that cut up ${T('protein','proteins')} — that's how it makes tough meat tender! In the tube, they snip apart the ${T('histone','histones')} that DNA is wrapped around, so the DNA unwinds. The salt from your swish water helps too.`,
+  extra:['connect','🍌','In the banana lab, the salt does this job without enzymes.'],
+  pl:['Q6','Q5'],
+  quiz:{q:'In the cheek version, what unwinds the DNA from its histones?',o:[
+   ['The soap',0,'The soap broke the membranes in the step before.'],
+   ['A filter',0,'There\'s no filter in this version. The enzymes do this job.'],
+   ['Enzymes from meat tenderizer, with help from the salt',1,'Correct — the enzymes cut up the histone proteins.'],
+   ['Mashing the cells',0,'Cheek cells weren\'t mashed at all — no cell wall!']]}},
+ {action:'Layer ice-cold alcohol on top',lab:'Virtual lab only',micro:['unwind','precip'],
+  tasks:['Use the slider to tilt the test tube','Hold “Pour” to slowly add ice-cold alcohol','Wait a few minutes (tap to fast-forward)'],
+  what:'Your DNA rose into the alcohol layer and clumped, while the cell debris stayed behind in the watery layer below.',
+  why:`No filter needed! Cheek cells have no tough walls or pulp to strain out. Instead, the alcohol layer does the separating: DNA can't dissolve in alcohol, so it ${T('precipitate','precipitates')} and clumps in the alcohol layer, while proteins, membrane bits and other ${T('debris','debris')} stay in the watery layer below.`,
+  extra:['connect','🍌','In the banana lab, the coffee filter removed the debris because there was so much pulp.'],
+  pl:['Q6','Q5'],
+  quiz:{q:'How did we separate the DNA from the cell debris without a filter?',o:[
+   ['DNA clumps in the alcohol layer, while debris stays in the watery layer below',1,'Yes! The two layers keep them apart.'],
+   ['The soap dissolved all the debris',0,'Soap breaks membranes, but the bits are still in the tube — in the bottom layer.'],
+   ['The enzymes ate all the debris',0,'Enzymes cut proteins, but the debris stays in the watery layer.'],
+   ['We poured the debris out first',0,'Nothing was poured out — the layers did the separating.']]}},
+ {action:'Spool your DNA',lab:'Virtual lab only',micro:['precip','spool'],
+  tasks:['Twirl the wooden stirrer in the alcohol layer to wind up your DNA'],
+  what:'You\'re looking at your own DNA — millions of strands wound together on the stirrer.',
+  why:`Your DNA looks almost exactly like the banana's: white, stringy and cloudy. That's because all DNA has the same structure — a double helix made of the same four bases. The difference is the <b>order</b> of those bases, which you can't see with your eyes.`,
+  extra:['fact','🔎','If you stretched out the DNA from just one of your cells, it would be about 2 meters long!'],
+  pl:['Q1','Q3','Q5'],
+  quiz:{q:'Your DNA and the banana\'s DNA look almost the same. Why?',o:[
+   ['They are actually the same DNA',0,'They\'re different! The order of the bases is different — you just can\'t see it.'],
+   ['All DNA has the same structure; the difference is the order of the bases (A, T, C, G)',1,'Exactly. Same "alphabet" and shape, different "words."'],
+   ['Alcohol erased the differences',0,'Alcohol only makes DNA clump. The differences are in the code, which is too small to see.'],
+   ['Human DNA is always whiter',0,'Both look white for the same reason: millions of clumped strands.']]}}
+]};
+
+/* =========================================================
+   Micro (zoom lens) view
+   ========================================================= */
+const MICRO_CAP={
+ banana:{
+  intact:['×400','<b>Banana cells</b>, each boxed in by a stiff cell wall. The DNA is tucked inside the nucleus, behind the cell membrane and the nuclear membrane.'],
+  walls:['×400','<b>Walls broken!</b> Mashing cracked the stiff cell walls and pushed the cells apart. The membranes are still holding everything in.'],
+  membranes:['×400','<b>Membranes dissolved.</b> Detergent (green) broke up the fatty cell and nuclear membranes. DNA is spilling out with everything else.'],
+  wound:['×1,000,000','<b>Zoomed in on the loose DNA.</b> It is still wound around histone proteins (purple spools), with cell debris floating around.'],
+  unwind:['×1,000,000','<b>Unwound!</b> Salt (+) pulled the histone proteins off. The DNA is now long, free strands.'],
+  filtered:['×1,000,000','<b>Filtered.</b> The big debris got caught in the filter. The dissolved DNA passed right through.'],
+  precip:['×1,000,000','<b>DNA precipitates.</b> DNA can\'t dissolve in alcohol, so the strands clump together in the alcohol layer.'],
+  spool:['×1,000,000','<b>Spooled!</b> The clumped DNA strands wrap around the stirrer. Millions of them together look white and stringy.']},
+ cheek:{
+  intact:['×400','<b>Cheek cells</b> floating in salt water. They are flat and soft, with no cell wall. DNA is inside each nucleus.'],
+  nowall:['×400','<b>Look closely:</b> a cheek cell has only a thin, flexible membrane. There\'s <b>no stiff cell wall</b> to crack open.'],
+  membranes:['×400','<b>Membranes dissolved.</b> Soap molecules (green) broke up the fatty cell and nuclear membranes, releasing the DNA.'],
+  wound:['×1,000,000','<b>Zoomed in on the loose DNA.</b> It is still wound around histone proteins (purple spools). The salt (+) is already here from your swish.'],
+  unwind:['×1,000,000','<b>Enzymes at work!</b> The enzymes (green) cut up the histone proteins, so the DNA unwinds into free strands.'],
+  precip:['×1,000,000','<b>Two layers.</b> DNA clumps in the alcohol layer on top. Debris and proteins stay below in the watery layer.'],
+  spool:['×1,000,000','<b>Spooled!</b> Your DNA wraps around the stirrer, and millions of strands together become visible.']}
+};
+const LABELS={
+ banana:{intact:[['Cell wall',200,92],['Cell membrane',236,268],['Nucleus · DNA inside',160,138],['Vacuole',248,206]],
+  walls:[['Broken cell walls',200,62],['Nucleus · DNA inside',160,138],['Cell membrane',236,268]],
+  membranes:[['Membranes dissolved',200,62],['Loose DNA',160,250],['Detergent',290,318]],
+  wound:[['DNA',62,118],['Histone (protein)',244,176],['Debris',262,336]],
+  unwind:[['Unwound DNA',88,128],['Salt (+)',268,74],['Loose histones',214,352]],
+  filtered:[['DNA passes through',200,62]],
+  precip:[['Alcohol layer',150,70],['DNA clumps',200,186],['Watery layer',150,334]],
+  spool:[['DNA on stirrer',278,112],['Alcohol layer',150,70]]},
+ cheek:{intact:[['Cell membrane',200,74],['Nucleus · DNA inside',196,148],['No cell wall',122,318]],
+  nowall:[['No cell wall!',200,52],['Thin, flexible membrane',200,346],['Nucleus · DNA inside',196,148]],
+  membranes:[['Membranes dissolved',200,52],['Loose DNA',196,262],['Soap',296,318]],
+  wound:[['DNA',62,118],['Histone (protein)',244,176],['Salt (+)',268,330]],
+  unwind:[['Enzymes',270,74],['Unwound DNA',88,128],['Chopped histones',214,352]],
+  precip:[['Alcohol layer',150,70],['DNA clumps',200,186],['Debris stays below',200,342]],
+  spool:[['DNA on stirrer',278,112],['Alcohol layer',150,70]]}
+};
+const Micro={sample:null,state:null,el:null,
+ build(sample){
+  this.cancel();this.sample=sample;const plant=sample==='banana',R=rng(plant?7:13);
+  let A='',B='';
+  // ---------- Scene A: cells ----------
+  if(plant){
+   A+=`<rect width="400" height="400" fill="#f4ecd0"/>`;
+   const nbs=[[-127,110],[317,110],[95,-92],[95,302],[-127,-92],[317,-92],[-127,302],[317,302]];
+   A+=nbs.map(([x,y])=>{const dx=Math.sign(x-95)*40,dy=Math.sign(y-110)*40,r=(R()*18-9).toFixed(1);return `<g class="nb t" data-dx="${dx}" data-dy="${dy}" data-r="${r}"><rect x="${x}" y="${y}" width="210" height="180" rx="12" fill="#fbf2cc" stroke="#c7a945" stroke-width="10" class="nbw"/><rect x="${x+10}" y="${y+10}" width="190" height="160" rx="9" fill="none" stroke="#79ab55" stroke-width="2.5"/><circle cx="${(x+60+R()*80).toFixed(0)}" cy="${(y+60+R()*60).toFixed(0)}" r="25" fill="#ece0fb" stroke="#8b6bd3" stroke-width="2.5"/></g>`;}).join('');
+   A+=`<g id="cell"><rect id="cyto" class="t" x="105" y="120" width="190" height="160" rx="10" fill="#fff7d8"/>`;
+   A+=`<ellipse class="t org" data-dx="70" data-dy="40" cx="245" cy="205" rx="38" ry="56" fill="#d8ecf8" stroke="#9cc7df" stroke-width="2"/>`;
+   [[130,255,'#fffaf0','#d9c47e'],[205,140,'#fffaf0','#d9c47e'],[275,262,'#fffaf0','#d9c47e'],[128,140,'#f4a259','#d5782d'],[215,260,'#f4a259','#d5782d']].forEach(([x,y,f,s],i)=>{A+=`<ellipse class="t org" data-dx="${(x-200)*.9}" data-dy="${(y-200)*.9}" cx="${x}" cy="${y}" rx="${i<3?11:9}" ry="${i<3?8:5}" fill="${f}" stroke="${s}" stroke-width="1.5"/>`;});
+   A+=`<rect id="memb" class="t" x="105" y="120" width="190" height="160" rx="10" fill="none" stroke="#5c9e45" stroke-width="3.5"/>`;
+   A+=`<circle id="nenv" class="t" cx="160" cy="192" r="40" fill="#efe5ff" stroke="#7b57d1" stroke-width="3.5"/><circle id="nucl" class="t" cx="172" cy="178" r="8" fill="#cdb9f5"/>`;
+   const segs=[[95,110,200,110],[200,110,305,110],[305,110,305,200],[305,200,305,290],[305,290,200,290],[200,290,95,290],[95,290,95,200],[95,200,95,110]];
+   A+=segs.map(([x1,y1,x2,y2],i)=>{const mx=(x1+x2)/2-200,my=(y1+y2)/2-200,l=Math.hypot(mx,my);return `<line class="wp t" data-dx="${(mx/l*42+(R()*16-8)).toFixed(1)}" data-dy="${(my/l*42+(R()*16-8)).toFixed(1)}" data-r="${(R()*50-25).toFixed(0)}" x1="${x1+(x2>x1?4:x2<x1?-4:0)}" y1="${y1+(y2>y1?4:y2<y1?-4:0)}" x2="${x2-(x2>x1?4:x2<x1?-4:0)}" y2="${y2-(y2>y1?4:y2<y1?-4:0)}" stroke="#c7a945" stroke-width="11" stroke-linecap="round"/>`;}).join('');
+   A+=`</g>`;
+  }else{
+   A+=`<rect width="400" height="400" fill="#f6eaec"/>`;
+   [[30,50,80],[388,320,90],[372,40,70],[20,360,70]].forEach(([x,y,r])=>{A+=`<g class="nb t" data-dx="${Math.sign(x-200)*30}" data-dy="${Math.sign(y-200)*30}" data-r="0"><path d="${blob(x,y,r,.35,9,R)}" fill="#fde3e9" stroke="#d3647f" stroke-width="2.5"/><circle cx="${x+(R()*20-10)}" cy="${y+(R()*20-10)}" r="16" fill="#ece0fb" stroke="#8b6bd3" stroke-width="2"/></g>`;});
+   const body=blob(200,205,128,.32,11,R);
+   A+=`<g id="cell"><path id="cyto" class="t" d="${body}" fill="#fde6eb"/>`;
+   [[120,235],[275,170],[255,262],[140,170],[290,225]].forEach(([x,y],i)=>{A+=`<ellipse class="t org" data-dx="${(x-200)*.9}" data-dy="${(y-200)*.9}" cx="${x}" cy="${y}" rx="${i<3?10:6}" ry="${i<3?5.5:6}" fill="${i<3?'#f4a259':'#f7cfd8'}" stroke="${i<3?'#d5782d':'#d98b9d'}" stroke-width="1.5"/>`;});
+   A+=`<path id="memb" class="t" d="${body}" fill="none" stroke="#d3647f" stroke-width="3.5"/>`;
+   A+=`<circle id="nenv" class="t" cx="196" cy="198" r="34" fill="#efe5ff" stroke="#7b57d1" stroke-width="3.5"/><circle id="nucl" class="t" cx="205" cy="186" r="7" fill="#cdb9f5"/></g>`;
+  }
+  const nc=plant?[160,192,30]:[196,198,25];
+  let ch='';{const Rc=rng(5);let x=nc[0]-nc[2]*.6,y=nc[1];ch=`M${x.toFixed(1)},${y.toFixed(1)}`;for(let i=0;i<26;i++){const a=Rc()*Math.PI*2;let nx=x+Math.cos(a)*9,ny=y+Math.sin(a)*9;if(Math.hypot(nx-nc[0],ny-nc[1])>nc[2]){nx=x-(nx-x);ny=y-(ny-y);}ch+=` Q${((x+nx)/2+Rc()*8-4).toFixed(1)},${((y+ny)/2+Rc()*8-4).toFixed(1)} ${nx.toFixed(1)},${ny.toFixed(1)}`;x=nx;y=ny;}}
+  A+=`<path id="chrom" class="t" d="${ch}" fill="none" stroke="#5b3fd6" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke" style="transform-box:fill-box;transform-origin:center"/>`;
+  // soap molecules
+  let sm='';for(let i=0;i<18;i++){const a=i/18*Math.PI*2,rx=plant?118:140,ry=plant?102:118,x=200+Math.cos(a)*rx,y=200+Math.sin(a)*ry;sm+=`<g transform="translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${(a*180/Math.PI+180).toFixed(0)})"><line x1="0" y1="0" x2="13" y2="0" stroke="#2f9e6a" stroke-width="2" stroke-linecap="round"/><circle r="4.6" fill="#3fbf7f"/></g>`;}
+  A+=`<g id="soapM" class="t" style="opacity:0">${sm}</g>`;
+
+  // ---------- Scene B: molecules ----------
+  B+=`<rect width="400" height="400" fill="#f6f4fd"/>`;
+  B+=`<g id="layers" class="t" style="opacity:0"><rect width="400" height="200" fill="#cfe6ff"/><rect y="200" width="400" height="200" fill="${plant?'#f7e8b0':'#f4e6e2'}"/><line x1="0" y1="200" x2="400" y2="200" stroke="#8fb4dc" stroke-width="2" stroke-dasharray="6 6"/></g>`;
+  // debris
+  let db='';const dcol=plant?['#d8bf6a','#c7a945','#9ccf86','#f4a259','#e9dfc4']:['#f2b3c2','#d98b9d','#f4a259','#e9c4cc','#cbb9e8'];
+  for(let i=0;i<11;i++){const x=30+R()*340,y=40+R()*320,r=8+R()*13,low=230+R()*140;db+=`<path class="db t" data-dy="${(low-y).toFixed(0)}" data-x="${x.toFixed(0)}" d="${blob(x,y,r,.7,6,R)}" fill="${dcol[i%5]}" stroke="rgba(0,0,0,.15)" stroke-width="1.2" style="transform-box:fill-box;transform-origin:center"/>`;}
+  B+=`<g id="debris">${db}</g>`;
+  // strands
+  const rows=[95,150,205,260,315];let wound='',loose='',hist='',ions='',enz='';
+  rows.forEach((y,i)=>{
+   wound+=`<path class="t wound" d="${wave(-10,410,y,6,34,i)}" fill="none" stroke="#5b3fd6" stroke-width="2.6"/>`;
+   loose+=`<path class="t loose" data-dy="${(100+(i-2)*14-y).toFixed(0)}" d="${wave(-30,430,y+(R()*10-5),17,90+i*9,i*1.3)}" fill="none" stroke="#5b3fd6" stroke-width="3" stroke-linecap="round" style="opacity:0;transform-box:fill-box;transform-origin:center"/>`;
+   for(let x=38+(i%2)*38;x<400;x+=76){const dx=(R()*60-30),dy=(R()*40-20),low=250+R()*120;
+    hist+=`<g class="hs t" data-dx="${dx.toFixed(0)}" data-dy="${dy.toFixed(0)}" data-low="${(low-y).toFixed(0)}" style="transform-box:fill-box;transform-origin:center"><circle cx="${x}" cy="${y}" r="12.5" fill="#c4b2f5"/><circle class="wrap" cx="${x}" cy="${y}" r="14.5" fill="none" stroke="#5b3fd6" stroke-width="3" stroke-dasharray="64 27" transform="rotate(${(R()*360).toFixed(0)} ${x} ${y})"/></g>`;
+    if(!plant&&R()<.55)enz+=`<path class="ez t" data-x="${x}" data-y="${y}" d="M${x+20},${y-20} m10,0 a10,10 0 1,1 -3,-7 l-7,7 z" fill="#1fa37a" stroke="#137455" stroke-width="1.5" style="opacity:0;transform-box:fill-box;transform-origin:center"/>`;}
+  });
+  for(let i=0;i<26;i++){const x=20+R()*360,y=30+R()*340;ions+=`<g class="ion t" data-dy="${(y<200?0:(R()*-40)).toFixed(0)}"><circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="6.5" fill="#f59e0b"/><text x="${x.toFixed(0)}" y="${(y+3.6).toFixed(1)}" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" font-family="system-ui">+</text></g>`;}
+  B+=`<g id="ions" class="t" style="opacity:0">${ions}</g><g id="woundG">${wound}</g><g id="looseG">${loose}</g><g id="hist">${hist}</g><g id="enz">${enz}</g>`;
+  // mesh
+  B+=`<g id="mesh" class="t" style="transform:translateY(-120px)"><rect x="-10" y="0" width="420" height="70" fill="url(#meshP)" stroke="#bfae86" stroke-width="3"/><rect x="-10" y="0" width="420" height="70" fill="#fff" opacity=".25"/></g>`;
+  // clump
+  let cl='';const Rk=rng(21);for(let i=0;i<46;i++){const a=Rk()*Math.PI*2,r=Rk()*58,x=200+Math.cos(a)*r*1.5,y=128+Math.sin(a)*r*.6;cl+=`<path d="M${x.toFixed(0)},${y.toFixed(0)} q${(Rk()*50-25).toFixed(0)},${(Rk()*40-20).toFixed(0)} ${(Rk()*70-35).toFixed(0)},${(Rk()*30-15).toFixed(0)} t${(Rk()*60-30).toFixed(0)},${(Rk()*20-10).toFixed(0)}"/>`;}
+  B+=`<g id="clump" class="t" style="opacity:0;transform-box:fill-box;transform-origin:center"><ellipse cx="200" cy="128" rx="104" ry="44" fill="#fff" opacity=".55" filter="url(#soft)"/><g fill="none" stroke="#6d55d8" stroke-width="4.2" stroke-linecap="round" opacity=".45">${cl}</g><g fill="none" stroke="#fbfaff" stroke-width="2.2" stroke-linecap="round">${cl}</g></g>`;
+  B+=`<g id="stick" class="t" style="opacity:0;transform:translateY(-200px)"><rect x="193" y="-20" width="14" height="200" rx="7" fill="#c89a5b" stroke="#9c7240" stroke-width="2"/></g>`;
+
+  $('#lensBox').innerHTML=`<svg id="micro" viewBox="0 0 400 400" role="img" aria-label="Zoomed-in view of the cells"><defs><clipPath id="lensClip"><circle cx="200" cy="200" r="190"/></clipPath><pattern id="meshP" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M0,0 L10,10 M10,0 L0,10" stroke="#bfae86" stroke-width="1.2"/></pattern><filter id="soft"><feGaussianBlur stdDeviation="9"/></filter><radialGradient id="vig" cx=".5" cy=".5" r=".5"><stop offset=".78" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></radialGradient></defs>
+   <g clip-path="url(#lensClip)"><g id="mA" class="t" style="transform-box:view-box;transform-origin:${nc[0]}px ${nc[1]}px">${A}</g><g id="mB" class="t" style="opacity:0;transform-box:view-box;transform-origin:200px 200px">${B}</g><g id="lbls"></g><rect width="400" height="400" fill="url(#vig)" pointer-events="none"/></g>
+   <circle cx="200" cy="200" r="191" fill="none" stroke="#2b3450" stroke-width="8"/><circle cx="200" cy="200" r="196" fill="none" stroke="#0b0f1b" stroke-width="3"/></svg>`;
+  this.el=$('#micro');this.state=null;
+ },
+ set(name,instant){
+  const el=this.el;if(!el)return;const plant=this.sample==='banana';
+  if(instant){el.classList.add('instant');}
+  const A=['intact','nowall','walls','membranes'].includes(name);
+  const st={wall:['walls','membranes'].includes(name),memb:name==='membranes',
+   unw:['unwind','filtered','precip','spool'].includes(name),filt:['filtered'].includes(name)||(plant&&['precip','spool'].includes(name)),
+   pre:['precip','spool'].includes(name),spool:name==='spool'};
+  const mA=$('#mA',el),mB=$('#mB',el);
+  mA.style.opacity=A?1:0;mA.style.transform=A?'none':'scale(4)';
+  mB.style.opacity=A?0:1;mB.style.transform=A?'scale(.35)':'none';
+  $$('.wp',el).forEach(w=>w.style.transform=st.wall?`translate(${w.dataset.dx}px,${w.dataset.dy}px) rotate(${w.dataset.r}deg)`:'none');
+  $$('.nb',el).forEach(n=>{const on=st.wall||(!plant&&st.memb);n.style.transform=on?`translate(${n.dataset.dx}px,${n.dataset.dy}px) rotate(${n.dataset.r}deg)`:'none';n.style.opacity=st.memb?.45:1;});
+  $$('.nbw',el).forEach(n=>n.setAttribute('stroke-dasharray',st.wall?'26 14':'none'));
+  const memb=$('#memb',el);memb.style.opacity=st.memb?0:1;memb.setAttribute('stroke-dasharray',st.memb?'8 12':'none');
+  if(name==='nowall'){memb.setAttribute('stroke-width','6');}else memb.setAttribute('stroke-width','3.5');
+  $('#cyto',el).style.opacity=st.memb?.3:1;
+  $('#nenv',el).style.opacity=st.memb?0:1;$('#nucl',el).style.opacity=st.memb?0:1;
+  $('#chrom',el).style.transform=st.memb?'scale(2.1) rotate(25deg)':'none';
+  $$('.org',el).forEach(o=>o.style.transform=st.memb?`translate(${o.dataset.dx}px,${o.dataset.dy}px)`:'none');
+  $('#soapM',el).style.opacity=st.memb?1:0;
+  // B
+  $$('.wound',el).forEach(w=>w.style.opacity=st.unw?0:1);
+  $$('.loose',el).forEach(l=>{l.style.opacity=st.unw?(st.pre?0:1):0;l.style.transform=st.pre?`translateY(${l.dataset.dy}px) scale(.5,.35)`:'none';});
+  $$('.hs',el).forEach(h=>{let tr='none',op=1;if(st.unw){tr=`translate(${h.dataset.dx}px,${h.dataset.dy}px) scale(${plant?.75:.5})`;op=.55;}if(st.pre){tr=`translate(${h.dataset.dx}px,${Math.max(+h.dataset.low,+h.dataset.dy)}px) scale(.5)`;op=.45;}h.style.transform=tr;h.style.opacity=op;$('.wrap',h).style.opacity=st.unw?0:1;});
+  $$('.ez',el).forEach(z=>{z.style.opacity=(st.unw&&!st.pre)?1:0;z.style.transform=st.unw?'translate(-18px,18px)':'none';});
+  $('#ions',el).style.opacity=st.unw?1:(plant?0:.55);
+  $$('.ion',el).forEach(i=>i.style.transform=st.pre?`translateY(${i.dataset.dy}px)`:'none');
+  $$('.db',el).forEach(d=>{if(st.filt){d.style.transform='translateY(460px)';d.style.opacity=0;}else if(st.pre){d.style.transform=`translateY(${Math.max(0,+d.dataset.dy)}px)`;d.style.opacity=.85;}else{d.style.transform='none';d.style.opacity=1;}});
+  const mesh=$('#mesh',el);mesh.style.transform=st.filt?'translateY(520px)':'translateY(-120px)';mesh.style.opacity=st.filt&&name==='filtered'?1:0;
+  $('#layers',el).style.opacity=st.pre?1:0;
+  const cl=$('#clump',el);cl.style.opacity=st.pre?1:0;cl.style.transform=st.spool?'translate(0,-8px) scale(.42,1.05)':(st.pre?'none':'scale(.5)');
+  const sk=$('#stick',el);sk.style.opacity=st.spool?1:0;sk.style.transform=st.spool?'none':'translateY(-200px)';
+  // labels
+  const L=(LABELS[this.sample][name]||[]);$('#lbls',el).innerHTML=L.map(([t,x,y])=>pill(t,x,y,!A&&name!=='nowall'?false:false)).join('');
+  const c=MICRO_CAP[this.sample][name];$('#zoomTag').textContent=c[0];$('#caption').innerHTML=c[1];
+  if(instant){el.getBoundingClientRect();requestAnimationFrame(()=>el.classList.remove('instant'));}
+  this.state=name;
+ },
+ go(from,to){this.cancel();this.set(from,true);if(from===to)return;this.timer=setTimeout(()=>{this.timer=null;this.set(to);},REDUCED?0:450);},
+ cancel(){if(this.timer){clearTimeout(this.timer);this.timer=null;}}
+};
+
+/* =========================================================
+   Bench art (SVG strings; local coordinates)
+   ========================================================= */
+const GL='fill="rgba(214,232,250,.32)" stroke="#8fa9c4" stroke-width="2.5"';
+const DEFS=`<defs>
+<linearGradient id="wallG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fcfaf4"/><stop offset="1" stop-color="#f1eadb"/></linearGradient>
+<linearGradient id="ctrG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2d1b0"/><stop offset="1" stop-color="#cfb991"/></linearGradient>
+<clipPath id="bagClip"><path d="M10,22 H160 L154,222 Q152,234 140,234 H30 Q18,234 16,222 Z"/></clipPath>
+<clipPath id="beakClip"><path d="M16,12 H118 V140 Q118,148 110,148 H24 Q16,148 16,140 Z"/></clipPath>
+<clipPath id="cylClip"><rect x="22" y="14" width="36" height="232" rx="3"/></clipPath>
+<clipPath id="tubeClip"><path d="M12,4 V208 A18,18 0 0 0 48,208 V4 Z"/></clipPath>
+<clipPath id="cupClip"><path d="M8,10 H82 L72,104 Q71,110 64,110 H26 Q19,110 18,104 Z"/></clipPath>
+</defs>`;
+const ROOM=`<rect x="-700" y="-700" width="2040" height="1060" fill="#f6f1e6"/><rect x="-700" y="0" width="2040" height="360" fill="url(#wallG)"/><g opacity=".5">${[-400,-280,-160,-40,80,200,320,440,560,680,800,920].map(x=>`<line x1="${x}" y1="-700" x2="${x}" y2="350" stroke="#ece4d2" stroke-width="2"/>`).join('')}${[-240,-120,0,120,240].map(y=>`<line x1="-700" y1="${y}" x2="1340" y2="${y}" stroke="#ece4d2" stroke-width="2"/>`).join('')}</g><rect x="-700" y="350" width="2040" height="90" fill="url(#ctrG)"/><rect x="-700" y="347" width="2040" height="6" rx="2" fill="#efe3c9"/>`;
+const shadow=(x,w)=>`<ellipse cx="${x}" cy="352" rx="${w}" ry="6" fill="#000" opacity=".09"/>`;
+function G(id,x,y,inner,cls='',label=''){return `<g id="${id}" class="${cls}" data-x="${x}" data-y="${y}" transform="translate(${x},${y})"${label?` role="button" tabindex="0" aria-label="${label}"`:''}>${inner}</g>`;}
+
+function bananaArt(peeled){
+ if(!peeled)return `<path d="M10,70 C40,22 150,2 222,30 C230,34 228,45 218,45 C160,32 82,52 32,92 C18,103 2,90 10,70 Z" fill="url(#bananaG)" stroke="#c2900f" stroke-width="3" stroke-linejoin="round"/><path d="M30,74 C70,40 140,24 206,34" stroke="#e2a90c" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M216,30 l14,-12 l7,7 l-13,13z" fill="#6b4f1d"/><circle cx="12" cy="80" r="5" fill="#5a4119"/>`;
+ return `<path d="M120,40 C150,20 200,10 222,30 C228,36 226,44 218,44 C190,34 150,40 126,56 Z" fill="#f5c51c" stroke="#c2900f" stroke-width="2.5"/><path d="M118,46 C120,72 108,92 92,100 C110,82 112,64 106,52Z" fill="#f2c01a" stroke="#c2900f" stroke-width="2.5"/><path d="M126,50 C150,62 176,70 196,92 C168,80 146,72 122,60Z" fill="#f2c01a" stroke="#c2900f" stroke-width="2.5"/><path d="M216,30 l14,-12 l7,7 l-13,13z" fill="#6b4f1d"/><path d="M14,70 C40,36 92,22 132,36 C140,40 138,52 128,52 C96,46 60,58 36,84 C24,96 8,86 14,70 Z" fill="#fbf0c6" stroke="#dcc27a" stroke-width="2.5"/><path d="M36,70 C60,50 90,40 118,42" stroke="#eedd9f" stroke-width="2" fill="none"/>`;
+}
+function bagArt(b){
+ const bottom=234;let s='';
+ const mashH=b.inBag?44+12*b.mash:0;
+ let liq=0;if(b.soap)liq=mashH+8*(b.soap/6);if(b.salt)liq=mashH+8+98*b.salt;
+ if(b.empty){liq=Math.max(0,liq*(1-b.empty));}
+ s+=`<g clip-path="url(#bagClip)">`;
+ if(liq>0)s+=`<rect x="0" y="${bottom-liq}" width="170" height="${liq+4}" fill="${b.squeezed>0.5?'#f2e3a6':'#eef0c8'}" opacity="${b.salt?.9:.85}"/>`;
+ if(b.inBag&&!b.empty){
+  s+=`<path d="M0,${bottom-mashH+6} Q40,${bottom-mashH-8} 85,${bottom-mashH+2} T170,${bottom-mashH} V240 H0Z" fill="#f3df92" opacity="${clamp(b.mash*2,0,1)}"/>`;
+  if(b.mash<1){const L=[[34,206],[62,196],[94,210],[124,200],[50,180],[84,182],[116,186],[70,214],[140,214],[104,170]];
+   s+=`<g opacity="${clamp(1-b.mash*3,0,1)}" transform="translate(28,140) scale(.5)">${bananaArt(true).replace(/<path d="M120[\s\S]*?<\/path>|<path d="M118[\s\S]*?\/>|<path d="M126,50[\s\S]*?\/>|<path d="M216,30[^>]*\/>/g,'')}</g>`;
+   s+=L.map(([x,y],i)=>{const r=Math.max(0,(13-(i%3)*2)*(1-b.mash));return r>.5&&b.mash>0?`<circle cx="${x}" cy="${y}" r="${r.toFixed(1)}" fill="#fbefc0" stroke="#d8bf6e" stroke-width="1.5"/>`:'';}).join('');}
+ }
+ if(b.foam>0){const n=Math.round(b.foam*22),R=rng(3);let f='';for(let i=0;i<n;i++)f+=`<circle cx="${(20+R()*130).toFixed(0)}" cy="${(bottom-liq-4-R()*16).toFixed(0)}" r="${(4+R()*7).toFixed(1)}" fill="#fff" stroke="#cdd8e4" stroke-width="1.2"/>`;s+=f;}
+ s+=`</g>`;
+ s+=`<path d="M10,22 H160 L154,222 Q152,234 140,234 H30 Q18,234 16,222 Z" ${GL}/><path d="M22,30 L28,220" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".6"/>`;
+ const sealed=b.sealed;
+ s+=`<g id="zip"><rect x="2" y="6" width="166" height="18" rx="5" fill="#eef2f7" stroke="#b6c4d4" stroke-width="2"/>`;
+ s+=sealed?`<line x1="10" y1="15" x2="160" y2="15" stroke="#7b5bd6" stroke-width="4" stroke-linecap="round"/>`:`<line x1="10" y1="12" x2="160" y2="12" stroke="#e25563" stroke-width="3" stroke-linecap="round"/><line x1="10" y1="18.5" x2="160" y2="18.5" stroke="#4a7fd6" stroke-width="3" stroke-linecap="round"/>`;
+ s+=`</g>`;
+ return s;
+}
+function bottleArt(kind){
+ if(kind==='soap')return `<rect x="27" y="0" width="16" height="16" rx="3" fill="#24845a"/><rect x="19" y="13" width="32" height="20" rx="6" fill="#2f9e6a"/><path d="M10,42 Q10,32 22,32 H48 Q60,32 60,42 V128 Q60,138 50,138 H20 Q10,138 10,128Z" fill="#4fc58c" stroke="#2a8a5c" stroke-width="2.5"/><rect x="17" y="62" width="36" height="44" rx="7" fill="#fff" opacity=".94"/><text x="35" y="81" text-anchor="middle" font-size="11" font-weight="850" fill="#24845a" font-family="system-ui">SOAP</text><text x="35" y="96" text-anchor="middle" font-size="9" font-weight="700" fill="#5d6676" font-family="system-ui">detergent</text><path d="M16,44 V124" stroke="#fff" stroke-width="4" opacity=".4" stroke-linecap="round"/>`;
+ if(kind==='salt')return `<path d="M8,26 Q8,4 28,4 Q48,4 48,26Z" fill="#c9d0da" stroke="#8d97a6" stroke-width="2"/>${[[20,14],[28,10],[36,14],[28,18]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.8" fill="#5d6676"/>`).join('')}<rect x="6" y="24" width="44" height="72" rx="10" fill="rgba(230,240,250,.6)" stroke="#8fa9c4" stroke-width="2.5"/><rect x="9" y="50" width="38" height="43" rx="8" fill="#fff"/><g fill="#e3e8ee">${Array.from({length:14},(_,i)=>`<rect x="${12+(i*7)%32}" y="${54+Math.floor(i/5)*12}" width="3" height="3"/>`).join('')}</g><rect x="11" y="34" width="34" height="14" rx="4" fill="#3b82c4"/><text x="28" y="44.5" text-anchor="middle" font-size="9" font-weight="850" fill="#fff" font-family="system-ui">SALT</text>`;
+ if(kind==='alcohol')return `<rect x="26" y="0" width="28" height="18" rx="4" fill="#3b6fb6"/><path d="M30,18 H50 V34 Q66,40 66,58 V138 Q66,148 56,148 H24 Q14,148 14,138 V58 Q14,40 30,34Z" fill="#eaf5ff" stroke="#7fa6c9" stroke-width="2.5"/><path d="M16,92 H64 V138 Q64,146 56,146 H24 Q16,146 16,138Z" fill="#d6ebff" opacity=".8"/><rect x="18" y="60" width="44" height="40" rx="6" fill="#fff"/><text x="40" y="74" text-anchor="middle" font-size="7.5" font-weight="850" fill="#3b6fb6" font-family="system-ui">ISOPROPYL</text><text x="40" y="84" text-anchor="middle" font-size="7.5" font-weight="850" fill="#3b6fb6" font-family="system-ui">ALCOHOL</text><text x="40" y="95" text-anchor="middle" font-size="7" font-weight="800" fill="#5aa0e0" font-family="system-ui">❄ ICE COLD</text>${[[4,128],[58,132],[30,140]].map(([x,y])=>`<rect x="${x}" y="${y}" width="18" height="15" rx="4" fill="rgba(220,240,255,.85)" stroke="#a9cbe6" stroke-width="1.5"/>`).join('')}`;
+ if(kind==='enzyme')return `<rect x="10" y="0" width="44" height="16" rx="4" fill="#d9541e"/><path d="M6,18 H58 V100 Q58,108 50,108 H14 Q6,108 6,100Z" fill="#fff4e8" stroke="#d9a77a" stroke-width="2.5"/><rect x="8" y="34" width="48" height="50" rx="5" fill="#f2733a"/><text x="32" y="50" text-anchor="middle" font-size="7.6" font-weight="850" fill="#fff" font-family="system-ui">MEAT</text><text x="32" y="60" text-anchor="middle" font-size="7.6" font-weight="850" fill="#fff" font-family="system-ui">TENDERIZER</text><text x="32" y="75" text-anchor="middle" font-size="7" font-weight="700" fill="#ffe2cf" font-family="system-ui">enzymes</text>`;
+ return '';
+}
+function beakerArt(water,salt,dissolved,stir,label){
+ const h=water*0.733;
+ return `<path d="M16,12 H118 V140 Q118,148 110,148 H24 Q16,148 16,140 Z" fill="rgba(214,232,250,.25)"/>
+  <g clip-path="url(#beakClip)">${water?`<rect x="0" y="${148-h}" width="140" height="${h+4}" fill="#cfe6fb" opacity=".85"/>`:''}
+  ${salt?Array.from({length:22},(_,i)=>`<rect x="${26+(i*17)%84}" y="${138-(i%3)*4}" width="4" height="4" fill="#fff" stroke="#b9c6d4" stroke-width=".8" opacity="${1-dissolved}" transform="rotate(${i*23} ${28+(i*17)%84} ${140-(i%3)*4})"/>`).join(''):''}
+  ${stir?`<g class="swirl"><path d="M50,${148-h/2} a18,8 0 1,0 36,0" fill="none" stroke="#fff" stroke-width="2.5" opacity=".8"/><path d="M58,${148-h/2+12} a10,5 0 1,1 20,0" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/></g>`:''}</g>
+  <path d="M16,12 H118 V140 Q118,148 110,148 H24 Q16,148 16,140 Z M16,12 L8,4" ${GL.replace('rgba(214,232,250,.32)','none')}/>
+  <rect x="20" y="16" width="8" height="120" rx="4" fill="url(#shine)"/>
+  ${[50,100,150].map(m=>`<line x1="104" y1="${148-m*.733}" x2="116" y2="${148-m*.733}" stroke="#8fa9c4" stroke-width="1.5"/><text x="101" y="${152-m*.733}" text-anchor="end" font-size="9" fill="#7b8797" font-family="system-ui">${m}</text>`).join('')}
+  ${label?`<text x="67" y="168" text-anchor="middle" font-size="12" font-weight="750" fill="#5d6676" font-family="system-ui">${label}</text>`:''}`;
+}
+function catchBeakerArt(ml,drip){
+ const h=ml*1.9;
+ return `<path d="M16,12 H118 V140 Q118,148 110,148 H24 Q16,148 16,140 Z" fill="rgba(214,232,250,.25)"/>
+  <g clip-path="url(#beakClip)">${ml>0?`<rect x="0" y="${148-h}" width="140" height="${h+4}" fill="#f2e3a6" opacity=".9"/>`:''}
+  <rect x="0" y="${148-40*1.9}" width="140" height="${10*1.9}" fill="#14936b" opacity=".13"/></g>
+  <path d="M16,12 H118 V140 Q118,148 110,148 H24 Q16,148 16,140 Z" fill="none" stroke="#8fa9c4" stroke-width="2.5"/>
+  ${[10,20,30,40,50,60].map(m=>`<line x1="${m%20?108:102}" y1="${148-m*1.9}" x2="116" y2="${148-m*1.9}" stroke="#8fa9c4" stroke-width="1.5"/>${m%20?'':`<text x="99" y="${152-m*1.9}" text-anchor="end" font-size="9" fill="#7b8797" font-family="system-ui">${m}</text>`}`).join('')}
+  <text x="122" y="${148-35*1.9+4}" font-size="9" font-weight="800" fill="#14936b" font-family="system-ui">goal</text>
+  ${drip?`<g>${[0,1,2].map(i=>`<circle class="drop" cx="67" cy="${-6+i*0}" r="3.2" fill="#e9d690" style="animation-delay:${i*.23}s"/>`).join('')}</g>`:''}`;
+}
+function filterArt(full){
+ return `<path d="M0,0 H124 L74,62 H50 Z" fill="#fdfaf1" stroke="#d6c8a6" stroke-width="2.5" stroke-linejoin="round"/>${[20,42,62,84,104].map(x=>`<line x1="${x}" y1="2" x2="${50+(x/124)*24}" y2="60" stroke="#ece2c9" stroke-width="1.5"/>`).join('')}${full?`<path d="M14,8 H110 L84,40 H40Z" fill="#efd987" stroke="#d8bf6e" stroke-width="1.5"/>${[[40,16],[60,22],[80,14],[52,30],[72,32]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4.5" fill="#e6cb70"/>`).join('')}`:''}`;
+}
+function vesselArt(kind,v){ // v: {base, baseColor, alc, wisps, spool, splash}
+ const cyl=kind==='cyl',bottom=cyl?246:226,ppm=cyl?3.6:3.1,x0=cyl?22:12,w=36;
+ const hb=v.base*ppm,ha=v.alc*ppm,yi=bottom-hb;
+ let s='';
+ if(cyl)s+=`<rect x="0" y="244" width="80" height="16" rx="5" fill="#cfdbe8" stroke="#8fa9c4" stroke-width="2"/><path d="M22,14 V246 H58 V14" fill="rgba(214,232,250,.25)"/>`;
+ else s+=`<path d="M12,4 V208 A18,18 0 0 0 48,208 V4 Z" fill="rgba(214,232,250,.25)"/>`;
+ s+=`<g clip-path="url(#${cyl?'cylClip':'tubeClip'})">`;
+ if(hb>0)s+=`<rect x="0" y="${yi}" width="80" height="${hb+30}" fill="${v.baseColor}" opacity="${v.splash?.75:.92}"/>`;
+ if(ha>0)s+=`<rect x="0" y="${yi-ha}" width="80" height="${ha}" fill="#d6ecff" opacity=".95"/><line x1="0" y1="${yi}" x2="80" y2="${yi}" stroke="#9ec2e6" stroke-width="1.5"/>`;
+ if(v.splash)s+=`<g opacity=".8">${Array.from({length:12},(_,i)=>`<circle cx="${x0+4+(i*7)%32}" cy="${yi-10+(i*13)%40}" r="${2+i%3}" fill="#fff"/>`).join('')}</g>`;
+ if(v.wisps>0&&!v.spoolDone){const R=rng(9);let p='';const n=14;for(let i=0;i<n;i++){const x=x0+3+R()*30,y=yi-2-R()*ha*.85*v.wisps;p+=`<path d="M${x.toFixed(1)},${(yi+2).toFixed(1)} q${(R()*10-5).toFixed(1)},${(-(yi-y)/2).toFixed(1)} ${(R()*8-4).toFixed(1)},${(-(yi-y)).toFixed(1)}" />`;}
+  s+=`<g fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity="${clamp(v.wisps,0,1)*(1-(v.spool||0)*.85)}">${p}</g><ellipse cx="${x0+18}" cy="${yi-6}" rx="16" ry="${4+6*v.wisps}" fill="#fff" opacity="${.5*v.wisps*(1-(v.spool||0))}"/>`;
+  if(v.bubbles)s+=Array.from({length:6},(_,i)=>`<circle class="bubble" cx="${x0+6+i*5}" cy="${yi-2}" r="1.8" fill="#fff" style="animation-delay:${i*.35}s"/>`).join('');}
+ if(v.debrisBottom)s+=Array.from({length:8},(_,i)=>`<circle cx="${x0+5+(i*9)%28}" cy="${bottom-4-(i%3)*7}" r="${2+i%2}" fill="#d98b9d" opacity=".55"/>`).join('');
+ s+=`</g>`;
+ if(cyl){s+=`<path d="M22,14 V246 M58,14 V246" stroke="#8fa9c4" stroke-width="2.5" fill="none"/><path d="M16,12 Q22,10 24,14 M64,12 Q58,10 56,14" stroke="#8fa9c4" stroke-width="2.5" fill="none"/>${[10,20,30,40,50,60].map(m=>`<line x1="22" y1="${bottom-m*ppm}" x2="${m%20?30:34}" y2="${bottom-m*ppm}" stroke="#8fa9c4" stroke-width="1.4"/>${m%20?'':`<text x="64" y="${bottom-m*ppm+3}" font-size="9" fill="#7b8797" font-family="system-ui">${m}</text>`}`).join('')}<rect x="25" y="20" width="5" height="220" rx="2.5" fill="url(#shine)"/>`;}
+ else s+=`<path d="M12,4 V208 A18,18 0 0 0 48,208 V4" fill="none" stroke="#8fa9c4" stroke-width="2.5"/><path d="M6,4 H54" stroke="#8fa9c4" stroke-width="3" stroke-linecap="round"/><rect x="15" y="10" width="5" height="190" rx="2.5" fill="url(#shine)"/>`;
+ return s;
+}
+function stirrerArt(spool,yi){ // local around 0..12 x; DNA blob near bottom
+ let s=`<rect x="0" y="0" width="10" height="210" rx="5" fill="#d2a56a" stroke="#9c7240" stroke-width="2"/>`;
+ if(spool>0){const n=Math.round(spool*9);s+=`<g fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round">${Array.from({length:n},(_,i)=>`<ellipse cx="5" cy="${196-i*4}" rx="${8+((i*5)%4)}" ry="3.2" opacity=".95"/>`).join('')}</g><g fill="none" stroke="#b9acee" stroke-width="1" opacity=".8">${Array.from({length:n},(_,i)=>`<ellipse cx="5" cy="${197-i*4}" rx="${9+((i*5)%4)}" ry="3.6"/>`).join('')}</g>`;}
+ return s;
+}
+function faceArt(f){ // f: {mouth:'smile'|'full', swish}
+ return `<circle cx="110" cy="118" r="94" fill="#f6d2b6" stroke="#dcae8c" stroke-width="3"/>
+ <path d="M24,96 Q34,22 110,20 Q186,22 196,96 Q172,52 110,54 Q46,52 24,96Z" fill="#40302b"/>
+ <ellipse cx="78" cy="106" rx="7" ry="9" fill="#2a2230"/><ellipse cx="142" cy="106" rx="7" ry="9" fill="#2a2230"/>
+ <circle cx="80" cy="103" r="2.3" fill="#fff"/><circle cx="144" cy="103" r="2.3" fill="#fff"/>
+ ${f.mouth==='full'?`<ellipse class="${f.swish?'puffL':''}" cx="56" cy="152" rx="24" ry="20" fill="#f3b9a0" opacity=".9"/><ellipse class="${f.swish?'puffR':''}" cx="164" cy="152" rx="24" ry="20" fill="#f3b9a0" opacity=".9"/><path d="M96,164 Q110,168 124,164" stroke="#a5523f" stroke-width="4" fill="none" stroke-linecap="round"/>`
+ :`<circle cx="60" cy="146" r="14" fill="#f3b5a0" opacity=".55"/><circle cx="160" cy="146" r="14" fill="#f3b5a0" opacity=".55"/><path d="M88,154 Q110,176 132,154" stroke="#a5523f" stroke-width="4" fill="none" stroke-linecap="round"/>`}
+ ${f.swish?`<g fill="#8fc9f0">${[[30,140],[190,140],[24,170],[196,170]].map(([x,y],i)=>`<path d="M${x},${y} q${i%2?6:-6},4 0,8" stroke="#8fc9f0" stroke-width="3" fill="none" stroke-linecap="round"/>`).join('')}</g>`:''}`;
+}
+function cupArt(c){ // c: {level 0..1, cloudy}
+ const top=110-c.level*80;
+ return `<g clip-path="url(#cupClip)">${c.level>0?`<rect x="0" y="${top}" width="90" height="120" fill="${c.cloudy?'#ebe2d8':'#d6ebfb'}"/>${c.cloudy?Array.from({length:10},(_,i)=>`<circle cx="${20+(i*13)%52}" cy="${top+10+(i*7)%40}" r="1.6" fill="#d7a5b2"/>`).join(''):''}`:''}</g>
+ <path d="M8,10 H82 L72,104 Q71,110 64,110 H26 Q19,110 18,104 Z" fill="rgba(255,255,255,.35)" stroke="#bfc8d4" stroke-width="2.5"/>
+ <path d="M6,8 H84" stroke="#bfc8d4" stroke-width="4" stroke-linecap="round"/>
+ <text x="45" y="128" text-anchor="middle" font-size="11.5" font-weight="750" fill="#5d6676" font-family="system-ui">salt water</text>`;
+}
+const rackArt=`<rect x="-30" y="150" width="120" height="16" rx="4" fill="#9fb6cf"/><rect x="-24" y="166" width="8" height="74" fill="#9fb6cf"/><rect x="74" y="166" width="8" height="74" fill="#9fb6cf"/>`;
+
+/* =========================================================
+   Interaction helpers
+   ========================================================= */
+function svgPt(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function inRect(el,e,pad=24){const r=el.getBoundingClientRect();return e.clientX>r.left-pad&&e.clientX<r.right+pad&&e.clientY>r.top-pad&&e.clientY<r.bottom+pad;}
+function onActivate(el,fn){el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(!e.repeat)fn();}});}
+function focusable(el,label){if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');if(!el.hasAttribute('role'))el.setAttribute('role','button');if(label&&!el.hasAttribute('aria-label'))el.setAttribute('aria-label',label);}
+function makeTap(el,fn){focusable(el,'Tap to use');el.classList.add('tap','cue');let used=false;const once=()=>{if(used)return;used=true;el.classList.remove('cue');fn();};el.addEventListener('click',once);onActivate(el,once);}
+function makeDrag(svg,item,target,fn){
+ focusable(item,'Drag or press Enter to use');item.classList.add('drag','cue');const bx=+item.dataset.x,by=+item.dataset.y;let st=null,moved=false,busy=false;
+ const fire=()=>{if(busy)return;busy=true;item.classList.remove('cue');target.classList.remove('hint-on','over');fn();};
+ item.addEventListener('pointerdown',e=>{if(busy)return;e.preventDefault();st=svgPt(svg,e);moved=false;item.setPointerCapture(e.pointerId);target.classList.add('hint-on');});
+ item.addEventListener('pointermove',e=>{if(!st)return;const p=svgPt(svg,e),dx=p.x-st.x,dy=p.y-st.y;if(Math.hypot(dx,dy)>5)moved=true;item.setAttribute('transform',`translate(${bx+dx},${by+dy})`);target.classList.toggle('over',inRect(target,e,10));});
+ const up=e=>{if(!st)return;st=null;target.classList.remove('over');if(!moved||inRect(target,e,10)){fire();}else{target.classList.remove('hint-on');const cur=item.getAttribute('transform').match(/-?[\d.]+/g).map(Number);tween(260,t=>item.setAttribute('transform',`translate(${lerp(cur[0],bx,t)},${lerp(cur[1],by,t)})`));}};
+ item.addEventListener('pointerup',up);item.addEventListener('pointercancel',up);
+ onActivate(item,fire);
+}
+function moveTo(item,x,y,rot=0,ms=450,ox=0,oy=0){const cur=(item.getAttribute('transform')||'').match(/-?[\d.]+/g)||[item.dataset.x,item.dataset.y,0];const sx=+cur[0],sy=+cur[1],sr=+(cur[2]||0);return tween(ms,t=>item.setAttribute('transform',`translate(${lerp(sx,x,t)},${lerp(sy,y,t)}) rotate(${lerp(sr,rot,t)} ${ox} ${oy})`));}
+function streamEl(svg,x1,y1,x2,y2,color,w=5){const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',`M${x1},${y1} Q${x1+4},${(y1+y2)/2} ${x2},${y2}`);p.setAttribute('stroke',color);p.setAttribute('stroke-width',w);p.setAttribute('fill','none');p.setAttribute('stroke-linecap','round');p.setAttribute('class','stream');svg.appendChild(p);return p;}
+function holdBtn(label,{ms,onProgress,onDone,icon='✋'}){
+ const b=document.createElement('button');b.className='hold';b.type='button';b.innerHTML=`<span class="fill"></span><span aria-hidden="true">${icon}</span><span class="lb">${label}</span>`;
+ let p=0,raf=null,last=0,done=false;const fill=$('.fill',b);
+ const tick=now=>{const dt=now-last;last=now;p=Math.min(1,p+dt/(REDUCED?ms/3:ms));fill.style.width=(p*100)+'%';onProgress&&onProgress(p);if(p>=1){stop();if(!done){done=true;b.disabled=true;onDone&&onDone();}return;}raf=requestAnimationFrame(tick);};
+ const start=e=>{if(done||raf)return;e&&e.preventDefault();b.classList.add('active');last=performance.now();raf=requestAnimationFrame(tick);};
+ const stop=()=>{b.classList.remove('active');if(raf)cancelAnimationFrame(raf);raf=null;onProgress&&onProgress(p,true);};
+ b.addEventListener('pointerdown',e=>{b.setPointerCapture(e.pointerId);start(e);});b.addEventListener('pointerup',stop);b.addEventListener('pointercancel',stop);b.addEventListener('lostpointercapture',stop);
+ b.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();start();}});b.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')stop();});
+ b.addEventListener('contextmenu',e=>e.preventDefault());
+ return b;
+}
+
+/* =========================================================
+   Lab controller
+   ========================================================= */
+const saved=store.get();
+const S={view:'home',sample:'banana',step:0,task:0,phase:'act',quizOK:false,
+ prog:Object.assign({banana:0,cheek:0},saved.prog||{}),
+ seen:Object.assign({banana:false,cheek:false},saved.seen||{})};
+const save=()=>store.set({prog:S.prog,seen:S.seen});
+let ctx=null; // current step context
+let alive=0; // token to cancel stale async work
+
+function benchFor(sample,step){ // cumulative bench state at start of step
+ if(sample==='banana')return{peeled:step>0,inBag:step>0,mash:step>1?1:0,soap:step>2?6:0,foam:0,salt:step>3?1:0,sealed:step>3,squeezed:step>3?1:0,empty:0,filterOn:false,catchMl:0,cyl:step>4?40:0,alc:0,wisps:0,spool:0,tilt:0};
+ return{level:step>0?0:1,cloudy:step>0,tube:step>0?20:0,soap:step>2,enz:step>3,alc:step>4?10:0,wisps:step>4?1:0,spool:0,tilt:0};
+}
+
+function renderStepper(){
+ const el=$('#stepper'),done=S.prog[S.sample];
+ el.innerHTML=GOAL_SHORT.map((g,i)=>{const skip=S.sample==='cheek'&&i===1&&done>1;const cls=[i<done?'done':'',skip?'skip':'',i===S.step?'cur':''].join(' ');
+  return `<button class="st ${cls}" data-step="${i}" ${i>done?'disabled':''} aria-current="${i===S.step?'step':'false'}" aria-label="Step ${i+1}: ${GOALS[i]}${i<done?' (complete)':''}"><span class="n"><b>${i<done&&!skip?'✓':i+1}</b>Step ${i+1}</span><span class="t">${skip?'Skipped — no wall':g}</span><span class="bar"><i></i></span></button>`;}).join('');
+ $$('.st',el).forEach(b=>b.addEventListener('click',()=>{if(!b.disabled)enterStep(+b.dataset.step);}));
+ const cur=$('.st.cur',el);if(cur&&el.scrollWidth>el.clientWidth)el.scrollLeft=cur.offsetLeft-el.offsetLeft-8;
+}
+function setTasks(){
+ const st=STEPS[S.sample][S.step];
+ $('#tasks').innerHTML=st.tasks.length>1?st.tasks.map((t,i)=>`<i class="${i<S.task?'ok':i===S.task?'cur':''}" title="${t.replace(/"/g,'')}"></i>`).join('')+`<span class="sr">Task ${Math.min(S.task+1,st.tasks.length)} of ${st.tasks.length}</span>`:'';
+ const now=$('#now');
+ if(S.task<st.tasks.length){now.classList.remove('done');$('#nowText').textContent=st.tasks[S.task];$('.hand',now).textContent='👉';}
+ else{now.classList.add('done');$('#nowText').textContent='Step complete! Read what happened and answer the check-in question.';$('.hand',now).textContent='✓';}
+}
+let toastT=null;
+function toast(msg,tone='info',ms=3200){const t=$('#toast');t.className=`toast ${tone} on`;t.innerHTML=`<span aria-hidden="true">${tone==='warn'?'⚠️':tone==='ok'?'✅':'💬'}</span><span>${msg}</span>`;clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),ms);}
+
+function enterStep(i){
+ alive++;S.step=i;S.task=0;S.phase='act';S.quizOK=i<S.prog[S.sample];
+ const st=STEPS[S.sample][i];
+ document.body.classList.toggle('s-banana',S.sample==='banana');document.body.classList.toggle('s-cheek',S.sample==='cheek');
+ $('#labEyebrow').textContent=S.sample==='banana'?'Sample 1 · Banana (plant cells)':'Sample 2 · Your cheek cells (animal cells)';
+ $('#lab-title').textContent=S.sample==='banana'?'Extract DNA from a banana':'Extract DNA from your cheek cells';
+ $('#switchSample').textContent=S.sample==='banana'?'Switch to cheek cells →':'Switch to banana →';
+ $('#stepNum').textContent=i+1;$('#goalName').textContent=`Step ${i+1} · ${GOALS[i]}`;$('#labLink').textContent=st.lab;$('#actionTitle').textContent=st.action;
+ $('#learn').classList.remove('on');$('#learn').innerHTML='';$('#learn').hidden=true;$('#actPane').hidden=false;$('#benchCard').classList.remove('peek');
+ $('#controls').innerHTML='';$('#toast').classList.remove('on');
+ renderStepper();setTasks();updateNav();
+ if(Micro.sample!==S.sample)Micro.build(S.sample);
+ // micro "before" state, with a zoom transition when entering molecule view
+ const before=st.micro[0];const prevAfter=i>0?STEPS[S.sample][i-1].micro.slice(-1)[0]:'intact';
+ Micro.cancel();if(prevAfter!==before&&i>0){Micro.go(prevAfter,before);}else Micro.set(before,true);
+ $('#replayBtn').disabled=true;
+ ctx={sample:S.sample,step:i,b:benchFor(S.sample,i),token:alive};
+ IMPL[S.sample][i](ctx);
+}
+function taskDone(){
+ if(!ctx||ctx.token!==alive)return;
+ S.task++;setTasks();
+ const st=STEPS[S.sample][S.step];
+ if(S.task>=st.tasks.length)stepComplete();
+}
+function stepComplete(){
+ const st=STEPS[S.sample][S.step];S.phase='learn';
+ const m=st.micro,tok0=ctx.token;Micro.set(m[m.length-2],true);setTimeout(()=>{if(tok0===alive)Micro.set(m[m.length-1]);},REDUCED?0:250);
+ $('#replayBtn').disabled=false;
+ const tok=ctx.token;setTimeout(()=>{if(tok!==alive)return;renderLearn();},REDUCED?200:1700);
+ const was=S.prog[S.sample];
+ if(S.step+1>was){/* progress is recorded after the check-in question */}
+}
+function renderLearn(){
+ const st=STEPS[S.sample][S.step],L=$('#learn'),q=st.quiz,letters='ABCD';
+ const ex=e=>e?`<div class="callout ${e[0]}"><span class="ic" aria-hidden="true">${e[1]}</span><span>${e[2]}</span></div>`:'';
+ L.innerHTML=`<div class="learn-top"><span class="eyebrow">Step ${S.step+1} complete · What just happened</span><span style="display:flex;gap:6px"><button class="btn ghost small lens-jump" id="lensJump">🔬 Inside the cells</button><button class="btn ghost small" id="peekBtn" aria-pressed="false">👀 Show the bench</button></span></div><p class="what">${st.what}</p><p class="why">${st.why}</p>${ex(st.extra)}${ex(st.extra2)}
+  <div class="pl">Helps with post-lab ${st.pl.map(p=>`<span class="chip">${p}</span>`).join('')}</div>
+  <div class="quiz"><span class="eyebrow">Quick check</span><h4 id="qh">${q.q}</h4><div class="opts" role="group" aria-labelledby="qh">${q.o.map((o,k)=>`<button class="opt" data-k="${k}"><span class="l">${letters[k]}</span><span>${o[0]}</span></button>`).join('')}</div><div class="fb" id="qfb" aria-live="polite"></div></div>`;
+ L.hidden=false;$('#actPane').hidden=true;L.classList.add('on');
+ $('#peekBtn').addEventListener('click',e=>{const on=$('#benchCard').classList.toggle('peek');e.currentTarget.setAttribute('aria-pressed',on);e.currentTarget.textContent=on?'Hide the bench':'👀 Show the bench';fitBench();});
+ $('#lensJump').addEventListener('click',()=>$('#lensCard').scrollIntoView({behavior:REDUCED?'auto':'smooth',block:'start'}));
+ const top=$('#benchCard').getBoundingClientRect().top;if(top<70||top>innerHeight*.5)scrollTo({top:scrollY+top-90,behavior:REDUCED?'auto':'smooth'});
+ $$('.opt',L).forEach(b=>b.addEventListener('click',()=>{
+  const o=q.o[+b.dataset.k],fb=$('#qfb');
+  if(o[1]){b.classList.add('right');$$('.opt',L).forEach(x=>x.disabled=true);fb.className='fb ok on';fb.innerHTML=`<b>Correct!</b> ${o[2]}`;S.quizOK=true;
+   if(S.step+1>S.prog[S.sample]){S.prog[S.sample]=S.step+1;save();}
+   renderStepper();updateNav();refreshHome();
+   if(S.step===5){setTimeout(()=>celebrate(),REDUCED?0:700);}
+  }else{b.classList.add('wrong');b.disabled=true;fb.className='fb no on';fb.innerHTML=`<b>Not quite.</b> ${o[2]} Try another answer.`;}
+ }));
+}
+function updateNav(){
+ const n=$('#nextBtn'),p=$('#prevBtn');p.disabled=S.step===0;
+ const last=S.step===5;n.disabled=!S.quizOK;n.classList.toggle('ready',S.quizOK);
+ n.textContent=last?(S.sample==='banana'?'Finish → try your cheek cells':'Finish → open the post-lab notebook'):`Next: ${GOAL_SHORT[S.step+1]} →`;
+}
+const toStepper=()=>{const t=$('#stepper').getBoundingClientRect().top;if(t<70||t>200)scrollTo({top:scrollY+t-84,behavior:REDUCED?'auto':'smooth'});};
+$('#nextBtn').addEventListener('click',()=>{if(S.step<5){enterStep(S.step+1);toStepper();}else{celebrate();}});
+$('#prevBtn').addEventListener('click',()=>{if(S.step>0)enterStep(S.step-1);});
+$('#switchSample').addEventListener('click',()=>go('lab:'+(S.sample==='banana'?'cheek':'banana')));
+$('#lblBtn').addEventListener('click',e=>{const on=e.currentTarget.getAttribute('aria-pressed')!=='true';e.currentTarget.setAttribute('aria-pressed',on);$('#lensCard').classList.toggle('labels-off',!on);});
+$('#replayBtn').addEventListener('click',()=>{const m=STEPS[S.sample][S.step].micro;Micro.go(m[0],m[m.length-1]);});
+
+/* ---------- scene helpers ---------- */
+function scene(inner){$('#benchSvg').innerHTML=`<svg id="bsvg" viewBox="0 0 640 420" role="img" aria-label="Lab bench">${DEFS}${ROOM}${inner}</svg>`;fitBench();return $('#bsvg');}
+function fitBench(){const svg=$('#bsvg'),st=$('#stage');if(!svg||!st)return;const w=st.clientWidth,h=st.clientHeight;if(!w||!h)return;const a=w/h,base=640/420;let vb;
+ if(a>base){const vw=420*a;vb=[-(vw-640)/2,0,vw,420];}else{const vh=640/a;vb=[0,420-vh,640,vh];}
+ svg.setAttribute('viewBox',vb.map(n=>n.toFixed(1)).join(' '));}
+if(window.ResizeObserver)new ResizeObserver(fitBench).observe($('#stage'));
+const alive_=c=>c.token===alive;
+function controls(...els){const c=$('#controls');c.innerHTML='';els.forEach(e=>e&&c.appendChild(e));}
+function readout(label,val){const d=document.createElement('span');d.className='readout';d.innerHTML=`<small>${label}</small><span class="v">${val}</span>`;return d;}
+
+/* ---------- shared: gentle rocking (detergent / enzyme) ---------- */
+function rockTask(c,svg,g,ox,oy,{amount=1,label,redraw}){
+ g.classList.add('drag','cue');g.setAttribute('tabindex','0');g.setAttribute('role','slider');g.setAttribute('aria-label',label+'. Use left and right arrow keys to rock gently.');
+ let prog=0,st=null,lastX=0,lastT=0,ang=0,foam=c.b.foam||0,warned=0,done=false;
+ const r=readout('Mixed','0%'),ctrl=$('#controls');ctrl.innerHTML='';ctrl.appendChild(r);
+ const bar=document.createElement('span');bar.className='chip';bar.textContent='Tip: slow, smooth movements';ctrl.appendChild(bar);
+ const apply=()=>{g.setAttribute('transform',`translate(${g.dataset.x},${g.dataset.y}) rotate(${ang} ${ox} ${oy})`);$('.v',r).textContent=Math.round(prog*100)+'%';};
+ const add=(dx,v)=>{if(done)return;if(v>1.5){foam=Math.min(1,foam+.04);c.b.foam=foam;if(performance.now()-warned>2500){warned=performance.now();toast('<b>Too fast!</b> You\'re making foam. Slow down — gentle mixing protects the DNA.','warn');}redraw&&redraw();}
+  else{prog=Math.min(1,prog+Math.abs(dx)/(900*amount));if(foam>0){foam=Math.max(0,foam-.01);c.b.foam=foam;}}
+  if(prog>=1){done=true;g.classList.remove('cue','drag');tween(300,t=>{ang=lerp(ang,0,t);apply();});c.b.foam=0;redraw&&redraw();toast('Nicely mixed — and no foam.','ok');taskDone();}};
+ g.addEventListener('pointerdown',e=>{if(done)return;e.preventDefault();g.setPointerCapture(e.pointerId);st=svgPt(svg,e);lastX=st.x;lastT=performance.now();g.classList.remove('cue');});
+ g.addEventListener('pointermove',e=>{if(!st||done)return;const p=svgPt(svg,e),now=performance.now(),dx=p.x-lastX,dt=Math.max(8,now-lastT);ang=clamp((p.x-st.x)/5,-16,16);apply();add(dx,Math.abs(dx)/dt);lastX=p.x;lastT=now;});
+ const up=()=>{if(!st)return;st=null;if(!done)tween(250,t=>{ang=lerp(ang,0,t);apply();});};g.addEventListener('pointerup',up);g.addEventListener('pointercancel',up);
+ let dir=1;g.addEventListener('keydown',e=>{if(done)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'||e.key===' '||e.key==='Enter'){e.preventDefault();dir=-dir;tween(220,t=>{ang=lerp(-dir*12,dir*12,t);apply();});add(80*amount,.5);}});
+}
+
+/* ---------- shared: alcohol layering ---------- */
+function alcoholTasks(c,{kind,baseColor,vx,vy,ox,oy,afterWait,debris}){
+ const v=c.b;let svg,ves,bot;
+ const vesInner=()=>vesselArt(kind,{base:kind==='cyl'?v.cyl:v.tube*1.6+12,baseColor,alc:v.alc*(kind==='cyl'?1:2.4),wisps:v.wisps,bubbles:v.wisps>0&&v.wisps<1,debrisBottom:debris&&v.alc>0,splash:v.splash});
+ const draw=()=>{svg=scene(`${shadow(vx+40,46)}${kind==='tube'?`<g transform="translate(${vx},${vy})">${rackArt}</g>`:''}${G('ves',vx,vy,vesInner())}${G('bot',110,198,bottleArt('alcohol'))}${shadow(150,40)}`);ves=$('#ves',svg);bot=$('#bot',svg);setTilt(v.tilt);};
+ const setTilt=a=>{ves.setAttribute('transform',`translate(${vx},${vy}) rotate(${-a} ${ox} ${oy})`);};
+ const redrawVes=()=>{ves.innerHTML=vesInner();};
+ draw();
+ // task 0: tilt, task 1: pour
+ const wrap=document.createElement('div');wrap.className='slider';wrap.innerHTML=`<label for="tilt">Tilt the ${kind==='cyl'?'cylinder':'tube'}</label><input id="tilt" type="range" min="0" max="45" value="0"><output>0°</output>`;
+ const rng_=$('input',wrap),out=$('output',wrap);
+ const botIn=()=>{if(!c.stream){c.stream=true;moveTo(bot,vx-40,vy-60,-100,250,40,70);}};
+ const botOut=()=>{if(c.stream){c.stream=false;moveTo(bot,110,198,0,300,40,70);}};
+ let pour;
+ function makePour(enabled){
+  pour=holdBtn('Hold to pour alcohol',{ms:2600,icon:'🫗',onProgress:(p,stopped)=>{
+    if(!alive_(c)||c.splashing)return;
+    if(stopped){botOut();return;}
+    if(v.tilt<25&&p>0){ // poured straight down: splash and mix
+      c.splashing=true;v.splash=true;v.alc=2;redrawVes();botOut();pour.dispatchEvent(new PointerEvent('pointercancel'));pour.disabled=true;
+      toast(`<b>Splash!</b> Pouring straight down mixes the alcohol into the liquid instead of making a layer. Tilt the ${kind==='cyl'?'cylinder':'tube'} at least 25° so the alcohol slides gently down the side.`,'warn',5600);
+      setTimeout(()=>{if(!alive_(c))return;c.splashing=false;v.splash=false;v.alc=0;redrawVes();makePour(true);},1800);return;}
+    botIn();v.alc=10*p;redrawVes();
+   },onDone:()=>{if(!alive_(c))return;botOut();rng_.disabled=true;tween(500,t=>{v.tilt=lerp(v.tilt,0,t);setTilt(v.tilt);});toast('A clear alcohol layer is floating on top. 👌','ok');taskDone();showWait();}});
+  pour.disabled=!enabled;controls(wrap,pour);
+ }
+ makePour(true);
+ rng_.addEventListener('input',()=>{v.tilt=+rng_.value;out.textContent=v.tilt+'°';setTilt(v.tilt);if(S.task===0&&v.tilt>=25){toast('Good angle! Now pour slowly.','ok',1800);pour.disabled=false;taskDone();}});
+ function showWait(){
+  const clock=readout('Timer','0:00');
+  const w=holdBtn('Fast-forward the wait',{ms:3200,icon:'⏩',onProgress:p=>{if(!alive_(c))return;const sec=Math.round(p*270);$('.v',clock).textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;v.wisps=p;redrawVes();
+    if(p>.5&&!c.halfway){c.halfway=true;Micro.set('precip');}},
+   onDone:()=>{if(!alive_(c))return;$('.v',clock).textContent='4:30';toast('Look! White, cloudy strands are forming in the alcohol layer. That\'s DNA clumping together.','ok',4200);taskDone();afterWait&&afterWait();}});
+  controls(w,clock);
+ }
+ return {get svg(){return svg;},ves};
+}
+/* ---------- shared: spooling ---------- */
+function spoolTask(c,{kind,baseColor,vx,vy,cx,topY,yi,debris}){
+ const v=c.b;v.alc=10;v.wisps=1;
+ const vesInner=()=>vesselArt(kind,{base:kind==='cyl'?v.cyl:v.tube*1.6+12,baseColor,alc:v.alc*(kind==='cyl'?1:2.4),wisps:1,spool:v.spool,debrisBottom:debris});
+ const svg=scene(`${shadow(vx+40,46)}${kind==='tube'?`<g transform="translate(${vx},${vy})">${rackArt}</g>`:''}${G('ves',vx,vy,vesInner())}<g id="stir" transform="translate(${cx-5},${topY})">${stirrerArt(0)}</g><circle id="twirlZone" cx="${cx}" cy="${yi}" r="90" fill="transparent" class="drag cue" tabindex="0" role="button" aria-label="Twirl the stirrer"/><g id="twHint" pointer-events="none"><path d="M${cx-70},${yi} a70,70 0 1,1 20,48" fill="none" stroke="#5b3fd6" stroke-width="3" stroke-dasharray="7 7" opacity=".6"/><path d="M${cx-50},${yi+48} l2,14 l12,-7" fill="none" stroke="#5b3fd6" stroke-width="3" opacity=".6"/></g>`);
+ const stir=$('#stir',svg),zone=$('#twirlZone',svg),ves=$('#ves',svg);
+ let total=0,last=null,done=false,rot=0;const r=readout('DNA wound','0%');
+ const upd=()=>{v.spool=clamp(total,0,1);stir.innerHTML=stirrerArt(v.spool);stir.setAttribute('transform',`translate(${cx-5+Math.sin(rot)*6},${topY}) rotate(${Math.sin(rot)*4} 5 200)`);ves.innerHTML=vesInner();$('.v',r).textContent=Math.round(v.spool*100)+'%';
+  if(total>=1&&!done){done=true;zone.classList.remove('cue');$('#twHint',svg).remove();tween(900,t=>stir.setAttribute('transform',`translate(${cx-5},${topY-110*t})`));toast('You collected the DNA! 🎉','ok');taskDone();}};
+ zone.addEventListener('pointerdown',e=>{if(done)return;e.preventDefault();zone.setPointerCapture(e.pointerId);const p=svgPt(svg,e);last=Math.atan2(p.y-yi,p.x-cx);zone.classList.remove('cue');});
+ zone.addEventListener('pointermove',e=>{if(last===null||done)return;const p=svgPt(svg,e),a=Math.atan2(p.y-yi,p.x-cx);let d=a-last;if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;last=a;total+=Math.abs(d)/(Math.PI*2*3.2);rot+=d;upd();});
+ const up=()=>{last=null;};zone.addEventListener('pointerup',up);zone.addEventListener('pointercancel',up);
+ const h=holdBtn('Or hold to twirl',{ms:3000,icon:'🌀',onProgress:p=>{if(done)return;total=Math.max(total,p);rot+=.3;upd();}});
+ onActivate(zone,()=>{total+=.12;rot+=.8;upd();});
+ controls(r,h);
+}
+
+/* =========================================================
+   Step implementations
+   ========================================================= */
+const IMPL={banana:[],cheek:[]};
+// --- Banana 1: collect
+IMPL.banana[0]=c=>{
+ const b=c.b;
+ const draw=()=>{const svg=scene(`${shadow(185,110)}${G('banana',70,236,bananaArt(b.peeled),'',b.peeled?'Peeled banana — drag into the bag':'Banana — tap to peel')}${shadow(485,80)}${G('bag',400,112,`<path class="dropzone" d="M4,0 H166 L160,240 H10 Z" />`+bagArt(b),'target')}`);
+  const ban=$('#banana',svg),bag=$('#bag',svg);
+  if(S.task===0)makeTap(ban,()=>{b.peeled=true;draw();toast('Peeled! Half a banana is all you need.','ok');taskDone();draw();});
+  else if(S.task===1)makeDrag(svg,ban,bag,async()=>{await moveTo(ban,430,190,0,350);b.inBag=true;draw();toast('Banana is in the bag.','ok');taskDone();});
+ };
+ draw();
+};
+// --- Banana 2: mash
+IMPL.banana[1]=c=>{
+ const b=c.b;b.mash=0;
+ const svg=scene(`${shadow(320,95)}${G('bag',235,112,bagArt(b))}<g id="hand" pointer-events="none" opacity=".0"><circle r="26" fill="#5b3fd6" opacity=".18"/><circle r="10" fill="#5b3fd6" opacity=".5"/></g><rect id="mashZone" x="225" y="100" width="190" height="260" fill="transparent" class="drag cue" tabindex="0" role="button" aria-label="Mash the banana: press and rub, or press Space repeatedly"/><g pointer-events="none"><path d="M200,250 h-40 m10,-10 l-10,10 l10,10 M440,250 h40 m-10,-10 l10,10 l-10,10" stroke="#5b3fd6" stroke-width="3" fill="none" opacity=".55" stroke-linecap="round"/></g>`);
+ const bag=$('#bag',svg),zone=$('#mashZone',svg),hand=$('#hand',svg);
+ const r=readout('Lumps left','10'),m=readout('Mash time','0:00');controls(r,m);
+ let st=false,last=null,done=false,lastToast=0;
+ const upd=()=>{bag.innerHTML=bagArt(b);const left=Math.ceil((1-b.mash)*10);$('.v',r).textContent=left;const s=Math.round(b.mash*60);$('.v',m).textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  if(b.mash>.5&&b.mash<.56&&performance.now()-lastToast>3000){lastToast=performance.now();toast('Halfway there — keep mashing until there are no lumps.','info');}
+  if(b.mash>=1&&!done){done=true;zone.classList.remove('cue');hand.setAttribute('opacity',0);toast('Smooth mush, no lumps! The cell walls are broken.','ok');taskDone();}};
+ const add=d=>{if(done)return;b.mash=Math.min(1,b.mash+d);upd();};
+ zone.addEventListener('pointerdown',e=>{e.preventDefault();zone.setPointerCapture(e.pointerId);st=true;last=svgPt(svg,e);zone.classList.remove('cue');add(.015);});
+ zone.addEventListener('pointermove',e=>{const p=svgPt(svg,e);hand.setAttribute('transform',`translate(${p.x},${p.y})`);hand.setAttribute('opacity',st&&!done?1:0);if(!st)return;add(Math.hypot(p.x-last.x,p.y-last.y)/2600);bag.setAttribute('transform',`translate(235,112) scale(${1+Math.sin(performance.now()/60)*.008},1)`);last=p;});
+ const up=()=>{st=false;hand.setAttribute('opacity',0);bag.setAttribute('transform','translate(235,112)');};zone.addEventListener('pointerup',up);zone.addEventListener('pointercancel',up);zone.addEventListener('pointerleave',()=>hand.setAttribute('opacity',0));
+ onActivate(zone,()=>add(.07));
+};
+// --- Banana 3: detergent
+IMPL.banana[2]=c=>{
+ const b=c.b;b.soap=0;b.foam=0;
+ const svg=scene(`${shadow(145,40)}${G('soap',110,212,bottleArt('soap'),'','Detergent bottle — drag onto the bag')}${shadow(415,80)}${G('bag',330,112,`<path class="dropzone" d="M4,0 H166 L160,240 H10 Z" />`+bagArt(b),'target')}`);
+ const soap=$('#soap',svg),bag=$('#bag',svg);
+ const redraw=()=>{bag.innerHTML=`<path class="dropzone" d="M4,0 H166 L160,240 H10 Z" />`+bagArt(b);};
+ makeDrag(svg,soap,bag,async()=>{
+  await moveTo(soap,355,30,-120,420,35,70);const s=streamEl(svg,402,96,410,250,'#4fc58c',4);
+  const r=readout('Detergent','0 mL');controls(r);
+  await tween(1200,t=>{b.soap=6*t;redraw();$('.v',r).textContent=(6*t).toFixed(1)+' mL';});
+  s.remove();await moveTo(soap,110,212,0,380,35,70);if(!alive_(c))return;
+  toast('6 mL of detergent added.','ok');taskDone();
+  rockTask(c,svg,bag,85,240,{label:'Rock the bag gently',redraw});
+ });
+};
+// --- Banana 4: salt water
+IMPL.banana[3]=c=>{
+ const b=c.b;b.salt=0;b.sealed=false;b.squeezed=0;let water=150,salt=0,dis=0,stir=false;
+ const svg=scene(`${shadow(127,62)}${G('beaker',60,198,beakerArt(water,salt,dis,stir,'150 mL water'))}${shadow(238,30)}${G('salt',210,256,bottleArt('salt'),'','Salt shaker — drag into the water')}${shadow(505,80)}${G('bag',420,112,`<path class="dropzone" d="M4,0 H166 L160,240 H10 Z" />`+bagArt(b),'target')}`);
+ const bk=$('#beaker',svg),sh=$('#salt',svg),bag=$('#bag',svg);
+ bk.insertAdjacentHTML('afterbegin','<path class="dropzone" d="M8,0 H126 V156 H8 Z"/>');
+ const rbk=()=>{bk.innerHTML='<path class="dropzone" d="M8,0 H126 V156 H8 Z"/>'+beakerArt(water,salt,dis,stir,water?'150 mL water':'');};
+ const rbag=()=>{bag.innerHTML=`<path class="dropzone" d="M4,0 H166 L160,240 H10 Z" />`+bagArt(b);};
+ makeDrag(svg,sh,bk,async()=>{await moveTo(sh,90,90,160,420,28,50);const s=streamEl(svg,120,182,122,320,'#ffffff',3);s.setAttribute('stroke-dasharray','2 6');await wait(900);s.remove();salt=1;rbk();await moveTo(sh,210,256,0,380,28,50);if(!alive_(c))return;toast('6 mL of salt added. It\'s sitting at the bottom — stir to dissolve it.','info');taskDone();
+  const h=holdBtn('Hold to stir',{ms:2600,icon:'🥄',onProgress:(p,stopped)=>{stir=!stopped&&p<1;dis=p;rbk();},onDone:()=>{stir=false;dis=1;rbk();toast('Salt fully dissolved.','ok');taskDone();stepPour();}});controls(h);});
+ function stepPour(){controls();bk.classList.add('drag','cue');
+  bag.classList.add('target');
+  makeDrag(svg,bk,bag,async()=>{await moveTo(bk,350,20,-75,450,67,148);const s=streamEl(svg,430,60,492,230,'#cfe6fb',7);await tween(1500,t=>{water=150*(1-t);b.salt=t;rbk();rbag();});s.remove();await moveTo(bk,60,198,0,400,67,148);if(!alive_(c))return;toast('Salt water poured in.','ok');taskDone();
+   const z=$('#zip',bag);z.classList.add('tap','cue');z.setAttribute('tabindex','0');z.setAttribute('role','button');z.setAttribute('aria-label','Seal the bag');
+   const seal=()=>{if(b.sealed)return;b.sealed=true;rbag();toast('Sealed tight.','ok');taskDone();squeeze();};z.addEventListener('click',seal);onActivate(z,seal);z.focus&&0;});
+ }
+ function squeeze(){const clock=readout('Squeeze time','0 s');
+  const h=holdBtn('Hold to squeeze gently',{ms:3200,icon:'🤲',onProgress:(p,stopped)=>{bag.classList.toggle('squish',!stopped&&p<1);b.squeezed=p;$('.v',clock).textContent=Math.round(p*40)+' s';if(p>.5)rbag();},onDone:()=>{bag.classList.remove('squish');b.squeezed=1;rbag();toast('40 seconds of gentle squeezing — perfect.','ok');taskDone();}});controls(h,clock);}
+};
+// --- Banana 5: filter
+IMPL.banana[4]=c=>{
+ const b=c.b;let ml=0,placed=false,full=false,dripping=false;
+ const svg=scene(`${shadow(145,80)}${G('bag',60,112,bagArt(b))}${shadow(463,62)}${G('catch',396,200,catchBeakerArt(0,false),'target')}${G('filter',240,288,filterArt(false),'','Coffee filter — tap to place on the beaker')}${shadow(588,40)}${G('cyl',548,90,vesselArt('cyl',{base:0,baseColor:'#f2e3a6',alc:0}),'','Graduated cylinder')}`);
+ const bag=$('#bag',svg),cat=$('#catch',svg),fil=$('#filter',svg),cyl=$('#cyl',svg);
+ const rc=()=>{cat.innerHTML=catchBeakerArt(ml,dripping);};
+ makeTap(fil,async()=>{fil.classList.remove('tap','cue');await moveTo(fil,401,152,0,500);fil.insertAdjacentHTML('afterbegin','<path class="dropzone" d="M-6,-6 H130 L80,70 H44 Z"/>');placed=true;toast('Filter secured with a rubber band.','ok');taskDone();
+  makeDrag(svg,bag,fil,async()=>{await moveTo(bag,330,-10,-70,500,85,234);const s=streamEl(svg,402,70,462,160,'#efd987',8);await tween(1300,t=>{b.empty=t;bag.innerHTML=bagArt(b);});s.remove();full=true;fil.innerHTML=filterArt(true);await moveTo(bag,60,112,0,450,85,234);if(!alive_(c))return;taskDone();startDrip();});});
+ function startDrip(){dripping=true;rc();
+  const r=readout('Collected','0 mL');const btn=document.createElement('button');btn.className='btn primary';btn.textContent='Collect';
+  controls(btn,r);const t0=performance.now();let raf;
+  const loop=now=>{if(!alive_(c))return;const t=(now-t0)/1000;ml=58*(1-Math.exp(-t/(REDUCED?1:5.5)));rc();$('.v',r).textContent=ml.toFixed(0)+' mL';raf=requestAnimationFrame(loop);};raf=requestAnimationFrame(loop);
+  btn.addEventListener('click',()=>{if(ml<30){toast(`Only ${ml.toFixed(0)} mL so far. Wait until you have 30–40 mL.`,'info');return;}
+   cancelAnimationFrame(raf);dripping=false;rc();btn.disabled=true;
+   toast(ml<=42?`${ml.toFixed(0)} mL collected. Right in the goal zone!`:`${ml.toFixed(0)} mL — a bit more than needed, but that works. We'll use 40 mL.`,'ok',3600);ml=Math.min(ml,42);c.ml=ml;taskDone();
+   makeTap(cyl,async()=>{cyl.classList.remove('tap','cue');await moveTo(cat,470,-20,-100,500,67,148);const s=streamEl(svg,560,70,570,180,'#f2e3a6',6);await tween(1200,t=>{const m=c.ml*t;cat.innerHTML=catchBeakerArt(c.ml-m,false);cyl.innerHTML=vesselArt('cyl',{base:m,baseColor:'#f2e3a6',alc:0});});s.remove();await moveTo(cat,396,200,0,400,67,148);if(!alive_(c))return;toast('Filtered liquid is in the graduated cylinder.','ok');taskDone();});
+  });
+ }
+};
+// --- Banana 6: alcohol + spool
+IMPL.banana[5]=c=>{
+ const b=c.b;b.cyl=40;b.alc=0;b.wisps=0;b.tilt=0;
+ alcoholTasks(c,{kind:'cyl',baseColor:'#f2e3a6',vx:320,vy:84,ox:40,oy:258,afterWait:()=>{setTimeout(()=>{if(!alive_(c))return;spoolTask(c,{kind:'cyl',baseColor:'#f2e3a6',vx:320,vy:84,cx:360,topY:24,yi:84+246-40*3.6-14});},REDUCED?0:900);}});
+};
+
+// --- Cheek 1: swish
+IMPL.cheek[0]=c=>{
+ const b=c.b;let face={mouth:'smile',swish:false};
+ const draw=()=>scene(`${G('face',36,40,faceArt(face))}${shadow(345,46)}${G('cup',300,226,cupArt(b),'','Cup of salt water')}${G('tube',490,110,`<g>${rackArt}</g>`+vesselArt('tube',{base:b.tube*1.6,baseColor:'#ebe2d8',alc:0}),'target')}`);
+ let svg=draw();let cup=$('#cup',svg),fc=$('#face',svg);
+ makeTap(cup,async()=>{cup.classList.remove('tap','cue');await moveTo(cup,170,120,-60,500,45,60);await tween(500,t=>{b.level=1-t;cup.innerHTML=cupArt(b);});face.mouth='full';fc.innerHTML=faceArt(face);await moveTo(cup,300,226,0,400,45,60);if(!alive_(c))return;taskDone();
+  const clock=readout('Swish time','0 s');
+  const h=holdBtn('Hold to swish',{ms:3600,icon:'💦',onProgress:(p,stopped)=>{face.swish=!stopped&&p<1;fc.innerHTML=faceArt(face);$('.v',clock).textContent=Math.round(p*30)+' s';},onDone:()=>{face.swish=false;fc.innerHTML=faceArt(face);toast('30 seconds! Thousands of cheek cells are now floating in the salt water.','ok');taskDone();
+   controls();makeTap(cup,async()=>{cup.classList.remove('tap','cue');await moveTo(cup,170,120,0,450);face.mouth='smile';fc.innerHTML=faceArt(face);b.cloudy=true;await tween(500,t=>{b.level=t*.9;cup.innerHTML=cupArt(b);});await moveTo(cup,300,226,0,400);if(!alive_(c))return;toast('The water looks a little cloudy — those are your cells!','ok');taskDone();
+    const tube=$('#tube',svg);tube.insertAdjacentHTML('afterbegin','<rect class="dropzone" x="0" y="-8" width="60" height="250" rx="12"/>');
+    makeDrag(svg,cup,tube,async()=>{await moveTo(cup,440,10,70,450,45,60);const s=streamEl(svg,506,48,520,250,'#ebe2d8',5);await tween(1300,t=>{b.level=.9*(1-t);b.tube=20*t;cup.innerHTML=cupArt(b);tube.innerHTML=`<g>${rackArt}</g>`+vesselArt('tube',{base:b.tube*1.6,baseColor:'#ebe2d8',alc:0});});s.remove();await moveTo(cup,300,226,0,400);if(!alive_(c))return;toast('Cells are in the test tube.','ok');taskDone();});});}});
+  controls(h,clock);});
+};
+// --- Cheek 2: decision (no wall)
+IMPL.cheek[1]=c=>{
+ const b=c.b;scene(`${shadow(320,46)}<g transform="translate(290,110)">${rackArt}${vesselArt('tube',{base:b.tube*1.6,baseColor:'#ebe2d8',alc:0})}</g><g transform="translate(110,120)"><circle r="44" fill="#fff" stroke="#e7e1d3" stroke-width="3"/><text y="18" text-anchor="middle" font-size="52" font-weight="850" fill="#5b3fd6" font-family="system-ui">?</text></g>`);
+ const d=document.createElement('div');d.className='choice';
+ d.innerHTML=`<button data-a="mash"><span class="e" aria-hidden="true">🔨</span><span>Mash the cells<small>Break the cell walls, like the banana</small></span></button><button data-a="skip"><span class="e" aria-hidden="true">⏭️</span><span>Skip this step<small>Cheek cells don't need it</small></span></button>`;
+ controls(d);
+ $$('button',d).forEach(x=>x.addEventListener('click',()=>{
+  if(x.dataset.a==='mash'){x.style.borderColor='#f0b2b2';toast('Look closely at the zoom view. Is there a stiff cell wall to break? Cheek cells only have a soft, flexible membrane.','warn',5200);
+   Micro.set('nowall');}
+  else{x.style.borderColor='var(--ok)';x.style.background='var(--ok-l)';$$('button',d).forEach(y=>y.disabled=true);toast('Right! No cell wall means no mashing.','ok');taskDone();}
+ }));
+};
+// --- Cheek 3: soap
+IMPL.cheek[2]=c=>{
+ const b=c.b;b.foam=0;
+ const tubeInner=()=>`<rect class="dropzone" x="0" y="-8" width="60" height="250" rx="12"/>`+vesselArt('tube',{base:b.tube*1.6+(b.soap?6:0),baseColor:b.soap?'#e6ead2':'#ebe2d8',alc:0})+(b.foam>0?Array.from({length:Math.round(b.foam*10)},(_,i)=>`<circle cx="${16+(i*7)%28}" cy="${226-b.tube*1.6-10-(i*5)%14}" r="${3+i%3}" fill="#fff" stroke="#cdd8e4"/>`).join(''):'');
+ const svg=scene(`${shadow(165,40)}${G('soap',130,212,bottleArt('soap'),'','Soap — drag onto the test tube')}<g transform="translate(380,110)">${rackArt}</g>${shadow(410,46)}${G('tube',380,110,tubeInner(),'target')}`);
+ const soap=$('#soap',svg),tube=$('#tube',svg);const redraw=()=>{tube.innerHTML=tubeInner();};
+ makeDrag(svg,soap,tube,async()=>{await moveTo(soap,370,-40,-120,420,35,70);const s=streamEl(svg,414,26,410,180,'#4fc58c',4);await wait(1000);s.remove();b.soap=true;redraw();await moveTo(soap,130,212,0,380,35,70);if(!alive_(c))return;toast('Soap added.','ok');taskDone();
+  rockTask(c,svg,tube,30,230,{label:'Rock the tube gently',redraw,amount:.8});});
+};
+// --- Cheek 4: enzyme
+IMPL.cheek[3]=c=>{
+ const b=c.b;b.foam=0;let enz=false;
+ const tubeInner=()=>`<rect class="dropzone" x="0" y="-8" width="60" height="250" rx="12"/>`+vesselArt('tube',{base:b.tube*1.6+6+(enz?4:0),baseColor:enz?'#ece3cf':'#e6ead2',alc:0})+(b.foam>0?Array.from({length:Math.round(b.foam*10)},(_,i)=>`<circle cx="${16+(i*7)%28}" cy="${200-b.tube*1.6-(i*5)%14}" r="${3+i%3}" fill="#fff" stroke="#cdd8e4"/>`).join(''):'');
+ const svg=scene(`${shadow(162,36)}${G('enz',130,240,bottleArt('enzyme'),'','Meat tenderizer — drag into the test tube')}<g transform="translate(380,110)">${rackArt}</g>${shadow(410,46)}${G('tube',380,110,tubeInner(),'target')}`);
+ const en=$('#enz',svg),tube=$('#tube',svg);const redraw=()=>{tube.innerHTML=tubeInner();};
+ makeDrag(svg,en,tube,async()=>{await moveTo(en,372,-30,150,420,32,54);const s=streamEl(svg,404,40,410,180,'#f2733a',3);s.setAttribute('stroke-dasharray','2 7');await wait(1000);s.remove();enz=true;redraw();await moveTo(en,130,240,0,380,32,54);if(!alive_(c))return;toast('A pinch of enzymes added.','ok');taskDone();
+  rockTask(c,svg,tube,30,230,{label:'Rock the tube gently',redraw,amount:.6});});
+};
+// --- Cheek 5: alcohol
+IMPL.cheek[4]=c=>{const b=c.b;b.alc=0;b.wisps=0;b.tilt=0;alcoholTasks(c,{kind:'tube',baseColor:'#ece3cf',vx:330,vy:110,ox:30,oy:228,debris:true});};
+// --- Cheek 6: spool
+IMPL.cheek[5]=c=>{const b=c.b;spoolTask(c,{kind:'tube',baseColor:'#ece3cf',vx:330,vy:110,cx:360,topY:40,yi:110+226-(b.tube*1.6+12)*3.1-8,debris:true});};
+
+/* =========================================================
+   Celebration
+   ========================================================= */
+function celebrate(){
+ const both=S.prog.banana>=6&&S.prog.cheek>=6,isB=S.sample==='banana';
+ S.seen[S.sample]=true;save();
+ const el=$('#celebrate');
+ el.innerHTML=`<div class="cel"><svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true"><circle cx="75" cy="75" r="72" fill="${isB?'#fff4c2':'#ffe4ec'}"/><rect x="58" y="34" width="34" height="90" rx="14" fill="#d6ecff" stroke="#8fa9c4" stroke-width="3"/><rect x="71" y="12" width="8" height="96" rx="4" fill="#d2a56a" stroke="#9c7240" stroke-width="2"/>${Array.from({length:8},(_,i)=>`<ellipse cx="75" cy="${100-i*4.5}" rx="${10+i%3}" ry="3.4" fill="none" stroke="#fff" stroke-width="3"/>`).join('')}</svg>
+  <span class="eyebrow" style="color:var(--ok)">${isB?'Sample 1 complete':'Sample 2 complete'}</span><h2 id="celTitle">${isB?'You extracted banana DNA!':'You extracted your own DNA!'}</h2>
+  <p>${isB?'Every white strand on that stirrer is millions of DNA molecules clumped together. Next, try it with human cheek cells — and watch for the step you won\'t need.':'Notice how your DNA looks just like the banana\'s? Head to the post-lab notebook to compare them and prep your answers.'}</p>
+  <div class="acts">${isB&&S.prog.cheek<6?'<button class="btn primary" data-go="lab:cheek">Try cheek cells →</button>':''}<button class="btn ${isB&&S.prog.cheek<6?'ghost':'primary'}" data-go="book">Open post-lab notebook</button><button class="btn ghost" id="celClose">Stay here</button></div></div>`;
+ el.classList.add('on');
+ if(!REDUCED){const cel=$('.cel',el);const cols=['#f5c400','#5b3fd6','#e2557a','#14936b','#3b82c4'];for(let i=0;i<40;i++){const s=document.createElement('i');s.className='conf';s.style.left=Math.random()*100+'%';s.style.background=cols[i%5];s.style.animationDelay=Math.random()*.6+'s';s.style.transform=`rotate(${Math.random()*180}deg)`;cel.appendChild(s);}}
+ $('#celClose').addEventListener('click',()=>el.classList.remove('on'));
+ $$('[data-go]',el).forEach(b=>b.addEventListener('click',()=>{el.classList.remove('on');go(b.dataset.go);}));
+ setTimeout(()=>$('.acts .btn',el).focus(),50);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#celebrate').classList.remove('on');});
+
+/* =========================================================
+   Primer: where is DNA?
+   ========================================================= */
+const PRIMER=[
+ ['A banana','Bananas, people, and every other living thing are made of tiny units called cells. You can\'t see them without a microscope.','Banana ≈ 20 cm long'],
+ ['Millions of cells','Zoom in and the banana is packed with cells, like bricks in a wall. Plant cells are boxed in by a stiff cell wall.','One cell ≈ 0.1 mm'],
+ ['The nucleus','Inside each cell is the nucleus — the control center. It holds the DNA, wrapped in its own membrane.','Nucleus ≈ 0.006 mm'],
+ ['Chromosomes','DNA is packed into chromosomes. Banana cells have 33 chromosomes; your cells have 46.','Chromosome ≈ 0.001 mm'],
+ ['DNA on spools','Each chromosome is one super-long DNA molecule wound around proteins called histones, like thread on spools.','Histone spool ≈ 0.00001 mm'],
+ ['The double helix','DNA is a twisted ladder. Its rungs are four bases — A, T, C and G. Their order is the code for building a living thing.','DNA ≈ 2 nanometers wide']
+];
+function primerArt(){
+ const R=rng(4);let cells='';for(let r=0;r<5;r++)for(let c=0;c<5;c++){const x=40+c*66+(r%2)*10,y=36+r*66;cells+=`<rect x="${x}" y="${y}" width="60" height="60" rx="8" fill="#fbf2cc" stroke="#c7a945" stroke-width="5"/><circle cx="${x+22+R()*16}" cy="${y+22+R()*16}" r="9" fill="#ece0fb" stroke="#7b57d1" stroke-width="2"/>`;}
+ let helix='';for(let i=0;i<14;i++){const y=40+i*23,ph=i*.55,x1=200+Math.sin(ph)*70,x2=200-Math.sin(ph)*70;const pair=['A','T','C','G'][i%4],comp={A:'T',T:'A',C:'G',G:'C'}[pair];const col={A:'#f59e0b',T:'#e2557a',C:'#3b82c4',G:'#14936b'};helix+=`<line x1="${x1}" y1="${y}" x2="200" y2="${y}" stroke="${col[pair]}" stroke-width="7"/><line x1="200" y1="${y}" x2="${x2}" y2="${y}" stroke="${col[comp]}" stroke-width="7"/>${Math.abs(Math.sin(ph))>.5?`<text x="${(x1+200)/2}" y="${y-6}" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" font-family="system-ui">${pair}</text>`:''}`;}
+ let s1='',s2='';for(let y=30;y<=372;y+=4){const ph=(y-30)/23*.55;s1+=`${y===30?'M':'L'}${200+Math.sin(ph)*70},${y} `;s2+=`${y===30?'M':'L'}${200-Math.sin(ph)*70},${y} `;}
+ const chromo=(x,y,s,c)=>`<g transform="translate(${x},${y}) scale(${s})"><path d="M-14,-40 Q-4,0 -14,40 M14,-40 Q4,0 14,40" stroke="${c}" stroke-width="13" stroke-linecap="round" fill="none"/><circle r="6" fill="#1c2333" opacity=".35"/></g>`;
+ let beads='';const pts=[];for(let i=0;i<7;i++)pts.push([60+i*48,200+Math.sin(i*1.2)*70]);beads=`<path d="M20,${pts[0][1]} ${pts.map(p=>`L${p[0]},${p[1]}`).join(' ')} L390,${pts[6][1]}" stroke="#c9b8ff" stroke-width="4" fill="none"/>`+pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="20" fill="#7b57d1"/><circle cx="${x}" cy="${y}" r="23" fill="none" stroke="#c9b8ff" stroke-width="4" stroke-dasharray="100 45"/>`).join('');
+ return [
+  `<svg viewBox="0 0 400 400"><circle cx="200" cy="200" r="150" fill="#1d2540"/><g transform="translate(70,130) scale(1.15)">${bananaArt(false)}</g></svg>`,
+  `<svg viewBox="0 0 400 400">${cells}</svg>`,
+  `<svg viewBox="0 0 400 400"><rect x="60" y="80" width="280" height="240" rx="18" fill="#fbf2cc" stroke="#c7a945" stroke-width="12"/><rect x="74" y="94" width="252" height="212" rx="12" fill="none" stroke="#79ab55" stroke-width="3"/><ellipse cx="282" cy="210" rx="34" ry="70" fill="#d8ecf8"/><circle cx="170" cy="200" r="72" fill="#ece0fb" stroke="#7b57d1" stroke-width="5"/><circle cx="190" cy="176" r="14" fill="#cdb9f5"/><path d="M130,210 q15,-30 30,0 t30,0 t30,-10" stroke="#5b3fd6" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`,
+  `<svg viewBox="0 0 400 400"><circle cx="200" cy="200" r="160" fill="#ece0fb" stroke="#7b57d1" stroke-width="6"/>${chromo(140,150,1,'#5b3fd6')}${chromo(250,140,.9,'#e2557a')}${chromo(180,260,1.1,'#14936b')}${chromo(280,250,.8,'#3b82c4')}${chromo(110,240,.7,'#f59e0b')}</svg>`,
+  `<svg viewBox="0 0 400 400">${beads}<text x="200" y="350" text-anchor="middle" font-size="15" font-weight="750" fill="#c9b8ff" font-family="system-ui">histone proteins with DNA wrapped around them</text></svg>`,
+  `<svg viewBox="0 0 400 400">${helix}<path d="${s1}" stroke="#c9b8ff" stroke-width="8" fill="none"/><path d="${s2}" stroke="#a48af0" stroke-width="8" fill="none"/></svg>`
+ ];
+}
+let pIdx=0;
+function initPrimer(){$('#primerArt').innerHTML=primerArt().join('');$('#pTicks').innerHTML=PRIMER.map((p,i)=>`<button data-i="${i}">${['Banana','Cells','Nucleus','Chromo.','Spools','Helix'][i]}</button>`).join('');
+ $$('#pTicks button').forEach(b=>b.addEventListener('click',()=>setPrimer(+b.dataset.i)));
+ $('#pRange').addEventListener('input',e=>setPrimer(+e.target.value));
+ $('#pPrev').addEventListener('click',()=>setPrimer(pIdx-1));
+ $('#pNext').addEventListener('click',()=>{if(pIdx<5)setPrimer(pIdx+1);else go('lab:banana');});
+ setPrimer(0);}
+function setPrimer(i){pIdx=clamp(i,0,5);const p=PRIMER[pIdx];$('#primer-title').textContent=p[0];$('#pText').textContent=p[1];$('#pScale').textContent='🔍 '+p[2];$('#pStop').textContent=pIdx+1;$('#pRange').value=pIdx;
+ $$('#primerArt svg').forEach((s,k)=>s.classList.toggle('on',k===pIdx));$$('#pTicks button').forEach((b,k)=>b.classList.toggle('on',k===pIdx));
+ $('#pPrev').disabled=pIdx===0;$('#pNext').textContent=pIdx<5?'Zoom in →':'Start the banana lab →';}
+
+/* =========================================================
+   Notebook
+   ========================================================= */
+const ORDER=[['Collect cells/banana','Banana into the bag · swish salt water'],['Break down the cell wall','Mash the banana · (skipped for cheek cells)'],['Break down the cell membrane and other cell structures','Detergent / soap'],['Unwind the DNA and separate from histones (proteins)','Salt water · enzymes for cheek cells'],['Separate the DNA from other cell debris','Coffee filter · alcohol layers for cheek cells'],['Collect the DNA to be examined','Ice-cold alcohol + wooden stirrer']];
+let ord=[];
+function shuffle(a){const r=a.slice();for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+function newOrder(){do{ord=shuffle([0,1,2,3,4,5]);}while(ord.every((v,i)=>v===i));renderOrder(false);$('#orderResult').textContent='';}
+function renderOrder(checked){
+ const ol=$('#order');ol.innerHTML=ord.map((k,i)=>`<li draggable="true" data-i="${i}" class="${checked?(k===i?'ok':'no'):''}"><span class="num">${i+1}</span><span class="tx">${ORDER[k][0]}${checked&&k===i?`<small>${ORDER[k][1]}</small>`:''}</span><span class="mv"><button aria-label="Move up" ${i===0?'disabled':''} data-m="-1">↑</button><button aria-label="Move down" ${i===5?'disabled':''} data-m="1">↓</button></span></li>`).join('');
+ $$('li',ol).forEach(li=>{const i=+li.dataset.i;
+  $$('button',li).forEach(b=>b.addEventListener('click',()=>{const j=i+ +b.dataset.m;[ord[i],ord[j]]=[ord[j],ord[i]];renderOrder(false);$('#orderResult').textContent='';const nb=$$('#order li')[j];nb&&$(`button[data-m="${b.dataset.m}"]`,nb)?.focus();}));
+  li.addEventListener('dragstart',e=>{li.classList.add('dragging');e.dataTransfer.setData('text/plain',i);});
+  li.addEventListener('dragend',()=>li.classList.remove('dragging'));
+  li.addEventListener('dragover',e=>e.preventDefault());
+  li.addEventListener('drop',e=>{e.preventDefault();const from=+e.dataTransfer.getData('text/plain');const [m]=ord.splice(from,1);ord.splice(i,0,m);renderOrder(false);$('#orderResult').textContent='';});
+ });
+}
+$('#orderCheck').addEventListener('click',()=>{renderOrder(true);const n=ord.filter((k,i)=>k===i).length;$('#orderResult').innerHTML=n===6?'<span style="color:var(--ok)">🎉 All 6 in the right order! Use this order in your slides.</span>':`${n} of 6 in the right spot. Move the red ones and check again. <span style="color:var(--muted);font-weight:600">Hint: think about which barrier you have to break first to reach the DNA.</span>`;});
+$('#orderShuffle').addEventListener('click',newOrder);
+
+const MATCH=[['Salt','🧂','Helps pull the histone proteins off the DNA and helps the DNA strands clump together'],['Detergent (soap)','🧴','Dissolves the fatty cell membrane and nuclear membrane'],['Coffee filter','☕','Traps pulp and cell debris, but lets the liquid with DNA pass through'],['Ice-cold isopropyl alcohol','❄️','DNA can\'t dissolve in it, so the DNA precipitates and clumps into strands you can see'],['Mashing','🔨','Breaks open the tough cell walls and separates the cells'],['Meat tenderizer (enzymes)','🥩','Chops up the histone proteins wrapped around the DNA (cheek version)']];
+let pairs={},selChem=null,roleOrder=[];
+function renderMatch(checked){
+ $('#match').innerHTML=MATCH.map((m,i)=>`<div class="mrow"><button class="chem ${selChem===i?'sel':''}" data-c="${i}" aria-pressed="${selChem===i}"><span aria-hidden="true">${m[1]}</span>${m[0]}</button><button class="slot ${pairs[i]!=null?'filled':''} ${checked&&pairs[i]!=null?(pairs[i]===i?'ok':'no'):''}" data-c="${i}">${pairs[i]!=null?MATCH[pairs[i]][2]:(selChem===i?'Now tap a job below ↓':'Tap to choose a job…')}</button></div>`).join('');
+ const used=new Set(Object.values(pairs));
+ $('#pool').innerHTML='<span class="lab">Jobs</span>'+roleOrder.map(r=>`<button data-r="${r}" class="${used.has(r)?'used':''}">${MATCH[r][2]}</button>`).join('');
+ $$('#match button').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.c;if(b.classList.contains('slot')&&pairs[i]!=null){delete pairs[i];}selChem=selChem===i&&b.classList.contains('chem')?null:i;renderMatch(false);$('#matchResult').textContent='';if(selChem!=null)$('#pool').scrollIntoView({block:'nearest',behavior:REDUCED?'auto':'smooth'});}));
+ $$('#pool button').forEach(b=>b.addEventListener('click',()=>{const r=+b.dataset.r;if(selChem==null){const free=MATCH.findIndex((_,i)=>pairs[i]==null);if(free<0)return;selChem=free;}for(const k in pairs)if(pairs[k]===r)delete pairs[k];pairs[selChem]=r;const next=MATCH.findIndex((_,i)=>pairs[i]==null);selChem=next<0?null:next;renderMatch(false);$('#matchResult').textContent='';}));
+}
+$('#matchCheck').addEventListener('click',()=>{renderMatch(true);const n=MATCH.filter((_,i)=>pairs[i]===i).length,filled=Object.keys(pairs).length;$('#matchResult').innerHTML=n===6?'<span style="color:var(--ok)">🎉 All 6 matched! You know what every ingredient does.</span>':`${n} of 6 correct${filled<6?` (${6-filled} still empty)`:''}. Tap a red one to change it.`;});
+$('#matchReset').addEventListener('click',()=>{pairs={};selChem=0;renderMatch(false);$('#matchResult').textContent='';});
+
+const FEATS=[['wall','Cell wall','<b>Plant only.</b> Banana cells have a stiff wall made of cellulose; your cheek cells don\'t. That\'s why only the banana had to be <b>mashed</b>.'],['memb','Cell membrane','<b>Both.</b> Every cell has a fatty membrane. That\'s why <b>both</b> labs needed soap.'],['nuc','Nucleus (DNA)','<b>Both.</b> Both kinds of cells keep their DNA in a nucleus — so DNA extraction works on both.'],['vac','Large vacuole','<b>Plant only.</b> Plant cells have a big water-storage vacuole. Animal cells have only small ones, or none.'],['shape','Shape','Plant cells are <b>boxy and rigid</b> because of the wall. Cheek cells are <b>flat, soft and roundish</b>.']];
+function renderCells(){
+ const pl=`<svg viewBox="0 0 200 170"><g class="hl f-shape f-wall"><rect x="14" y="14" width="172" height="142" rx="12" fill="none" stroke="#c7a945" stroke-width="10"/></g><g class="hl f-memb f-shape"><rect x="24" y="24" width="152" height="122" rx="8" fill="#fff7d8" stroke="#5c9e45" stroke-width="3"/></g><g class="hl f-vac"><ellipse cx="135" cy="86" rx="28" ry="44" fill="#d8ecf8" stroke="#9cc7df" stroke-width="2"/></g><g class="hl f-nuc"><circle cx="72" cy="82" r="28" fill="#efe5ff" stroke="#7b57d1" stroke-width="3"/><path d="M58,84 q7,-12 14,0 t14,0" stroke="#5b3fd6" stroke-width="2.5" fill="none"/></g></svg>`;
+ const an=`<svg viewBox="0 0 200 170"><g class="hl f-memb f-shape"><path d="${blob(100,78,70,.3,10,rng(13))}" fill="#fde6eb" stroke="#d3647f" stroke-width="3"/></g><g class="hl f-nuc"><circle cx="100" cy="78" r="22" fill="#efe5ff" stroke="#7b57d1" stroke-width="3"/><path d="M88,80 q6,-10 12,0 t12,0" stroke="#5b3fd6" stroke-width="2.5" fill="none"/></g><g class="hl f-wall f-vac"><text x="100" y="164" text-anchor="middle" font-size="11" font-weight="700" fill="#b3345a" font-family="system-ui">✗ no wall · no large vacuole</text></g></svg>`;
+ $('#cmp').innerHTML=`<figure>${pl}<figcaption>🍌 Banana cell (plant)</figcaption></figure><figure>${an}<figcaption>👄 Cheek cell (animal)</figcaption></figure>`;
+ $('#feat').innerHTML=FEATS.map(f=>`<button aria-pressed="false" data-f="${f[0]}">${f[1]}</button>`).join('');
+ $$('#feat button').forEach(b=>b.addEventListener('click',()=>{const on=b.getAttribute('aria-pressed')!=='true';$$('#feat button').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed',on);
+  $('#cmp').classList.toggle('dim',on);$$('#cmp .hl').forEach(h=>h.classList.toggle('lit',on&&h.classList.contains('f-'+b.dataset.f)));$('#featInfo').innerHTML=on?FEATS.find(f=>f[0]===b.dataset.f)[2]:'Tap a cell part above to compare.';}));
+}
+const SEQ_B='ATGGCTTCCAAGGTCGAAACTCTG',SEQ_H='ATGGCATCGAAGGTGGAGACACTC';
+function renderHelix(){
+ const h=(seq,c)=>{let s='';for(let i=0;i<12;i++){const y=14+i*13,ph=i*.6,x1=60+Math.sin(ph)*34,x2=60-Math.sin(ph)*34;s+=`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="4" opacity=".85"/>`;}let a='',b='';for(let y=14;y<=157;y+=3){const ph=(y-14)/13*.6;a+=`${y===14?'M':'L'}${60+Math.sin(ph)*34},${y} `;b+=`${y===14?'M':'L'}${60-Math.sin(ph)*34},${y} `;}return `<svg viewBox="0 0 120 170">${s}<path d="${a}" stroke="#c9b8ff" stroke-width="4" fill="none"/><path d="${b}" stroke="#a48af0" stroke-width="4" fill="none"/></svg>`;};
+ const seq=(s,o)=>[...s].map((ch,i)=>`<span class="${ch!==o[i]?'d':''}">${ch}</span>`).join('');
+ $('#helixWrap').innerHTML=`<figure>${h(SEQ_B,'#f5c400')}<figcaption>🍌 Banana DNA</figcaption><div class="seq" id="sqB">${seq(SEQ_B,SEQ_H)}</div></figure><figure>${h(SEQ_H,'#e2557a')}<figcaption>👄 Human DNA</figcaption><div class="seq" id="sqH">${seq(SEQ_H,SEQ_B)}</div></figure>`;
+}
+$('#seqBtn').addEventListener('click',e=>{const on=!e.currentTarget.classList.contains('on');e.currentTarget.classList.toggle('on',on);$$('.seq span.d').forEach(s=>s.classList.toggle('diff',on));e.currentTarget.textContent=on?'Hide the differences':'Highlight the differences';});
+const USES=[['🕵️','Solve crimes','Forensic scientists compare DNA from a crime scene (hair, blood, skin) to DNA from suspects.'],['🩺','Diagnose disease','Doctors test DNA for genetic disorders, and to identify viruses or bacteria making someone sick.'],['💊','Make medicines','Scientists use DNA to make insulin, vaccines and other treatments, and to research cures.'],['👪','Family & ancestry','DNA tests can show who is related to whom (like paternity tests) and where your ancestors came from.'],['🌾','Better crops','Scientists study plant DNA to breed crops that resist disease — like bananas threatened by a fungus called Panama disease.'],['🐾','Protect wildlife','DNA can identify species, track endangered animals and catch illegal wildlife trading.']];
+function renderUses(){$('#uses').innerHTML=USES.map(u=>`<button class="use" aria-label="${u[1]}: tap to flip"><span class="in"><span class="f"><span class="e" aria-hidden="true">${u[0]}</span><span><strong>${u[1]}</strong><small>Tap to flip ↻</small></span></span><span class="b">${u[2]}</span></span></button>`).join('');$$('.use').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('flip')));}
+const GUIDE=[
+ ['If you extracted DNA from a different source, would it look different? What would be the same, and what would be different?','Compare the banana DNA and cheek DNA you spooled, then look at "Same DNA… or not?" above.',['double helix','A, T, C, G','order of bases','same structure'],'#bk-dna'],
+ ['Why would someone extract DNA? (at least 3 reasons)','Flip the cards in "Why would someone extract DNA?"',['forensics','medicine','ancestry','agriculture'],'#bk-uses'],
+ ['What is the difference between human (animal) cells and banana (plant) cells?','Banana step 2 vs. cheek step 2, and "Banana cells vs. your cells."',['cell wall','cell membrane','skip mashing','vacuole'],'#bk-cells'],
+ ['Why did we have to mash the banana first?','Banana step 2 — watch the walls break in the zoom view.',['cell wall','surface area','separate cells'],'lab:banana:1'],
+ ['Put the six extraction steps in order, with a picture or video for each.','The six steps in the lab stepper, and the ordering activity above.',['collect','wall','membrane','histones','debris','collect DNA'],'#bk-order'],
+ ['Describe the specific role of salt, detergent, the filter and isopropyl alcohol.','Each step\'s "What just happened" card, and the matching activity above.',['lipids','histones','debris','precipitate'],'#bk-match']];
+function renderGuide(){$('#guide').innerHTML=GUIDE.map((g,i)=>`<div class="gq"><span class="qn">Q${i+1}</span><div><h4>${g[0]}</h4><p><b>Find evidence:</b> ${g[1]}</p><div class="words">${g[2].map(w=>`<span>${w}</span>`).join('')}</div><button class="go" data-t="${g[3]}">Go there →</button></div></div>`).join('');
+ $$('#guide .go').forEach(b=>b.addEventListener('click',()=>{const t=b.dataset.t;if(t.startsWith('#'))$(t).scrollIntoView({behavior:REDUCED?'auto':'smooth',block:'start'});else{const[,s,n]=t.split(':');go('lab:'+s);if(+n<=S.prog[s])enterStep(+n);}}));}
+function refreshBook(){const f=(s,el,lbl)=>{const n=S.prog[s];$(el).textContent=`${lbl}: ${n>=6?'complete ✓':n+'/6 steps'}`;$(el).style.background=n>=6?'var(--ok-l)':'';$(el).style.color=n>=6?'var(--ok)':'';};f('banana','#bookBanana','Banana');f('cheek','#bookCheek','Cheek');}
+
+/* =========================================================
+   Home & routing
+   ========================================================= */
+function refreshHome(){['banana','cheek'].forEach(s=>{const n=S.prog[s];$('#m-'+s).style.width=(n/6*100)+'%';$('#s-'+s).textContent=n>=6?'Complete ✓':n>0?`${n} of 6 steps done`:'Not started';$('#dot-'+s).classList.toggle('done',n>=6);});}
+function heroArt(){let s='';const R=rng(2);for(let i=0;i<18;i++){const y=40+i*18.5,ph=i*.5,x1=200+Math.sin(ph)*80,x2=200-Math.sin(ph)*80,c=['#f59e0b','#e2557a','#3b82c4','#14936b'][i%4],c2=['#e2557a','#f59e0b','#14936b','#3b82c4'][i%4];s+=`<line x1="${x1}" y1="${y}" x2="200" y2="${y}" stroke="${c}" stroke-width="6" stroke-linecap="round"/><line x1="200" y1="${y}" x2="${x2}" y2="${y}" stroke="${c2}" stroke-width="6" stroke-linecap="round"/>`;}let a='',b='';for(let y=40;y<=355;y+=3){const ph=(y-40)/18.5*.5;a+=`${y===40?'M':'L'}${200+Math.sin(ph)*80},${y} `;b+=`${y===40?'M':'L'}${200-Math.sin(ph)*80},${y} `;}
+ s+=`<path d="${a}" stroke="#c9b8ff" stroke-width="9" fill="none" stroke-linecap="round"/><path d="${b}" stroke="#9a80f2" stroke-width="9" fill="none" stroke-linecap="round"/>`;
+ for(let i=0;i<22;i++)s+=`<circle cx="${30+R()*340}" cy="${30+R()*340}" r="${1+R()*2}" fill="#fff" opacity="${.15+R()*.4}"/>`;
+ $('#heroHelix').innerHTML=`<g style="transform-origin:200px 200px;animation:${REDUCED?'none':'spin 40s linear infinite'}">${s}</g>`;}
+function go(where){
+ hideTip();$('#celebrate').classList.remove('on');
+ const [v,sample]=where.split(':');S.view=v;
+ $$('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
+ $$('.nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===where||(b.dataset.go===v&&!sample)?'page':'false'));
+ if(v!=='lab'){document.body.classList.remove('s-banana','s-cheek');alive++;}
+ if(v==='lab'){const s=sample||S.sample;const changed=s!==S.sample||!ctx;S.sample=s;if(changed||ctx.sample!==s)enterStep(Math.min(S.prog[s],5));else enterStep(S.step);}
+ if(v==='home')refreshHome();
+ if(v==='book')refreshBook();
+ try{if(location.hash!=='#'+where)history.pushState(null,'','#'+where);}catch(e){}
+ scrollTo({top:0,behavior:'auto'});
+}
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g&&!g.closest('#celebrate'))go(g.dataset.go);});
+
+heroArt();initPrimer();newOrder();roleOrder=shuffle([0,1,2,3,4,5]);selChem=0;renderMatch(false);renderCells();renderHelix();renderUses();renderGuide();refreshHome();
+const ROUTES=['home','primer','book','lab:banana','lab:cheek'];const route=()=>{const h=(location.hash||'').slice(1);return ROUTES.includes(h)?h:'home';};
+addEventListener('hashchange',()=>go(route()));go(route());
+})();
+</script>
+</body>
+</html>
