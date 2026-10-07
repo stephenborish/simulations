@@ -316,6 +316,31 @@
     .score { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; background: linear-gradient(135deg, #ECFAF2, #EEF0FF); }
     .score .big { font-size: 34px; font-weight: 800; color: var(--accent-ink); }
 
+    /* End-of-lesson bonus */
+    .bonus {
+        border-radius: 18px; padding: 16px; border: 2px solid #F3C74F;
+        background: linear-gradient(160deg, #FFF8DC, #FFF 55%); box-shadow: 0 10px 28px rgba(227,163,59,.22);
+        animation: bonusIn .6s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .bonus > * + * { margin-top: 10px; }
+    .bonus-h { font-size: 19px; font-weight: 700; }
+    .bonus.locked { border: 1.5px dashed #C9CDE0; background: #F8F9FC; box-shadow: none; }
+    .bonus-frame { border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
+    .bonus-frame iframe { display: block; width: 100%; height: 560px; border: 0; }
+    .bonus-alt { font-size: 13px !important; }
+    .bonus-alt a { color: var(--accent); font-weight: 600; }
+    .todo { display: grid; gap: 6px; }
+    .todo-item {
+        all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 12px;
+        background: #fff; border: 1.5px solid var(--line); cursor: pointer; font-size: 14px; transition: border-color .15s;
+    }
+    .todo-item:hover { border-color: var(--accent); }
+    .todo-item:focus-visible { outline: 3px solid var(--accent); }
+    .todo-item > span:nth-child(2) { flex: 1; }
+    .todo-item small { display: block; font-size: 12px; color: var(--ink3); }
+    .todo-item .mi { width: 26px; height: 26px; border-radius: 50%; background: #EDEFF6; display: grid; place-items: center; font-size: 12px; font-weight: 600; flex: none; }
+    @keyframes bonusIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+
     /* Lesson footer nav */
     .lesson-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; border-top: 1px solid var(--line); background: #FAFBFE; }
     .nextbtn { flex-direction: column; align-items: flex-end; gap: 0; padding: 8px 18px; min-width: 150px; }
@@ -650,18 +675,25 @@ const state = {
     traced: false
 };
 const STORE_KEY = 'ptable-lesson-v2';
+// Progress toward each step's goal is saved too, so a reload doesn't lock a student out of the finish
+const SAVED_SETS = ['visited', 'catOn', 'famOn', 'valOn', 'diaOn', 'partsSeen', 'explored'];
 function save() {
     try {
-        localStorage.setItem(STORE_KEY, JSON.stringify({ step: state.step, visited: [...state.visited] }));
+        const d = { step: state.step, flags: state.flags, checks: state.checks, history: state.det.history, traced: state.traced };
+        SAVED_SETS.forEach(k => d[k] = [...state[k]]);
+        localStorage.setItem(STORE_KEY, JSON.stringify(d));
     } catch (e) { /* storage unavailable: lesson still works */ }
 }
 function load() {
     try {
         const d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
-        if (d && Number.isInteger(d.step) && d.step >= 0 && d.step < STEPS.length) {
-            state.step = d.step;
-            (d.visited || []).forEach(v => state.visited.add(v));
-        }
+        if (!d || !Number.isInteger(d.step) || d.step < 0 || d.step >= STEPS.length) return;
+        state.step = d.step;
+        SAVED_SETS.forEach(k => (d[k] || []).forEach(v => state[k].add(v)));
+        if (d.flags) state.flags = d.flags;
+        if (d.checks) state.checks = d.checks;
+        if (Array.isArray(d.history)) state.det.history = d.history.filter(n => byN[n]);
+        state.traced = !!d.traced;
     } catch (e) { /* ignore */ }
 }
 
@@ -992,9 +1024,52 @@ const STEPS = [
         <h3>Quick quiz</h3>
         ${ids.map((id, k) => qcHTML(id, `Question ${k + 1} of 6`)).join('')}
         ${answered.length === 6 ? `<div class="score fade-in"><div class="big">${firstTry}/6</div><div><b>right on the first try!</b><br><span style="font-size:13px;color:var(--ink2)">${firstTry >= 5 ? 'You’re a periodic table pro. 🏆' : 'Nice work. Scroll up to the cheat sheet and try any you missed again.'}</span></div></div>` : ''}
+        ${answered.length === 6 ? bonusHTML() : ''}
         <div class="row"><button class="btn ghost" data-act="goto" data-v="0">Back to the mission map</button><button class="btn ghost" data-act="reset">Start over</button></div>`;
+    },
+    after() {
+        const bonus = $('#bonus');
+        if (bonus && !state.bonusSeen) {
+            state.bonusSeen = true;
+            bonus.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 }];
+
+/* ---------- End-of-lesson bonus (extra credit form) ----------
+   Shown only on the Review step, and only after every step's goal is met and the quiz is done.
+   Nothing earlier in the lesson mentions it. */
+const BONUS_FORM = 'https://docs.google.com/forms/d/e/1FAIpQLScdMNPw91p6_vSG7Q-4DrS0ASwEvCFG_vU1zrY7ogslEBy1_Q/viewform';
+function unfinishedSteps() {
+    return STEPS.map((s, i) => ({ s, i })).filter(({ s, i }) => {
+        if (i === 0 || i === STEPS.length - 1) return false;
+        if (!state.visited.has(i)) return true;
+        if (!s.goal) return false;
+        const [d, t] = s.goal();
+        return d < t;
+    });
+}
+function bonusHTML() {
+    const todo = unfinishedSteps();
+    if (todo.length) {
+        return `<div class="bonus locked fade-in">
+            <div class="bonus-h">🔒 One more surprise is waiting…</div>
+            <p>It unlocks when you’ve finished <b>every</b> step. You still need to complete:</p>
+            <div class="todo">${todo.map(({ s, i }) => {
+                const g = s.goal ? s.goal() : null;
+                return `<button class="todo-item" data-act="goto" data-v="${i}"><span class="mi">${i + 1}</span><span><b>${s.title}</b>${g ? `<small>${esc(g[2])} · ${Math.min(g[0], g[1])}/${g[1]}</small>` : '<small>Visit this step</small>'}</span>${I.right}</button>`;
+            }).join('')}</div>
+        </div>`;
+    }
+    return `<div class="bonus" id="bonus">
+        <div class="bonus-h">🎉 Bonus unlocked!</div>
+        <p>You finished the <b>entire</b> lesson. Fill out this form to earn <b>extra credit</b>. You can only submit it once, so double-check your answers!</p>
+        <div class="bonus-frame">
+            <iframe src="${BONUS_FORM}?embedded=true" title="Extra credit form" loading="lazy">Loading…</iframe>
+        </div>
+        <p class="bonus-alt">Form not loading? <a href="${BONUS_FORM}" target="_blank" rel="noopener">Open it in a new tab</a>.</p>
+    </div>`;
+}
 
 function togHTML(act, k, title, desc, colors, on, small) {
     return `<button class="tog" data-act="${act}" data-v="${k}" aria-pressed="${on}" style="--c:${colors.c};--e:${colors.e}">
@@ -1419,6 +1494,7 @@ function updateNav() {
     let done = false;
     if (s.goal) { const [d, t] = s.goal(); done = d >= t; }
     nb.classList.toggle('glow', done && !last);
+    save();
 }
 function goTo(i) {
     if (i < 0 || i >= STEPS.length) return;
