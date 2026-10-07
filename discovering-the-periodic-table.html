@@ -1425,7 +1425,8 @@ function goTo(i) {
     diaTimers.forEach(clearTimeout); diaTimers = []; state.tracing = false;
     clearTimeout(detTimer);
     state.step = i; state.visited.add(i);
-    setFocus(null); state.hover = null; state.part = null;
+    // Start each step with a clean table; a step's enter() can still select its own element (e.g. Ca)
+    setFocus(null); state.selected = null; state.hover = null; state.part = null;
     STEPS[i].enter();
     $('#lesson').scrollTop = 0;
     renderLesson(); renderStepper();
