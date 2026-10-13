@@ -7,7 +7,7 @@
   <title>Opening your link…</title>
   <style>
     body { font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; color:#241b36;
-      display:grid; place-items:center; min-height:100svh; margin:0; background:#f9f6ff; }
+      display:grid; place-items:center; min-height:100vh; min-height:100svh; margin:0; background:#f9f6ff; }
     main { padding:35px; max-width:450px; text-align:center; }
     .spinner { width:28px; height:28px; border:3px solid #e1d8ed;
       border-top-color:#63439a; border-radius:50%; animation:turn .7s linear infinite; margin:0 auto 18px; }
@@ -43,11 +43,18 @@
     document.getElementById('spinner').hidden = true;
     document.getElementById('title').textContent = 'Could not open this link';
     document.getElementById('status').textContent = text;
+    const retry = document.getElementById('manual');
+    document.getElementById('destination').textContent = 'Try again';
+    document.getElementById('destination').href = window.location.href;
+    retry.hidden = false;
   }
 
-  // This fixed function is called by the Apps Script JSONP response.
-  window.redirectResolved = function(result) {
+  function resolved(result) {
     if (finished) return;
+    if (result && result.ok === false && result.retry && attempt < MAX_ATTEMPTS) {
+      schedule(1500); // transient server error: wait and retry with the same token
+      return;
+    }
     clearTimeout(timer);
     if (!result || !result.ok || typeof result.url !== 'string') {
       fail((result && result.error) || 'The requested link is unavailable.');
@@ -62,29 +69,72 @@
       return;
     }
     finished = true;
+    document.getElementById('destination').textContent = 'Continue to destination';
     document.getElementById('destination').href = destination.href;
     document.getElementById('manual').hidden = false;
     document.getElementById('status').textContent = 'Destination selected. If you are not redirected, click below.';
-    // This page is a top-level GitHub Pages document, not a sandboxed Apps Script iframe.
     window.location.replace(destination.href);
-  };
+  }
+
+  // Fallback JSONP callback (the Apps Script response calls this fixed name).
+  window.redirectResolved = resolved;
+
+  // One random token per page load so server-side retries are idempotent.
+  const token = (function() {
+    try {
+      const b = new Uint8Array(12);
+      crypto.getRandomValues(b);
+      return Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+    }
+  })();
+
+  function buildUrl() {
+    const url = new URL(API_URL);
+    url.searchParams.set('action', 'resolve');
+    url.searchParams.set('r', slug);
+    url.searchParams.set('t', token); // Same token on every retry => same destination, counted once.
+    url.searchParams.set('_t', String(Date.now())); // Defeat HTTP caching of the response.
+    return url.href;
+  }
+
+  // Script-tag (JSONP) request: the proven path. Any attempt that answers first wins
+  // (late answers from earlier attempts are also accepted via the shared callback).
+  const MAX_ATTEMPTS = 5;
+  const ATTEMPT_MS = 15000;
+  let attempt = 0;
+
+  function tryOnce() {
+    if (finished) return;
+    attempt++;
+    const script = document.createElement('script');
+    script.src = buildUrl();
+    script.async = true;
+    script.onerror = () => { script.remove(); schedule(1500); };
+    document.head.append(script);
+    schedule(ATTEMPT_MS);
+  }
+
+  function schedule(ms) {
+    clearTimeout(timer);
+    if (finished) return;
+    timer = setTimeout(() => {
+      if (attempt >= MAX_ATTEMPTS) {
+        fail('The redirect service is busy. Please tap "Try again".');
+      } else {
+        document.getElementById('status').textContent = 'Still working… please wait.';
+        tryOnce();
+      }
+    }, ms);
+  }
 
   if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(slug)) {
     fail('This link is missing a valid redirect ID.');
   } else if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(API_URL)) {
     fail('The redirect service has not been configured yet.');
   } else {
-    // JSONP works across origins without exposing admin credentials or needing CORS.
-    const script = document.createElement('script');
-    const url = new URL(API_URL);
-    url.searchParams.set('action', 'resolve');
-    url.searchParams.set('r', slug);
-    url.searchParams.set('_t', String(Date.now())); // Never reuse cached assignments.
-    script.src = url.href;
-    script.async = true;
-    script.onerror = () => fail('Unable to contact the redirect service. Please try again.');
-    timer = setTimeout(() => fail('The redirect service took too long to respond. Please try again.'), 20000);
-    document.head.append(script);
+    tryOnce();
   }
 </script>
 </body>
