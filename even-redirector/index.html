@@ -51,6 +51,10 @@
 
   function resolved(result) {
     if (finished) return;
+    if (result && result.ok === false && result.retry && attempt < MAX_ATTEMPTS) {
+      schedule(1500); // transient server error: wait and retry with the same token
+      return;
+    }
     clearTimeout(timer);
     if (!result || !result.ok || typeof result.url !== 'string') {
       fail((result && result.error) || 'The requested link is unavailable.');
@@ -75,18 +79,30 @@
   // Fallback JSONP callback (the Apps Script response calls this fixed name).
   window.redirectResolved = resolved;
 
+  // One random token per page load so server-side retries are idempotent.
+  const token = (function() {
+    try {
+      const b = new Uint8Array(12);
+      crypto.getRandomValues(b);
+      return Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+    }
+  })();
+
   function buildUrl() {
     const url = new URL(API_URL);
     url.searchParams.set('action', 'resolve');
     url.searchParams.set('r', slug);
-    url.searchParams.set('_t', String(Date.now())); // Never reuse cached assignments.
+    url.searchParams.set('t', token); // Same token on every retry => same destination, counted once.
+    url.searchParams.set('_t', String(Date.now())); // Defeat HTTP caching of the response.
     return url.href;
   }
 
   // Script-tag (JSONP) request: the proven path. Any attempt that answers first wins
   // (late answers from earlier attempts are also accepted via the shared callback).
   const MAX_ATTEMPTS = 5;
-  const ATTEMPT_MS = 12000;
+  const ATTEMPT_MS = 15000;
   let attempt = 0;
 
   function tryOnce() {
