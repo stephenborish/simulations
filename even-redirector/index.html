@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Opening your link…</title>
+  <style>
+    body { font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; color:#241b36;
+      display:grid; place-items:center; min-height:100svh; margin:0; background:#f9f6ff; }
+    main { padding:35px; max-width:450px; text-align:center; }
+    .spinner { width:28px; height:28px; border:3px solid #e1d8ed;
+      border-top-color:#63439a; border-radius:50%; animation:turn .7s linear infinite; margin:0 auto 18px; }
+    @keyframes turn { to { transform:rotate(360deg); } }
+    h1 { font-size:23px; margin:0 0 8px; }
+    p { color:#6b6176; margin:0; }
+    a { color:#56338d; font-weight:700; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="spinner" id="spinner" aria-hidden="true"></div>
+  <h1 id="title">Opening your link…</h1>
+  <p id="status" role="status">Selecting your destination.</p>
+  <p id="manual" style="margin-top:18px" hidden><a id="destination" href="#">Continue to destination</a></p>
+</main>
+<script>
+  'use strict';
+
+  // REQUIRED: Replace this placeholder with your Apps Script web app /exec URL.
+  // Example: https://script.google.com/macros/s/AKfycbXXXXXXXX/exec
+  const API_URL = 'https://script.google.com/macros/s/AKfycbw08OaJ9eNqtLfpmghn5Jex9L1GgiY30BhhFEYaWQ32YKAIid09ndgSheF0VBNf4xe3/exec';
+
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('r') || params.get('slug') || '';
+  let finished = false;
+  let timer;
+
+  function fail(text) {
+    if (finished) return;
+    finished = true;
+    clearTimeout(timer);
+    document.getElementById('spinner').hidden = true;
+    document.getElementById('title').textContent = 'Could not open this link';
+    document.getElementById('status').textContent = text;
+  }
+
+  // This fixed function is called by the Apps Script JSONP response.
+  window.redirectResolved = function(result) {
+    if (finished) return;
+    clearTimeout(timer);
+    if (!result || !result.ok || typeof result.url !== 'string') {
+      fail((result && result.error) || 'The requested link is unavailable.');
+      return;
+    }
+    let destination;
+    try {
+      destination = new URL(result.url);
+      if (!['https:', 'http:'].includes(destination.protocol)) throw new Error('Unsafe URL');
+    } catch (err) {
+      fail('The destination URL is invalid.');
+      return;
+    }
+    finished = true;
+    document.getElementById('destination').href = destination.href;
+    document.getElementById('manual').hidden = false;
+    document.getElementById('status').textContent = 'Destination selected. If you are not redirected, click below.';
+    // This page is a top-level GitHub Pages document, not a sandboxed Apps Script iframe.
+    window.location.replace(destination.href);
+  };
+
+  if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(slug)) {
+    fail('This link is missing a valid redirect ID.');
+  } else if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(API_URL)) {
+    fail('The redirect service has not been configured yet.');
+  } else {
+    // JSONP works across origins without exposing admin credentials or needing CORS.
+    const script = document.createElement('script');
+    const url = new URL(API_URL);
+    url.searchParams.set('action', 'resolve');
+    url.searchParams.set('r', slug);
+    url.searchParams.set('_t', String(Date.now())); // Never reuse cached assignments.
+    script.src = url.href;
+    script.async = true;
+    script.onerror = () => fail('Unable to contact the redirect service. Please try again.');
+    timer = setTimeout(() => fail('The redirect service took too long to respond. Please try again.'), 20000);
+    document.head.append(script);
+  }
+</script>
+</body>
+</html>
