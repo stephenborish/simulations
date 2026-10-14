@@ -149,6 +149,16 @@ body.compact footer{padding:4px 10px 8px}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%);background:#111;color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;z-index:300;max-width:90vw;box-shadow:0 6px 24px #0008;text-align:center;font-size:16px}
 
 
+
+/* Keep grading compact while leaving the full answer visible. */
+.modal.is-judging .clue{flex:0 0 auto;gap:9px;padding:8px 0 14px}
+.modal.is-judging .qtext{font-size:clamp(24px,2vw,36px);line-height:1.15}
+.modal.is-judging .answer{padding:12px 20px}
+.modal.is-judging .answer .a{font-size:clamp(25px,2.75vw,42px)}
+.modal.is-judging .answer .w{font-size:clamp(19px,1.8vw,29px);margin-top:7px}
+.modal.is-judging .vis{max-height:25vh}
+.modal.is-judging .mbar{flex:0 0 auto}
+
 /* All-Play: single-screen student rules */
 .rules-modal{z-index:90;background:radial-gradient(ellipse at 50% 4%,#122f94 0%,#071153 66%,#03092c 100%);padding:clamp(14px,2vw,25px)}
 .rules-wrap{flex:1;min-height:0;display:flex;flex-direction:column;max-width:1470px;width:100%;margin:auto;justify-content:center;gap:clamp(12px,2.2vh,27px)}
@@ -1270,17 +1280,20 @@ function renderScores(){
 function award(t,d,silent){if(!silent){stopMusic();clearInterval(timerH);d>0?sfx.correct():sfx.wrong()}S.teams[t].score+=d;S.log.push({t,d});save();renderScores()}
 function undo(){
   const L=S.log.pop();if(!L)return;
-  if(Array.isArray(L.changes))L.changes.forEach(({t,d})=>{if(S.teams[t])S.teams[t].score-=d});
+  if(Array.isArray(L.changes)){L.changes.forEach(({t,d})=>{if(S.teams[t])S.teams[t].score-=d});
+    if(L.clueId)delete S.used[L.clueId];
+    if(L.final&&S.final)S.final.stage=2;
+  }
   else if(S.teams[L.t])S.teams[L.t].score-=L.d;
   save();renderScores();
 }
-function gradeAll(points,outcomes){
+function gradeAll(points,outcomes,meta={}){
   const changes=outcomes.map((decision,t)=>({t,d:decision==='correct'?points:-points}));
   changes.forEach(({t,d})=>{S.teams[t].score+=d});
-  S.log.push({changes});save();renderScores();
+  S.log.push({changes,...meta});save();renderScores();
   if(changes.some(x=>x.d>0))sfx.correct();else sfx.wrong();
 }
-function showGroupScoring(target,points,label,onFinish){
+function showGroupScoring(target,points,label,onFinish,meta={}){
   const choices=S.teams.map(()=>'blank');
   target.innerHTML=`<div class="judge-panel">
     <div class="judge-summary">Check every board. Unmarked teams count as no answer.</div>
@@ -1306,7 +1319,7 @@ function showGroupScoring(target,points,label,onFinish){
   });
   target.querySelector('#gradeCommit').onclick=()=>{
     target.querySelector('#gradeCommit').disabled=true;
-    gradeAll(points,choices);onFinish();
+    gradeAll(points,choices,meta);onFinish();
   };
 }
 
@@ -1358,12 +1371,12 @@ function openClue(r,c,i){
     };
   };
   const reveal=()=>{
-    clearInterval(timerH);stopMusic();sfx.reveal();
+    clearInterval(timerH);stopMusic();sfx.reveal();m.classList.add('is-judging');
     m.innerHTML=top+`<div class="clue"><div class="qtext small">${Q.q}</div>${Q.v?VIS[Q.v]():''}${answer()}</div><div class="mbar" id="bar"></div>`;
     hookFont();
     showGroupScoring(m.querySelector('#bar'),pts,'Apply scores · Next clue',()=>{
       S.used[id]=true;save();closeModal();renderBoard();
-    });
+    },{clueId:id});
     document.onkeydown=e=>{if(e.key==='Escape')closeModal()};
   };
   drawQuestion();
@@ -1391,26 +1404,26 @@ function openFinal(){
     <div class="mval">${points} POINTS</div></div>`;
   const ans=()=>`<div class="answer"><div class="a">${FINAL.a}</div><div class="w">${FINAL.w}</div></div>`;
   const question=()=>{
-    clearInterval(timerH);stopMusic();F.stage=1;save();
+    clearInterval(timerH);stopMusic();m.classList.remove('is-judging');F.stage=1;save();
     m.innerHTML=head()+`<div class="clue"><div class="qtext small">${FINAL.q}</div></div>
-      <div class="mbar" id="bar"><button class="ghost" id="t60">Start 45 seconds</button><div class="timer" id="tm"></div><div id="trk"></div>
+      <div class="mbar" id="bar"><button class="ghost" id="t60">Start 30 seconds</button><div class="timer" id="tm"></div><div id="trk"></div>
       <button class="big" id="rev">Reveal answer</button><button class="ghost" id="edF">Edit</button><button class="ghost" id="x">Close</button></div>`;
-    m.querySelector('#t60').onclick=()=>startTimer(45,true);
+    m.querySelector('#t60').onclick=()=>startTimer(30,true);
     m.querySelector('#x').onclick=closeModal;
     m.querySelector('#rev').onclick=reveal;
     m.querySelector('#edF').onclick=()=>{clearInterval(timerH);stopMusic();editFinal(question)};
     document.onkeydown=e=>{if(e.key==='Escape')closeModal()};
   };
   const reveal=()=>{
-    clearInterval(timerH);stopMusic();F.stage=2;save();sfx.reveal();
+    clearInterval(timerH);stopMusic();F.stage=2;save();sfx.reveal();m.classList.add('is-judging');
     m.innerHTML=head()+`<div class="clue"><div class="qtext small">${FINAL.q}</div>${ans()}</div><div class="mbar" id="bar"></div>`;
     showGroupScoring(m.querySelector('#bar'),points,'Apply scores · See winner',()=>{
       F.stage=3;save();winner();
-    });
+    },{final:true});
     document.onkeydown=e=>{if(e.key==='Escape')closeModal()};
   };
   const winner=()=>{
-    clearInterval(timerH);stopMusic();sfx.fanfare();
+    clearInterval(timerH);stopMusic();m.classList.remove('is-judging');sfx.fanfare();
     const max=Math.max(...S.teams.map(t=>t.score)),teams=S.teams.filter(t=>t.score===max).map(t=>t.name);
     m.innerHTML=`<div class="clue"><div class="dd">CHAMPIONS!</div>
       <div class="winner">${teams.map(esc).join(' & ')}</div>
