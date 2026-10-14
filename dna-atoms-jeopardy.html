@@ -148,6 +148,27 @@ body.compact footer{padding:4px 10px 8px}
 #tx{width:100%;min-height:42vh;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;border-radius:10px;padding:10px;background:#fff;color:#0c1446;border:0}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%);background:#111;color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;z-index:300;max-width:90vw;box-shadow:0 6px 24px #0008;text-align:center;font-size:16px}
 
+/* Classroom Rules Modal */
+.rules-modal{z-index:90;background:radial-gradient(circle at 50% 25%, #0d1e8c 0%, var(--board) 85%)}
+.rules-wrap{max-width:1240px;width:100%;margin:0 auto;padding:6px 4px 28px}
+.rules-hero{text-align:center;margin-bottom:18px}
+.rules-hero h2{font-family:var(--head);font-size:clamp(34px,4.4vw,62px);margin:0;color:var(--gold);text-shadow:3px 3px 0 #000;letter-spacing:.5px;line-height:1.05}
+.rules-hero p{font-size:clamp(17px,1.9vw,24px);color:var(--muted);margin:6px 0 0;font-weight:600}
+.rule-materials{background:rgba(255,255,255,0.08);border:2px dashed rgba(255,201,39,0.45);border-radius:12px;padding:10px 18px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;font-size:clamp(15px,1.6vw,20px);margin-bottom:20px;color:#e1e7ff}
+.rule-materials b{color:var(--gold)}
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px;margin-bottom:24px}
+.rule-card{background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.18);border-radius:14px;padding:18px 20px;backdrop-filter:blur(8px);display:flex;flex-direction:column;gap:8px;transition:border-color .15s,transform .15s}
+.rule-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.rule-header{display:flex;align-items:center;gap:10px}
+.rule-icon{font-size:30px;line-height:1}
+.rule-title{font-family:var(--head);font-weight:800;font-size:clamp(20px,2.3vw,28px);color:var(--gold);letter-spacing:.3px}
+.rule-body{font-size:clamp(15px,1.55vw,20px);line-height:1.45;color:#edf1ff;margin:0}
+.rule-body b{color:#fff;font-weight:700}
+.rule-body em{color:var(--gold);font-style:normal;font-weight:700}
+.rule-badge{display:inline-block;font-size:13px;font-weight:800;text-transform:uppercase;padding:2px 8px;border-radius:6px;letter-spacing:.5px;margin:2px 0}
+.rule-badge.plus{background:#16a34a33;border:1.5px solid #16a34a;color:#4ade80}
+.rule-badge.minus{background:#dc262633;border:1.5px solid #dc2626;color:#f87171}
+
 @media(max-height:760px){
   .qtext{font-size:calc(clamp(32px,3.8vw,60px)*var(--font-scale,1))}
   .qtext.small{font-size:calc(clamp(28px,3.2vw,50px)*var(--font-scale,1))}
@@ -1035,6 +1056,105 @@ function openEditor(cfg){
 }
 function editFinal(onDone){openEditor({title:'Final Jeopardy',obj:FINAL,orig:ORIG.final,fields:[{k:'cat',label:'Category',single:1},...CLUE_FIELDS],onSave:onDone})}
 
+/* --- classroom rules modal --- */
+function openRulesModal(onClose){
+  const m=document.createElement('div');m.className='modal rules-modal';document.body.appendChild(m);
+  m.innerHTML=`
+    <div class="mtop">
+      <div class="mcat">Classroom Jeopardy Guide</div>
+      <button class="ghost" id="rulesX" style="font-size:16px;padding:6px 14px">✕ Close</button>
+    </div>
+    <div class="rules-wrap">
+      <div class="rules-hero">
+        <h2>CLASSROOM JEOPARDY RULES</h2>
+        <p>Active Whiteboard Defense · All Teams Compete Simultaneously</p>
+      </div>
+
+      <div class="rule-materials">
+        <span>🎒 <b>Table Setup:</b></span>
+        <span>1 Whiteboard + Marker per team</span>
+        <span>·</span>
+        <span>Periodic Table / Formula Sheet</span>
+        <span>·</span>
+        <span>Whisper voice level</span>
+      </div>
+
+      <div class="rules-grid">
+        <div class="rule-card">
+          <div class="rule-header">
+            <span class="rule-icon">👥</span>
+            <div class="rule-title">1. All Teams Play Every Clue</div>
+          </div>
+          <p class="rule-body">
+            <b>No buzzers, no passive waiting!</b> Every team solves every question at the same time. The team whose turn it is selects the category &amp; value from the board, but <em>every team is playing for points on every clue</em>.
+          </p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-header">
+            <span class="rule-icon">✏️</span>
+            <div class="rule-title">2. Whiteboards &amp; Collaboration</div>
+          </div>
+          <p class="rule-body">
+            Teams collaborate in <b>quiet table whispers</b> to solve the problem and write their final answer clearly on the whiteboard. <em>Rotate the marker writer</em> each round so every student actively participates!
+          </p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-header">
+            <span class="rule-icon">⏱️</span>
+            <div class="rule-title">3. "Boards Up!" on the Buzzer</div>
+          </div>
+          <p class="rule-body">
+            Answers must be written before the <b>20-second timer hits zero</b>. When the countdown finishes, the teacher calls <em>"BOARDS UP!"</em> All teams immediately raise their boards facing the teacher. Late writing forfeits the clue!
+          </p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-header">
+            <span class="rule-icon">⚖️</span>
+            <div class="rule-title">4. Scoring: Rewards &amp; Deductions</div>
+          </div>
+          <p class="rule-body">
+            <span class="rule-badge plus">✓ Correct</span> <b>Gain full clue points</b>.<br>
+            <span class="rule-badge minus">✗ Incorrect / Blank</span> <b>Deduct clue points</b>.<br>
+            Every team must attempt an answer! Teams that collaborate effectively will thrive. Teacher is the ultimate judge for partial credit!
+          </p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-header">
+            <span class="rule-icon">⚡</span>
+            <div class="rule-title">5. Daily Doubles &amp; Final Jeopardy</div>
+          </div>
+          <p class="rule-body">
+            <b>Daily Double:</b> The choosing team wagers up to their total score (or board max). Other teams play for normal face value!<br>
+            <b>Final Jeopardy:</b> Secret wagers locked in first. Whiteboards stay face down until the big reveal!
+          </p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-header">
+            <span class="rule-icon">🤝</span>
+            <div class="rule-title">6. Scientific Evidence &amp; Appeals</div>
+          </div>
+          <p class="rule-body">
+            If your team wrote a valid scientific equivalent that was marked incorrect, you may make a polite <b>30-second appeal</b> to the teacher using your <em>periodic table, formula sheet, or notes</em> as evidence.
+          </p>
+        </div>
+      </div>
+
+      <div class="mbar" style="justify-content:center;margin-top:10px">
+        <button class="big" id="rulesStart" style="font-size:22px;padding:14px 36px">🚀 Got It — Let's Play!</button>
+      </div>
+    </div>
+  `;
+  const close=()=>{m.remove();if(onClose)onClose()};
+  m.querySelector('#rulesX').onclick=close;
+  m.querySelector('#rulesStart').onclick=close;
+  m.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape')close()});
+}
+
 /* --- backup / restore --- */
 function openTransfer(){
   const m=document.createElement('div');m.className='modal ed-modal';document.body.appendChild(m);
@@ -1110,7 +1230,10 @@ function renderSetup(){
         <select id="nt">${[2,3,4,5,6].map(n=>`<option ${n===4?'selected':''}>${n}</option>`).join('')}</select></label>
       <div class="names" id="names"></div>
       <button class="big" id="go">Start new game</button>
-      <div style="margin-top:12px"><button class="tool" id="edq">✏️ Edit questions &amp; answers</button></div>
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="tool" id="rules">📜 Review Game Rules</button>
+        <button class="tool" id="edq">✏️ Edit questions &amp; answers</button>
+      </div>
       ${saved&&saved.teams?`<div style="margin-top:12px"><button class="tool" id="resume">Resume saved game</button></div>`:''}
     </div>
   </div>`;
@@ -1123,6 +1246,7 @@ function renderSetup(){
   };
   if($('#resume'))$('#resume').onclick=()=>{S=saved;renderGame();playAud('theme',true)};
   $('#fsb').onclick=toggleFS;
+  $('#rules').onclick=()=>openRulesModal();
   $('#edq').onclick=()=>{S={temp:true,teams:[],used:{},round:0,dd:{'0':[],'1':[]},log:[],final:{stage:0,w:{},judged:{}}};editMode=true;renderGame()};
 }
 
@@ -1138,6 +1262,7 @@ function renderGame(){
       <button data-r="2" class="${S.round===2?'on':''}">Final Jeopardy</button>
       ${T?'':`<button class="tool" id="snd" title="Sound effects on/off">${SND.on?'🔊 Sound':'🔇 Sound'}</button>
       <button class="tool" id="mus" title="Thinking music on/off">${SND.music?'🎵 Music':'🚫 Music'}</button>`}
+      <button class="tool" id="rulesNav" title="Review classroom rules with students">📜 Rules</button>
       <button class="tool ${editMode?'on':''}" id="edt" title="Edit questions, answers and category names">${editMode?'✔ Done editing':'✏️ Edit questions'}</button>
       <button class="tool" id="fsb" title="Full screen (press F)">${fsLabel()}</button>
       ${T?'':`<button class="tool" id="undo" title="Undo last score change">↶ Undo</button>
@@ -1151,6 +1276,7 @@ function renderGame(){
     $('#mus').onclick=()=>{SND.music=!SND.music;if(!SND.music)stopAllMusic();saveSnd();$('#mus').textContent=SND.music?'🎵 Music':'🚫 Music'};
     $('#reset').onclick=()=>{if(!resetArm){resetArm=true;$('#reset').textContent='Click again to confirm';setTimeout(()=>{resetArm=false;const b=$('#reset');if(b)b.textContent='New game'},3000);return}resetArm=false;editMode=false;try{localStorage.removeItem(KEY)}catch(e){}S=null;renderSetup()};
   }
+  if($('#rulesNav'))$('#rulesNav').onclick=()=>openRulesModal();
   $('#edt').onclick=()=>{if(T){exitTemp();return}editMode=!editMode;renderGame()};
   $('#fsb').onclick=toggleFS;
   setCompact();
@@ -1221,7 +1347,7 @@ function openClue(r,c,i){
         <button class="ghost" id="t30">⏱ 20 s</button><div class="timer" id="tm"></div><div id="trk" style="font-size:16px;color:var(--muted);min-width:0"></div>
         <button class="big" id="reveal">Show answer (space)</button>
         <button class="ghost" id="edit">✏️ Edit</button>
-        <button class="ghost" id="cancel">Back to board</button>
+        <button class="ghost" id="clueRules" title="Review game rules">📜 Rules</button><button class="ghost" id="cancel">Back to board</button>
       </div>`;
     if(ddTeam!==null)$('#mv').textContent=`DAILY DOUBLE · ${S.teams[ddTeam].name} wagered ${wager}`;
     const fdn=$('#font-dn'),fup=$('#font-up');
@@ -1237,6 +1363,7 @@ function openClue(r,c,i){
       };
     }
     $('#t30').onclick=()=>startTimer(20);
+    if($('#clueRules'))$('#clueRules').onclick=()=>openRulesModal();
     $('#cancel').onclick=closeModal;
     $('#edit').onclick=()=>{clearInterval(timerH);stopMusic();editClue()};
     $('#reveal').onclick=reveal;
