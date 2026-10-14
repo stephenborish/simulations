@@ -133,6 +133,16 @@ body.compact footer{padding:4px 10px 8px}
 .ederr{color:#ff9b9b;font-weight:700;min-height:22px;margin-top:6px}
 #tx{width:100%;min-height:42vh;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;border-radius:10px;padding:10px;background:#fff;color:#0c1446;border:0}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%);background:#111;color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;z-index:300;max-width:90vw;box-shadow:0 6px 24px #0008;text-align:center;font-size:16px}
+
+/* Larger, projection-first text for clues, answers and explanations. */
+.qtext{font-size:clamp(34px,4.2vw,72px);line-height:1.17;max-width:min(1440px,96vw);text-wrap:balance}
+.qtext.small{font-size:clamp(29px,3.5vw,56px);line-height:1.2}
+.answer{max-width:min(1400px,96vw);padding:18px 26px}
+.answer .a{font-size:clamp(32px,3.7vw,62px);line-height:1.18}
+.answer .w{font-size:clamp(25px,2.5vw,40px);line-height:1.3}
+.clue{gap:clamp(12px,2vh,28px)}
+@media(max-height:740px){.qtext{font-size:clamp(28px,3.4vw,53px)}.qtext.small{font-size:clamp(25px,2.9vw,45px)}.answer .a{font-size:clamp(28px,3.1vw,48px)}.answer .w{font-size:clamp(22px,2vw,32px)}.vis{max-height:36vh}}
+@media(max-width:640px){.qtext{font-size:clamp(27px,6.5vw,39px)}.qtext.small{font-size:clamp(25px,5.7vw,34px)}.answer .a{font-size:clamp(25px,6vw,36px)}.answer .w{font-size:clamp(21px,4.5vw,29px)}}
 </style>
 </head>
 <body>
@@ -376,201 +386,58 @@ const sfx={
 };
 /* ===== Countdown music: 5 original 20-second tracks, synthesized live with Web Audio ===== */
 function createCountdownMusic(ctx){
-  const SR=ctx.sampleRate, mf=m=>440*Math.pow(2,(m-69)/12);
-  const NB=(()=>{const b=ctx.createBuffer(1,SR*2,SR),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b})();
-  const IR=(()=>{const L=Math.floor(SR*2.6),b=ctx.createBuffer(2,L,SR);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<L;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/L,3.2)}return b})();
-  const PULSE=(()=>{const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++)re[k]=2*Math.sin(k*Math.PI*.125)/(k*Math.PI);return ctx.createPeriodicWave(re,im)})();
-
-  function makeBus(out,o={}){
-    const B={};B.out=ctx.createGain();B.out.gain.value=o.vol||.55;B.out.connect(out);
-    const comp=ctx.createDynamicsCompressor();comp.threshold.value=-16;comp.knee.value=8;comp.ratio.value=4;comp.attack.value=.004;comp.release.value=.18;
-    let tail=comp;
-    if(o.lp){const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=o.lp;comp.connect(f);tail=f}
-    tail.connect(B.out);
-    B.dry=ctx.createGain();B.dry.connect(comp);
-    B.rev=ctx.createGain();const cv=ctx.createConvolver();cv.buffer=IR;const rg=ctx.createGain();rg.gain.value=o.revAmt??.5;B.rev.connect(cv);cv.connect(rg);rg.connect(comp);
-    B.del=ctx.createGain();const dl=ctx.createDelay(2);dl.delayTime.value=o.delay||.3;const fb=ctx.createGain();fb.gain.value=.38;const dlp=ctx.createBiquadFilter();dlp.frequency.value=2600;
-    B.del.connect(dl);dl.connect(dlp);dlp.connect(fb);fb.connect(dl);const dg=ctx.createGain();dg.gain.value=.45;dlp.connect(dg);dg.connect(comp);
-    return B;
+  // Airy, harmonically rich minimalist cues, designed for classroom discussion.
+  const tracks=[
+    {name:'Afterglow',r:45,c:[[57,60,64,67],[55,60,64,67],[53,57,60,64],[55,59,62,65]],m:[76,72,79,74,72]},
+    {name:'Glasshouse',r:48,c:[[60,64,67,71],[57,60,64,69],[55,59,64,67],[57,60,65,69]],m:[79,76,72,74,76]},
+    {name:'Blue Hour',r:41,c:[[53,57,60,64],[55,59,62,67],[57,60,64,67],[52,57,60,64]],m:[72,76,79,76,69]},
+    {name:'Quiet Orbit',r:43,c:[[55,59,62,66],[57,60,64,67],[59,62,66,69],[57,60,64,69]],m:[74,78,81,78,76]}
+  ];
+  let bag=[],last=-1,current=null;const hz=n=>440*Math.pow(2,(n-69)/12);
+  function next(){if(!bag.length){bag=tracks.map((_,i)=>i).sort(()=>Math.random()-.5);if(bag[0]===last)bag.push(bag.shift())}last=bag.shift();return tracks[last]}
+  function note(dest,t,n,d,v,w='sine',attack=.025,filter=0){
+    const osc=ctx.createOscillator(),g=ctx.createGain();
+    osc.type=w;osc.frequency.value=hz(n);
+    const end=t+d;g.gain.setValueAtTime(.00001,t);
+    g.gain.linearRampToValueAtTime(v,t+Math.min(attack,d*.45));
+    g.gain.setValueAtTime(v*.78,Math.max(t+attack,end-.65));
+    g.gain.exponentialRampToValueAtTime(.00001,end);
+    if(filter){const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=filter;osc.connect(lp);lp.connect(g)}
+    else osc.connect(g);
+    g.connect(dest);osc.start(t);osc.stop(end+.04);
   }
-  function route(node,B,o){
-    let n=node;
-    if(o.pan&&ctx.createStereoPanner){const p=ctx.createStereoPanner();p.pan.value=o.pan;node.connect(p);n=p}
-    n.connect(B.dry);
-    if(o.rev){const g=ctx.createGain();g.gain.value=o.rev;n.connect(g);g.connect(B.rev)}
-    if(o.del){const g=ctx.createGain();g.gain.value=o.del;n.connect(g);g.connect(B.del)}
-  }
-  function noiseSrc(t,dur){const s=ctx.createBufferSource();s.buffer=NB;s.loop=true;s.start(t,Math.random()*1.5);s.stop(t+dur+.05);return s}
-
-  /* ---------- drums ---------- */
-  function kick(B,t,v=1,o={}){
-    const os=ctx.createOscillator(),g=ctx.createGain();os.frequency.setValueAtTime(o.f0||165,t);os.frequency.exponentialRampToValueAtTime(o.f1||42,t+(o.sw||.13));
-    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.95*v,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+(o.dec||.42));
-    os.connect(g);route(g,B,{});os.start(t);os.stop(t+.5);
-    const n=noiseSrc(t,.03),f=ctx.createBiquadFilter(),ng=ctx.createGain();f.type='highpass';f.frequency.value=2500;ng.gain.setValueAtTime(.18*v,t);ng.gain.exponentialRampToValueAtTime(.0001,t+.02);n.connect(f);f.connect(ng);route(ng,B,{});
-  }
-  function snare(B,t,v=1,o={}){
-    const n=noiseSrc(t,.3),f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='bandpass';f.frequency.value=o.tone||1900;f.Q.value=.8;
-    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.55*v,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+(o.dec||.2));n.connect(f);f.connect(g);route(g,B,{rev:o.rev||.15,pan:o.pan});
-    const os=ctx.createOscillator(),og=ctx.createGain();os.type='triangle';os.frequency.setValueAtTime(200,t);os.frequency.exponentialRampToValueAtTime(150,t+.08);
-    og.gain.setValueAtTime(.35*v,t);og.gain.exponentialRampToValueAtTime(.0001,t+.1);os.connect(og);route(og,B,{});os.start(t);os.stop(t+.15);
-  }
-  function clap(B,t,v=1,o={}){
-    const n=noiseSrc(t,.4),f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='bandpass';f.frequency.value=1250;f.Q.value=1.1;
-    g.gain.setValueAtTime(.0001,t);[0,.011,.022].forEach(d=>{g.gain.setValueAtTime(.6*v,t+d);g.gain.exponentialRampToValueAtTime(.08*v,t+d+.009)});
-    g.gain.setValueAtTime(.5*v,t+.031);g.gain.exponentialRampToValueAtTime(.0001,t+.25);n.connect(f);f.connect(g);route(g,B,{rev:o.rev??.25});
-  }
-  function hat(B,t,v=1,o={}){
-    const n=noiseSrc(t,.4),f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='highpass';f.frequency.value=o.hp||7800;
-    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.2*v,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+(o.open?.28:.045));n.connect(f);f.connect(g);route(g,B,{pan:o.pan??.18,rev:o.rev||0});
-  }
-  function ride(B,t,v=1){
-    hat(B,t,.7*v,{hp:6200,open:true,pan:-.25});
-    [5200,7300,8900].forEach(fq=>{const os=ctx.createOscillator(),g=ctx.createGain();os.type='square';os.frequency.value=fq;g.gain.setValueAtTime(.006*v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.5);os.connect(g);route(g,B,{pan:-.25,rev:.2});os.start(t);os.stop(t+.55)});
-  }
-  function snap(B,t,v=1){const n=noiseSrc(t,.1),f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='bandpass';f.frequency.value=2700;f.Q.value=2.5;g.gain.setValueAtTime(.7*v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.06);n.connect(f);f.connect(g);route(g,B,{rev:.5,pan:.3})}
-  function crash(B,t,v=1){const n=noiseSrc(t,2.4),f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='highpass';f.frequency.value=4200;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.28*v,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+2.2);n.connect(f);f.connect(g);route(g,B,{rev:.4})}
-  function riser(B,t,dur,v=1){
-    const n=noiseSrc(t,dur),f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='bandpass';f.Q.value=2;f.frequency.setValueAtTime(300,t);f.frequency.exponentialRampToValueAtTime(7000,t+dur);
-    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.22*v,t+dur);g.gain.setValueAtTime(.0001,t+dur+.01);n.connect(f);f.connect(g);route(g,B,{rev:.3});
-  }
-  function chipNoise(B,t,dur,v,hp){const n=noiseSrc(t,dur),f=ctx.createBiquadFilter(),g=ctx.createGain();f.type='highpass';f.frequency.value=hp;g.gain.setValueAtTime(.3*v,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);n.connect(f);f.connect(g);route(g,B,{})}
-
-  /* ---------- tonal voices ---------- */
-  function voice(B,t,midi,dur,o={}){
-    const f0=mf(midi),g=ctx.createGain(),fl=ctx.createBiquadFilter();fl.type='lowpass';fl.Q.value=o.q??.7;
-    const cut=o.cut??4000;fl.frequency.setValueAtTime(cut*(o.fenv||1),t);if(o.fenv&&o.fenv!==1)fl.frequency.exponentialRampToValueAtTime(cut,t+(o.fdec||.2));
-    const a=o.a??.005,d=o.d??.15,s=o.s??.6,r=o.r??.12,vol=o.vol??.1,hold=Math.max(t+dur,t+a+d);
-    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+a);const sus=Math.max(vol*s,.0001);g.gain.exponentialRampToValueAtTime(sus,t+a+d);g.gain.setValueAtTime(sus,hold);g.gain.exponentialRampToValueAtTime(.0001,hold+r);
-    (o.det||[0]).forEach((dc,i)=>{const os=ctx.createOscillator();const w=Array.isArray(o.wave)?o.wave[i%o.wave.length]:(o.wave||'sawtooth');
-      if(w==='pulse')os.setPeriodicWave(PULSE);else os.type=w;os.frequency.value=f0*(o.mul||1);os.detune.value=dc;
-      if(o.vib){const l=ctx.createOscillator(),lg=ctx.createGain();l.frequency.value=o.vib;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(o.vibD||18,t+Math.min(dur,.35));l.connect(lg);lg.connect(os.detune);l.start(t);l.stop(hold+r+.1)}
-      if(o.glide){os.frequency.setValueAtTime(mf(o.glide),t);os.frequency.exponentialRampToValueAtTime(f0,t+.06)}
-      os.connect(fl);os.start(t);os.stop(hold+r+.1)});
-    fl.connect(g);route(g,B,o);
-  }
-  const marimba=(B,t,m,v=1,pan=0)=>{voice(B,t,m,.05,{wave:'sine',a:.002,d:.6,s:.001,r:.3,vol:.22*v,cut:6000,pan,rev:.25});voice(B,t,m,.03,{wave:'sine',mul:3.98,a:.001,d:.07,s:.001,r:.05,vol:.07*v,cut:12000,pan,rev:.2})};
-  const vibes=(B,t,m,dur,v=1,pan=0)=>{voice(B,t,m,dur,{wave:'sine',a:.003,d:1.8,s:.2,r:.6,vol:.08*v,cut:7000,pan,rev:.45,del:.12});voice(B,t,m,.02,{wave:'sine',mul:4,a:.001,d:.25,s:.001,r:.1,vol:.02*v,cut:12000,pan,rev:.3})};
-  const ep=(B,t,m,dur,v=1,pan=0)=>{voice(B,t,m,dur,{wave:'sine',a:.004,d:1.4,s:.35,r:.5,vol:.085*v,cut:5000,pan,rev:.3});voice(B,t,m,dur,{wave:'triangle',mul:2,a:.002,d:.3,s:.05,r:.2,vol:.025*v,cut:4000,pan,rev:.2})};
-  const bell=(B,t,m,v=1,pan=0)=>{voice(B,t,m,.05,{wave:'sine',a:.002,d:1.6,s:.001,r:.8,vol:.07*v,cut:9000,pan,rev:.5,del:.25});voice(B,t,m,.05,{wave:'sine',mul:2.76,a:.001,d:.5,s:.001,r:.3,vol:.025*v,cut:12000,pan,rev:.4})};
-  const pluck=(B,t,m,v=1,pan=0,del=.3)=>voice(B,t,m,.05,{wave:['sawtooth','square'],det:[-6,6],a:.002,d:.22,s:.001,r:.1,vol:.05*v,cut:900,fenv:5,fdec:.12,q:3,pan,rev:.2,del});
-  const pad=(B,t,notes,dur,v=1)=>notes.forEach((m,i)=>voice(B,t,m,dur,{wave:'sawtooth',det:[-9,9],a:.45,d:.5,s:.8,r:.6,vol:.028*v,cut:1500,q:.4,pan:(i%2?.35:-.35),rev:.55}));
-  const stab=(B,t,notes,v=1,dur=.12)=>notes.forEach((m,i)=>voice(B,t,m,dur,{wave:['sawtooth','square'],det:[-5,5],a:.003,d:.12,s:.3,r:.08,vol:.035*v,cut:2200,fenv:2.5,fdec:.08,q:2,pan:(i-1.5)*.25,rev:.2}));
-  const funkBass=(B,t,m,dur,v=1)=>{voice(B,t,m,dur,{wave:'sawtooth',a:.003,d:.18,s:.4,r:.05,vol:.17*v,cut:280,fenv:6,fdec:.12,q:7});voice(B,t,m,dur,{wave:'sine',a:.003,d:.2,s:.7,r:.05,vol:.2*v,cut:400})};
-  const synthBass=(B,t,m,dur,v=1)=>{voice(B,t,m,dur,{wave:'sawtooth',det:[-7,7],a:.004,d:.15,s:.5,r:.05,vol:.1*v,cut:500,fenv:3,fdec:.1,q:2});voice(B,t,m-12,dur,{wave:'sine',a:.004,d:.2,s:.8,r:.05,vol:.16*v,cut:300})};
-  const upright=(B,t,m,dur,v=1)=>{voice(B,t,m,dur,{wave:'triangle',a:.006,d:.35,s:.25,r:.08,vol:.32*v,cut:900,fenv:2,fdec:.05});voice(B,t,m,dur,{wave:'sine',a:.006,d:.4,s:.3,r:.08,vol:.22*v,cut:500})};
-  const lead=(B,t,m,dur,v=1,o={})=>voice(B,t,m,dur,Object.assign({wave:['sawtooth','square'],det:[-7,7],a:.012,d:.2,s:.7,r:.15,vol:.06*v,cut:2600,fenv:1.8,fdec:.15,q:1,vib:5.5,vibD:22,rev:.3,del:.18,pan:.08},o));
-  const chip=(B,t,m,dur,v=1,o={})=>voice(B,t,m,dur,Object.assign({wave:'pulse',a:.002,d:.08,s:.75,r:.03,vol:.07*v,cut:9000,pan:o.pan||0},o));
-  const tri=(B,t,m,dur,v=1)=>voice(B,t,m,dur,{wave:'triangle',a:.002,d:.05,s:.9,r:.02,vol:.22*v,cut:5000});
-
-  /* ---------- tracks ---------- */
-  function grid(t0,sec,bars){const bar=sec/bars,s16=bar/16;return {bar,s16,at:(b,s)=>t0+b*bar+s*s16}}
-
-  const T1={name:'Molecule Funk',bars:9,play(B,t0,sec){
-    const {bar,s16,at}=grid(t0,sec,this.bars);
-    const roots=[40,40,45,45,40,40,36,35,40];
-    const ch={40:[55,59,62,66],45:[55,61,64,66],36:[55,59,62,64],35:[54,57,62,63]};
-    const bp=[[0,0,2],[3,0,1],[4,12,1],[6,0,2],[8,7,1],[10,10,1],[11,12,1],[14,0,2]];
-    const hook=[[[0,71,2],[2,74,2],[4,76,3],[7,74,1],[8,76,2],[10,79,2],[12,76,2],[14,74,2]],[[0,71,3],[3,69,1],[4,67,2],[6,64,2],[8,67,2],[10,69,2],[12,71,4]]];
-    for(let b=0;b<this.bars;b++){
-      const R=roots[b];
-      [0,6,10].forEach(s=>kick(B,at(b,s),s?.85:1));if(b%2)kick(B,at(b,15),.6);
-      if(b>0){clap(B,at(b,4));clap(B,at(b,12));snare(B,at(b,7),.18);snare(B,at(b,15),.15)}
-      for(let s=0;s<16;s++)if(!(b%2&&s===14))hat(B,at(b,s),s%2?.45:.9);
-      if(b%2)hat(B,at(b,14),.8,{open:true});
-      bp.forEach(([s,iv,l])=>funkBass(B,at(b,s),R+iv,l*s16*.9));
-      if(b>0){stab(B,at(b,2),ch[R],.9);stab(B,at(b,9),ch[R],.8)}
-      if(b>=4&&b<8)hook[b%2].forEach(([s,m,l])=>lead(B,at(b,s),m,l*s16*.95,1,{wave:['square','sawtooth'],cut:2200,fenv:2.5}));
+  function score(p,seconds){
+    const out=ctx.createGain(),dry=ctx.createGain(),wet=ctx.createGain(),delay=ctx.createDelay(1),feedback=ctx.createGain(),lp=ctx.createBiquadFilter();
+    out.connect(SND.master);dry.gain.value=.7;dry.connect(out);
+    wet.gain.value=.16;wet.connect(delay);delay.delayTime.value=.33;feedback.gain.value=.17;lp.type='lowpass';lp.frequency.value=1700;
+    delay.connect(lp);lp.connect(out);lp.connect(feedback);feedback.connect(delay);
+    const t=ctx.currentTime+.06,E=t+seconds;
+    out.gain.setValueAtTime(.00001,t);out.gain.linearRampToValueAtTime(.46,t+.85);
+    out.gain.setValueAtTime(.46,Math.max(t+.85,E-2));
+    out.gain.linearRampToValueAtTime(.28,E-.25);out.gain.linearRampToValueAtTime(.00001,E+1.5);
+    const section=seconds/4;
+    for(let i=0;i<4;i++){
+      const when=t+i*section,ch=p.c[i];
+      ch.forEach((n,k)=>{note(dry,when+k*.05,n,Math.min(section+1.5,seconds-i*section+1),.032,'sine',.65);
+        if(k===2)note(wet,when+.12,n+12,Math.min(section+1,seconds-i*section+1),.016,'triangle',.65,1600)});
+      note(dry,when,p.r+[0,0,-2,-5][i],Math.min(section+1,seconds-i*section+1),.078,'sine',.12);
     }
-    crash(B,at(4,0),.8);riser(B,at(7,0),2*bar);
-    for(let s=8;s<16;s++)snare(B,at(8,s),.25+s*.04);
-    const E=t0+sec;kick(B,E,1.1);crash(B,E,1.1);[52,55,59,62,66,71].forEach((m,i)=>lead(B,E+i*.015,m,1.2,.7,{vib:0,del:.25,rev:.5}));funkBass(B,E,28,1.2,1.1);
-  }};
-
-  const T2={name:'Helix Drive',bars:10,play(B,t0,sec){
-    const {bar,s16,at}=grid(t0,sec,this.bars);
-    const prog=[[45,[57,60,64]],[41,[57,60,65]],[48,[55,60,64]],[43,[55,59,62]],[45,[57,60,64]],[41,[57,60,65]],[48,[55,60,64]],[43,[55,59,62]],[41,[57,60,65]],[43,[55,59,62]]];
-    const mel={4:[[0,76,6],[6,74,2],[8,72,8]],5:[[0,72,6],[6,69,2],[8,72,4],[12,74,4]],6:[[0,76,6],[6,79,2],[8,76,8]],7:[[0,74,12],[12,71,4]],8:[[0,72,4],[4,74,4],[8,76,4],[12,77,4]],9:[[0,79,8],[8,83,8]]};
-    for(let b=0;b<this.bars;b++){
-      const [R,C]=prog[b],arp=[C[0]+12,C[1]+12,C[2]+12,C[1]+24,C[2]+12,C[0]+24,C[1]+12,C[2]];
-      for(let s=0;s<16;s++)pluck(B,at(b,s),arp[s%8],s%4?.7:1,(s%2?.3:-.3),.28);
-      pad(B,at(b,0),C,bar*.95,.9);
-      for(let s=0;s<16;s+=4)kick(B,at(b,s),b<2?.75:1);
-      if(b>=2){snare(B,at(b,4),1,{rev:.5,dec:.26});snare(B,at(b,12),1,{rev:.5,dec:.26});[2,6,10,14].forEach(s=>hat(B,at(b,s),.5,{open:true}))}
-      for(let s=0;s<16;s+=2)synthBass(B,at(b,s),R+(s%4?12:0),s16*1.7,b<2?.7:1);
-      (mel[b]||[]).forEach(([s,m,l])=>lead(B,at(b,s),m,l*s16,1.1,{glide:m-2}));
-    }
-    crash(B,at(2,0),.7);crash(B,at(4,0),.9);crash(B,at(8,0),.8);riser(B,at(8,0),2*bar);
-    for(let s=0;s<16;s++)snare(B,at(9,s),.2+s*.05,{rev:.3});
-    const E=t0+sec;kick(B,E,1.2);crash(B,E,1.2);pad(B,E,[45,52,57,59,60,64,71],2.2,1.6);synthBass(B,E,45,1.6,1.2);bell(B,E,81,1.2);
-  }};
-
-  const T3={name:'Sneaky Electrons',bars:8,play(B,t0,sec){
-    const bar=sec/this.bars,beat=bar/4,at=(b,bt,h)=>t0+b*bar+bt*beat+(h?beat*.66:0);
-    const walk=[[38,41,45,48],[50,48,45,44],[43,46,50,49],[48,46,43,45],[38,41,45,41],[46,48,50,51],[45,49,52,55],[57,55,52,49]];
-    const comp=[[53,57,60,64],[53,57,60,64],[53,58,62,65],[53,58,62,65],[53,57,60,64],[50,53,56,60],[55,58,61,64],[55,58,61,65]];
-    const mel={2:[[0,0,62],[0,1,65],[1,0,69],[2,0,68],[3,1,67]],3:[[0,0,65],[1,0,62],[2,0,60],[2,1,61],[3,0,62]],4:[[0,0,69],[0,1,72],[1,0,74],[2,0,73],[2,1,72],[3,0,69]],5:[[0,0,70],[1,0,69],[1,1,67],[2,0,65],[3,0,62]],6:[[0,0,61],[0,1,64],[1,0,67],[1,1,70],[2,0,69],[3,0,73]],7:[[0,0,74],[1,0,76],[1,1,77],[2,0,76],[2,1,73],[3,0,70]]};
-    for(let b=0;b<this.bars;b++){
-      walk[b].forEach((m,i)=>upright(B,at(b,i,0),m,beat*.85));
-      [0,1,2,3].forEach(i=>ride(B,at(b,i,0),i%2?1:.75));[1,3].forEach(i=>ride(B,at(b,i,1),.55));
-      if(b>=1){snap(B,at(b,1,0));snap(B,at(b,3,0))}
-      kick(B,at(b,0,0),.35,{dec:.3});kick(B,at(b,2,0),.25,{dec:.3});
-      if(b>=1){comp[b].forEach((m,i)=>vibes(B,at(b,1,1)+i*.008,m,beat*1.2,.8,(i-1.5)*.3));if(b%2)comp[b].forEach((m,i)=>vibes(B,at(b,3,1)+i*.008,m,beat*.8,.6,(i-1.5)*.3))}
-      (mel[b]||[]).forEach(([bt,h,m])=>{marimba(B,at(b,bt,h),m,1.1,.15);marimba(B,at(b,bt,h)+.004,m-12,.4,-.15)});
-    }
-    for(let i=0;i<8;i++)snare(B,at(7,2,0)+i*beat/4,.12+i*.05,{tone:3200,dec:.08,rev:.3});
-    const E=t0+sec;upright(B,E,38,1.6,1.3);kick(B,E,.6,{dec:.5});snap(B,E,1.2);ride(B,E,1.3);
-    [62,65,69,73,76,74].forEach((m,i)=>marimba(B,E+i*.06,m,1,(i-2.5)*.2));[50,53,57,61,64].forEach((m,i)=>vibes(B,E+.02*i,m,2.5,1.2,(i-2)*.3));
-  }};
-
-  const T4={name:'Atomic Arcade',bars:12,play(B,t0,sec){
-    const {bar,s16,at}=grid(t0,sec,this.bars);
-    const X=[[[0,72,2],[2,76,2],[4,79,2],[6,84,4],[10,79,2],[12,76,4]],[[0,74,2],[2,79,2],[4,83,4],[8,81,2],[10,79,2],[12,74,4]],[[0,76,2],[2,72,2],[4,69,2],[6,72,2],[8,76,4],[12,81,4]],[[0,77,4],[4,76,2],[6,74,2],[8,72,4],[12,69,4]]];
-    const Y=[[[0,79,2],[2,79,2],[4,84,2],[6,79,2],[8,76,2],[10,79,2],[12,72,4]],[[0,74,2],[2,74,2],[4,79,2],[6,74,2],[8,71,2],[10,74,2],[12,67,4]],[[0,77,2],[2,81,2],[4,84,4],[8,81,2],[10,77,2],[12,72,4]],[[0,74,2],[2,76,2],[4,77,2],[6,79,2],[8,81,2],[10,83,2],[12,86,4]]];
-    const chX=[[48,[60,64,67]],[43,[59,62,67]],[45,[60,64,69]],[41,[60,65,69]]],chY=[[48,[60,64,67]],[43,[59,62,67]],[41,[60,65,69]],[43,[59,62,67]]];
-    for(let b=0;b<this.bars;b++){
-      const sec4=Math.floor(b/4),k=sec4===2?2:0,phr=sec4===1?Y:X,chs=sec4===1?chY:chX,[R,C]=chs[b%4];
-      phr[b%4].forEach(([s,m,l])=>chip(B,at(b,s),m+k,l*s16*.9,1,{del:.12,vib:b>=8?6:0,vibD:12}));
-      for(let s=0;s<16;s++){const a=[C[0],C[1],C[2],C[1]][s%4]+k+(s>=8?12:0);chip(B,at(b,s),a,s16*.6,.38,{pan:s%2?.4:-.4,wave:'square',cut:4000})}
-      for(let s=0;s<16;s+=2)tri(B,at(b,s),R+k-12+(s%4?12:0),s16*1.6);
-      kick(B,at(b,0),.8,{f0:240,f1:55,sw:.06,dec:.18});kick(B,at(b,8),.8,{f0:240,f1:55,sw:.06,dec:.18});if(b%2)kick(B,at(b,10),.6,{f0:240,f1:55,sw:.06,dec:.18});
-      [4,12].forEach(s=>chipNoise(B,at(b,s),.12,1,1200));for(let s=0;s<16;s+=2)chipNoise(B,at(b,s),.03,.5,7000);
-    }
-    const up=ctx.createOscillator(),ug=ctx.createGain();up.setPeriodicWave(PULSE);up.frequency.setValueAtTime(mf(50),at(10,0));up.frequency.exponentialRampToValueAtTime(mf(86),t0+sec);
-    ug.gain.setValueAtTime(.0001,at(10,0));ug.gain.exponentialRampToValueAtTime(.05,t0+sec-.02);ug.gain.setValueAtTime(.0001,t0+sec);up.connect(ug);route(ug,B,{del:.2});up.start(at(10,0));up.stop(t0+sec+.05);
-    const E=t0+sec;[74,78,81,86,90,93].forEach((m,i)=>chip(B,E+i*.05,m,i===5?1:.12,1.1,{del:.2,vib:i===5?7:0}));tri(B,E,38,1,1.2);kick(B,E,1,{f0:240,f1:45,sw:.1,dec:.4});chipNoise(B,E,1,1,3000);
-  }};
-
-  const T5={name:'Lo-Fi Lab',bars:7,lp:5200,play(B,t0,sec){
-    const {bar,s16,at}=grid(t0,sec,this.bars),sw=s16*.28,lz=.018;
-    const chords=[[41,[57,60,64,67]],[40,[55,59,62,66]],[38,[53,57,60,64]],[36,[52,55,59,62]],[41,[57,60,64,67]],[40,[55,59,62,66]],[38,[53,57,60,64]]];
-    const mel={2:[[0,76],[4,79],[6,81],[10,79]],3:[[0,76],[2,74],[8,72],[12,74]],4:[[0,76],[4,79],[6,84],[10,81]],5:[[0,79],[6,76],[8,74],[12,72]],6:[[0,74],[4,72],[8,69],[12,67]]};
-    for(let b=0;b<this.bars;b++){
-      const [R,C]=chords[b];
-      C.forEach((m,i)=>ep(B,at(b,0)+i*.012,m,bar*.55,1,(i-1.5)*.25));C.forEach((m,i)=>ep(B,at(b,10)+i*.014,m,bar*.3,.7,(i-1.5)*.25));
-      if(b===6){[53,59,64,65].forEach((m,i)=>ep(B,at(b,12)+i*.012,m,bar*.2,.8,(i-1.5)*.25))}
-      upright(B,at(b,0),R,s16*7,1);upright(B,at(b,10)+sw,R+(b===6?5:7),s16*5,.8);
-      if(b>=1){kick(B,at(b,0),.9,{dec:.35});kick(B,at(b,7)+sw,.6,{dec:.3});kick(B,at(b,10),.8,{dec:.35});
-        snare(B,at(b,4)+lz,.8,{tone:1500,dec:.25,rev:.25});snare(B,at(b,12)+lz,.85,{tone:1500,dec:.25,rev:.25})}
-      for(let s=0;s<16;s+=2)hat(B,at(b,s)+(s%4?sw:0),(s%4?.35:.6)*(b?1:.6),{hp:6500});
-      (mel[b]||[]).forEach(([s,m])=>bell(B,at(b,s)+(s%4?sw:0),m,1.1,.2));
-    }
-    const crackle=ctx.createGain();crackle.gain.value=1;route(crackle,B,{});
-    for(let i=0;i<sec*14;i++){const t=t0+Math.random()*sec,n=noiseSrc(t,.01),g=ctx.createGain();g.gain.setValueAtTime(.05+Math.random()*.08,t);g.gain.exponentialRampToValueAtTime(.0001,t+.006);n.connect(g);g.connect(crackle)}
-    const bed=noiseSrc(t0,sec+2),bf=ctx.createBiquadFilter(),bg=ctx.createGain();bf.type='bandpass';bf.frequency.value=1800;bf.Q.value=.6;bg.gain.value=.012;bed.connect(bf);bf.connect(bg);route(bg,B,{});
-    const E=t0+sec;[48,55,59,62,64,67].forEach((m,i)=>ep(B,E+i*.03,m,2.4,1.3,(i-2.5)*.2));upright(B,E,36,2,1.2);bell(B,E+.2,79,1.2);bell(B,E+.45,84,.9);
-  }};
-
-  const TRACKS=[T1,T2,T3,T4,T5];
-  let bag=[],last=-1,cur=null;
-  function next(){if(!bag.length){bag=TRACKS.map((_,i)=>i).sort(()=>Math.random()-.5);if(bag[0]===last&&bag.length>1)bag.push(bag.shift())}last=bag.shift();return TRACKS[last]}
-  return {
-    tracks:TRACKS,
-    play(out,sec,idx){
-      this.stop();const T=idx==null?next():TRACKS[idx];const B=makeBus(out,{lp:T.lp,delay:sec/T.bars*3/16});
-      T.play(B,ctx.currentTime+.06,sec);cur=B;return T.name;
-    },
-    stop(){if(cur){const g=cur.out.gain,t=ctx.currentTime;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(0,t+.25);const o=cur.out;setTimeout(()=>{try{o.disconnect()}catch(e){}},400);cur=null}}
+    [.16,.34,.55,.73,.87].forEach((x,i)=>{
+      const when=t+seconds*x;
+      note(dry,when,p.m[i],1.35,.05,'sine',.012);
+      note(wet,when,p.m[i]+12,.8,.012,'sine',.005);
+    });
+    for(let x=2;x<seconds-3;x+=2.7)note(dry,t+x,p.r-12,.26,.022,'sine',.014);
+    note(dry,E,p.m[0]-12,1.3,.055,'sine',.025);
+    note(wet,E+.12,p.m[0],1.15,.033,'sine',.025);
+    return out;
+  }
+  return {tracks,
+    play(out,sec,index){this.stop();const p=index==null?next():tracks[index%tracks.length];current=score(p,sec);return p.name},
+    stop(){if(!current)return;const n=current;current=null;const t=ctx.currentTime;
+      n.gain.cancelScheduledValues(t);n.gain.setValueAtTime(Math.max(.00001,n.gain.value),t);
+      n.gain.exponentialRampToValueAtTime(.00001,t+.18);
+      setTimeout(()=>{try{n.disconnect()}catch(e){}},300)}
   };
 }
 
@@ -610,6 +477,65 @@ document.addEventListener('fullscreenchange',setCompact);document.addEventListen
 
 /* --- content store: only differences from the originals are saved --- */
 const CKEY='dna-atoms-jeopardy-content-v1';
+const CLOUD_REPO='stephenborish/simulations',CLOUD_FILE='dna-atoms-jeopardy-questions.json';
+const CLOUD_URL='https://api.github.com/repos/'+CLOUD_REPO+'/contents/'+CLOUD_FILE;
+let cloudSha=null,cloudPublished=null,cloudReady=false,cloudBusy=false,cloudDirty=false;
+const decode64=str=>new TextDecoder().decode(Uint8Array.from(atob(str.replace(/\s/g,'')),x=>x.charCodeAt(0)));
+const encode64=str=>{const bytes=new TextEncoder().encode(str);let bin='';for(let i=0;i<bytes.length;i+=8192)bin+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(bin)};
+function sameEdits(x,y){return JSON.stringify(x)===JSON.stringify(y)}
+async function fetchCloud(token){
+  const res=await fetch(CLOUD_URL+'?t='+Date.now(),{headers:{Accept:'application/vnd.github+json',...(token?{Authorization:'Bearer '+token}:{})},cache:'no-store'});
+  if(!res.ok)throw Error('GitHub read failed ('+res.status+').');
+  const item=await res.json();
+  return {sha:item.sha,content:JSON.parse(decode64(item.content))};
+}
+async function loadCloud(){
+  try{
+    const latest=await fetchCloud();cloudSha=latest.sha;cloudPublished=latest.content;cloudReady=true;
+    const local=localStorage.getItem(CKEY);
+    if(local&&!sameEdits(JSON.parse(local),latest.content)){
+      cloudDirty=true; // Preserve older local-only edits; teacher can publish explicitly.
+    }else{
+      resetAll();applyEdits(latest.content);persist(false);cloudDirty=false;
+    }
+    if(S&&editMode)redrawBoard();
+  }catch(error){console.warn('Shared question loading unavailable:',error.message);cloudReady=false}
+}
+function openPublish(){
+  const m=document.createElement('div');m.className='modal ed-modal';document.body.appendChild(m);
+  m.innerHTML='<div class="mtop"><div class="mcat">Publish questions to GitHub</div></div>'+
+    '<div class="edwrap" style="max-width:760px">'+
+    '<p style="font-size:20px;line-height:1.5">Edits are saved as a draft in this browser. Publishing updates the shared question file so everyone using the game sees your new questions after refreshing. The game never stores your GitHub token.</p>'+
+    '<p style="font-size:18px">Use a fine-grained GitHub personal access token restricted to the <b>stephenborish/simulations</b> repository, with <b>Contents: Read and write</b>. Enter it only to publish. Never share this token with students.</p>'+
+    '<label class="edl" for="publish-token">GitHub access token</label><input id="publish-token" type="password" autocomplete="off" placeholder="Paste token (used once)" style="width:100%;padding:14px;font-size:19px;border-radius:9px">'+
+    '<div id="publish-status" class="ederr" role="status" style="margin-top:14px"></div></div>'+
+    '<div class="mbar"><button class="big" id="publish-now">Publish shared questions</button><button class="ghost" id="publish-cancel">Cancel</button></div>';
+  const status=m.querySelector('#publish-status'),btn=m.querySelector('#publish-now');
+  m.querySelector('#publish-cancel').onclick=()=>m.remove();
+  m.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape'&&!cloudBusy)m.remove()});
+  btn.onclick=async()=>{
+    if(cloudBusy)return;const token=m.querySelector('#publish-token').value.trim();
+    if(!token){status.textContent='Enter a GitHub token with permission to edit this repository.';return}
+    cloudBusy=true;btn.disabled=true;status.textContent='Checking the latest published version…';
+    try{
+      const current=await fetchCloud(token);
+      if(cloudSha&&current.sha!==cloudSha&&!sameEdits(current.content,cloudPublished)){
+        throw Error('Another version was published since this game was opened. Your draft was kept. Refresh, reconcile the edits, and try again; nothing was overwritten.');
+      }
+      const data=collectEdits();
+      const response=await fetch(CLOUD_URL,{method:'PUT',headers:{Accept:'application/vnd.github+json','Content-Type':'application/json',Authorization:'Bearer '+token},
+        body:JSON.stringify({message:'Update DNA & Atoms Jeopardy shared questions',content:encode64(JSON.stringify(data,null,2)+'\n'),sha:current.sha,branch:'main'})});
+      if(!response.ok){let detail='';try{detail=(await response.json()).message||''}catch(e){}throw Error('GitHub rejected the publish ('+response.status+'). '+detail)}
+      const result=await response.json();cloudSha=result.content.sha;cloudPublished=data;cloudReady=true;cloudDirty=false;
+      try{localStorage.setItem(CKEY,JSON.stringify(data))}catch(e){}
+      m.querySelector('#publish-token').value='';
+      status.style.color='#a8ffcb';status.textContent='Published successfully. The changes are now saved in GitHub. Other devices can refresh to load them; GitHub Pages may cache updates briefly.';
+      btn.textContent='Published';btn.disabled=true;
+    }catch(error){status.textContent=error.message;btn.disabled=false}
+    finally{cloudBusy=false}
+  };
+}
+
 const ORIG={cats:ROUNDS.map(r=>r.cats.map(c=>c.t)),clues:{},final:{cat:FINAL.cat,q:FINAL.q,a:FINAL.a,w:FINAL.w}};
 ROUNDS.forEach((R,r)=>R.cats.forEach((c,ci)=>c.q.forEach((q,i)=>ORIG.clues[`${r}-${ci}-${i}`]={q:q.q,a:q.a,w:q.w,v:q.v||null})));
 const VIS_NAMES={ladder:'DNA ladder (labeled parts)',gelSize:'Gel with size ladder',gelCrime:'Crime-scene gel',gelPup:'Paternity gel',slope:'Distance vs. time graph',nucleus:'Nucleus (7 protons, 8 neutrons)',bohrAl:'Bohr model: aluminum',bohrF:'Bohr model: fluoride ion'};
@@ -654,7 +580,8 @@ function applyEdits(E){
   Object.entries(E.final||{}).forEach(([k,v])=>{if(['cat','q','a','w'].includes(k)&&typeof v==='string'){FINAL[k]=k==='cat'?(plain(v)||FINAL.cat):sanitize(v);n++}});
   return n;
 }
-function persist(){
+function persist(markDirty=true){
+   if(markDirty)cloudDirty=true;
   const E=collectEdits();
   try{if(!Object.keys(E.cats).length&&!Object.keys(E.clues).length&&!Object.keys(E.final).length)localStorage.removeItem(CKEY);else localStorage.setItem(CKEY,JSON.stringify(E));return true}catch(e){return false}
 }
@@ -668,7 +595,7 @@ const redrawBoard=()=>{if(!S)return;if(S.round<2)renderBoard();else renderFinalI
 function openEditor(cfg){
   const O=cfg.obj,ed=document.createElement('div');ed.className='modal ed-modal';document.body.appendChild(ed);
   const chars=['→','⁺','⁻','°','×','÷','≈','±','µ','Δ'];
-  ed.innerHTML=`<div class="mtop"><div class="mcat">✏️ ${esc(cfg.title)}</div><div class="mcat" style="font-size:16px">Changes save automatically in this browser</div></div>
+  ed.innerHTML=`<div class="mtop"><div class="mcat">✏️ ${esc(cfg.title)}</div><div class="mcat" style="font-size:16px">Changes save on this device. Use Publish to GitHub to share them</div></div>
   <div class="edwrap">
     <div class="edtools" id="edtools">
       <button data-act="bold" title="Bold (Ctrl+B)"><b>B</b></button><button data-act="italic" title="Italic (Ctrl+I)"><i>I</i></button>
@@ -831,7 +758,7 @@ function renderGame(){
 }
 function renderBoard(){
   const R=ROUNDS[S.round];
-  const bar=editMode?`<div class="editbar"><b>✏️ EDIT MODE</b><span>Click a tile to edit its clue, answer &amp; explanation · click a category name to rename it · saves automatically</span><span class="sp"></span><button class="tool" id="xfer">💾 Backup / Restore</button><button class="tool" id="rall">Reset all edits</button></div>`:'';
+  const bar=editMode?`<div class="editbar"><b>✏️ EDIT MODE</b><span>Click a tile to edit its clue, answer &amp; explanation · click a category name to rename it · saves drafts on this device</span><span class="sp"></span><button class="tool" id="publish">Publish to GitHub</button><button class="tool" id="xfer">💾 Backup / Restore</button><button class="tool" id="rall">Reset all edits</button></div>`:'';
   let h=`${bar}<div class="board">`;
   R.cats.forEach((c,ci)=>h+=`<div class="cat" ${editMode?`contenteditable="true" spellcheck="false" data-c="${ci}" title="Click to rename"`:''}>${esc(c.t)}</div>`);
   for(let i=0;i<5;i++) R.cats.forEach((c,ci)=>{const id=`${S.round}-${ci}-${i}`,u=S.used[id];
@@ -849,6 +776,7 @@ function renderBoard(){
         el.textContent=cat.t};
     });
     $('#xfer').onclick=openTransfer;
+    $('#publish').onclick=openPublish;
     let armed=false;
     $('#rall').onclick=()=>{if(!armed){armed=true;$('#rall').textContent='Click again to erase ALL edits';setTimeout(()=>{armed=false;const b=$('#rall');if(b)b.textContent='Reset all edits'},3500);return}resetAll();toast('All questions restored to the originals');redrawBoard()};
   } else document.querySelectorAll('.tile:not(.used)').forEach(t=>t.onclick=()=>openClue(S.round,+t.dataset.c,+t.dataset.i));
@@ -931,7 +859,7 @@ function openClue(r,c,i){
 /* ======================= FINAL JEOPARDY ======================= */
 function renderFinalIntro(){
   const T=!!S.temp;
-  $('#main').innerHTML=`${editMode?`<div class="editbar"><b>✏️ EDIT MODE</b><span>Edit the Final Jeopardy category, clue and answer</span><span class="sp"></span><button class="tool" id="xfer">💾 Backup / Restore</button></div>`:''}<div class="board" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;text-align:center;color:#fff;background:var(--board)">
+  $('#main').innerHTML=`${editMode?`<div class="editbar"><b>✏️ EDIT MODE</b><span>Edit the Final Jeopardy category, clue and answer</span><span class="sp"></span><button class="tool" id="xfer">💾 Backup / Restore</button><button class="tool" id="publish">Publish to GitHub</button></div>`:''}<div class="board" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;text-align:center;color:#fff;background:var(--board)">
     <div class="mcat" style="color:var(--gold);font-size:clamp(34px,5vw,70px)">FINAL JEOPARDY!</div>
     <div style="font-family:var(--head);font-weight:700;font-size:clamp(24px,3vw,44px)">Category: ${esc(FINAL.cat)}</div>
     ${T?'':'<button class="big" id="openF">Open Final Jeopardy</button>'}
@@ -939,6 +867,7 @@ function renderFinalIntro(){
   if($('#openF'))$('#openF').onclick=openFinal;
   if($('#edF'))$('#edF').onclick=()=>editFinal(renderFinalIntro);
   if($('#xfer'))$('#xfer').onclick=openTransfer;
+   if($('#publish'))$('#publish').onclick=openPublish;
 }
 function openFinal(){
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
@@ -977,7 +906,7 @@ function openFinal(){
 }
 
 /* boot */
-const saved=load(); renderSetup();
+const saved=load(); renderSetup();loadCloud();
 </script>
 </body>
 </html>
