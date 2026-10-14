@@ -224,6 +224,13 @@ body.compact footer{padding:4px 10px 8px}
   .answer .a{font-size:calc(clamp(28px,6.8vw,42px)*var(--font-scale,1))}
   .answer .w{font-size:calc(clamp(22px,5vw,32px)*var(--font-scale,1))}
 }
+
+.reference-gel{display:flex;align-items:center;justify-content:center;min-height:0;width:100%}
+.reference-gel .vis{max-height:min(56vh,760px);width:auto;max-width:min(880px,93vw);object-fit:contain}
+.reference-gel-fallback{max-width:100%}
+.reference-gel-fallback[hidden]{display:none}
+.modal.is-judging .reference-gel .vis{max-height:24vh}
+@media(max-height:740px){.reference-gel .vis{max-height:39vh}}
 </style>
 </head>
 <body>
@@ -314,11 +321,51 @@ function slopeSVG(){
   s+=line(3,'#dc2626','Fragment X')+line(1.5,'#2563eb','Fragment Y');
   return s+`</svg>`;
 }
+/* Provisional vector versions of the teacher-provided gel patterns. The exact
+   photos appear automatically when uploaded to the matching assets/ paths. */
+function gelReferenceCrimeSVG(){
+  const xs=[338,468,598,728,858,988];
+  const labels=['LADDER','CRIME SCENE','SUSPECT 1','SUSPECT 2','SUSPECT 3','SUSPECT 4'];
+  const bands=[[311,375,454,543,679,710,988,1167],[504,616,734,886],[473,617,774,940],[504,616,734,886],[410,672,734,842,988],[473,617,774,940]];
+  const ladder=['23,130 bp','9416 bp','6557 bp','4361 bp','2322 bp','2027 bp','564 bp','125 bp'];
+  let s='<svg class="vis" viewBox="0 0 1150 1320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crime scene gel">';
+  s+='<rect width="1150" height="1320" rx="20" fill="#fff"/><rect x="238" y="220" width="860" height="1070" rx="18" fill="#14161b"/>';
+  xs.forEach((x,i)=>{
+    s+='<text transform="translate('+(x-10)+' 190) rotate(-45)" font-family="Arial,sans-serif" font-size="37" font-weight="800" fill="#13131a">'+labels[i]+'</text>';
+    s+='<rect x="'+(x-44)+'" y="260" width="88" height="20" rx="4" fill="#272c37" stroke="#667081" stroke-width="3"/>';
+    bands[i].forEach((y,j)=>{
+      s+='<rect x="'+(x-42)+'" y="'+(y-11)+'" width="84" height="22" rx="6" fill="'+(i===0&&j>=4?'#9d9b96':'#fffcf4')+'"/>';
+    });
+  });
+  bands[0].forEach((y,i)=>{
+    s+='<line x1="215" y1="'+y+'" x2="233" y2="'+y+'" stroke="#17171a" stroke-width="3"/>';
+    s+='<text x="200" y="'+(y+12)+'" text-anchor="end" font-family="Arial,sans-serif" font-size="33" fill="#17171a">'+ladder[i]+'</text>';
+  });
+  return s+'</svg>';
+}
+function gelReferencePaternitySVG(){
+  const xs=[170,328,486,645,802],labels=['Mother','Child','Father 1','Father 2','Father 3'];
+  const bands=[[609,779,964,1182],[609,748,964,1218],[572,720,865,1082],[641,748,911,1218],[462,748,824,1218]];
+  let s='<svg class="vis" viewBox="0 0 1014 1370" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mother, child, and three candidate fathers">';
+  s+='<rect width="1014" height="1370" rx="16" fill="#f8f8f8"/><rect x="50" y="226" width="875" height="1120" rx="15" fill="none" stroke="#262626" stroke-width="4"/>';
+  xs.forEach((x,i)=>{
+    s+='<text transform="translate('+(x-20)+' 195) rotate(-45)" font-family="Arial,sans-serif" font-size="45" font-weight="700" fill="#171717">'+labels[i]+'</text>';
+    s+='<rect x="'+(x-53)+'" y="271" width="106" height="25" rx="4" fill="none" stroke="#303030" stroke-width="4"/>';
+    bands[i].forEach(y=>s+='<rect x="'+(x-49)+'" y="'+(y-9)+'" width="98" height="19" rx="7" fill="#131313"/>');
+  });
+  return s+'</svg>';
+}
+function referenceGel(path,fallback,alt){
+  return '<div class="reference-gel"><img class="vis reference-gel-photo" src="'+path+'" alt="'+alt+'" hidden '+
+    'onload="this.hidden=false;this.nextElementSibling.hidden=true" '+
+    'onerror="this.hidden=true;this.nextElementSibling.hidden=false">'+
+    '<div class="reference-gel-fallback">'+fallback()+'</div></div>';
+}
 const VIS={
   ladder:ladderSVG,
   gelSize:()=>gelSVG([{label:'Ladder (bp)',bands:[[10,'1000'],[25,'750'],[40,'500'],[62,'250'],[85,'100']]},{label:'Cut DNA',bands:[[10,'W'],[40,'X'],[62,'Y'],[85,'Z']]}],'gel with ladder'),
-  gelCrime:()=>gelSVG([{label:'Crime Scene',bands:[18,46,72]},{label:'Suspect 1',bands:[18,55,86]},{label:'Suspect 2',bands:[30,46,72]},{label:'Suspect 3',bands:[18,46,72]},{label:'Suspect 4',bands:[24,60]}],'crime gel'),
-  gelPup:()=>gelSVG([{label:'Mother',bands:[20,45,70]},{label:'Puppy',bands:[[20,'1'],[34,'2'],[58,'3'],[70,'4']]},{label:'Male A',bands:[26,34,58,86]},{label:'Male B',bands:[34,50,66,90]}],'paternity gel'),
+  gelCrime:()=>referenceGel('assets/gel-electrophoresis-11.png',gelReferenceCrimeSVG,'Crime scene gel with ladder and suspects 1–4'),
+  gelPup:()=>referenceGel('assets/gel-electrophoresis-13.png',gelReferencePaternitySVG,'Paternity gel with mother, child and fathers 1–3'),
   slope:slopeSVG,
   nucleus:()=>nucleusSVG(7,8),
   bohrAl:()=>bohrSVG([2,8,3],['p = 13','n = 14']),
