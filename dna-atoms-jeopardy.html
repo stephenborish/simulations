@@ -57,18 +57,32 @@ footer{display:flex;gap:8px;padding:8px 16px 14px;flex-wrap:wrap;align-items:str
 .side{display:flex;flex-direction:column;gap:6px}
 
 /* modal */
-.modal{position:fixed;inset:0;top:0;background:var(--board);color:var(--white);display:flex;flex-direction:column;z-index:50;padding:calc(env(safe-area-inset-top,0px) + 14px) 22px calc(env(safe-area-inset-bottom,0px) + 14px);overflow:auto}
-.mtop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.mcat{font-family:var(--head);font-weight:700;text-transform:uppercase;font-size:clamp(18px,2vw,28px);color:var(--muted)}
-.mval{font-family:var(--head);font-weight:800;font-size:clamp(26px,3vw,42px);color:var(--gold)}
-.clue{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;padding:14px 0}
-.qtext{font-family:var(--body);font-weight:600;font-size:clamp(22px,2.9vw,44px);line-height:1.25;max-width:1200px;text-shadow:2px 2px 0 #0008}
-.qtext.small{font-size:clamp(19px,2.3vw,34px)}
-.vis{background:#fff;border-radius:12px;max-width:100%;width:min(640px,92vw);height:auto;max-height:46vh}
-.answer{background:#ffffff14;border:2px solid var(--gold);border-radius:14px;padding:14px 20px;max-width:1150px;text-align:left}
-.answer .a{font-family:var(--head);font-weight:800;color:var(--gold);font-size:clamp(22px,2.6vw,40px);line-height:1.15}
-.answer .w{font-size:clamp(16px,1.7vw,24px);line-height:1.35;margin-top:8px;color:#e6eaff}
-.answer .w b{color:var(--gold)}
+/* Modal and projection-ready question typography */
+:root {
+  --font-scale: 1;
+}
+.modal{position:fixed;inset:0;top:0;background:radial-gradient(circle at 50% 30%, #0c1a7a 0%, var(--board) 85%);color:var(--white);display:flex;flex-direction:column;z-index:50;padding:calc(env(safe-area-inset-top,0px) + 14px) 24px calc(env(safe-area-inset-bottom,0px) + 14px);overflow-y:auto}
+.mtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;width:100%;max-width:min(1560px,98vw);margin:0 auto}
+.mcat{font-family:var(--head);font-weight:700;text-transform:uppercase;font-size:clamp(20px,2.2vw,32px);color:var(--muted);letter-spacing:.5px}
+.mval{font-family:var(--head);font-weight:800;font-size:clamp(28px,3.2vw,46px);color:var(--gold);text-shadow:2px 2px 0 #000}
+.mfont{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.14);border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:3px 8px;margin:0 4px}
+.mfont button{background:transparent;border:0;color:#fff;font-family:var(--head);font-weight:800;font-size:16px;padding:2px 8px;border-radius:4px;cursor:pointer;transition:background .15s}
+.mfont button:hover{background:rgba(255,255,255,0.25)}
+.mfont span{font-size:14px;color:var(--gold);font-weight:800;padding:0 4px}
+#trk{cursor:pointer;user-select:none;transition:opacity .15s,transform .1s}
+#trk:hover{opacity:.85;text-decoration:underline}
+#trk:active{transform:scale(.97)}
+
+.clue{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:clamp(14px,2.5vh,32px);padding:14px 0;width:100%}
+.qtext{font-family:var(--body);font-weight:700;font-size:calc(clamp(40px,4.8vw,84px)*var(--font-scale,1));line-height:1.18;max-width:min(1520px,98vw);text-wrap:balance;text-shadow:0 2px 10px rgba(0,0,0,0.7),0 1px 3px rgba(0,0,0,0.9);letter-spacing:-0.2px}
+.qtext.small{font-size:calc(clamp(34px,3.8vw,68px)*var(--font-scale,1));line-height:1.22;font-weight:600}
+.vis{background:#fff;border-radius:12px;max-width:100%;width:min(640px,92vw);height:auto;max-height:44vh}
+.answer{background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:3px solid var(--gold);border-radius:18px;padding:clamp(18px,2.4vw,30px) clamp(22px,3.2vw,40px);max-width:min(1480px,98vw);text-align:left;box-shadow:0 8px 32px rgba(0,0,0,0.55);animation:answerPop .22s ease-out}
+@keyframes answerPop{0%{transform:scale(.97);opacity:0}100%{transform:scale(1);opacity:1}}
+.answer .a{font-family:var(--head);font-weight:800;color:var(--gold);font-size:calc(clamp(38px,4.4vw,76px)*var(--font-scale,1));line-height:1.15;text-shadow:0 2px 6px rgba(0,0,0,0.6);letter-spacing:.3px}
+.answer .w{font-size:calc(clamp(26px,2.7vw,44px)*var(--font-scale,1));line-height:1.36;margin-top:12px;color:#f1f4ff;font-weight:500;text-shadow:0 1px 4px rgba(0,0,0,0.6)}
+.answer .w b{color:var(--gold);font-weight:800}
+
 .mbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center}
 .big{background:var(--gold);color:#111;border:0;border-radius:12px;padding:12px 22px;font-weight:800;font-size:clamp(16px,1.6vw,22px)}
 .ghost{background:transparent;color:#fff;border:2px solid #ffffff66;border-radius:12px;padding:10px 18px;font-weight:700;font-size:16px}
@@ -134,15 +148,19 @@ body.compact footer{padding:4px 10px 8px}
 #tx{width:100%;min-height:42vh;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;border-radius:10px;padding:10px;background:#fff;color:#0c1446;border:0}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%);background:#111;color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;z-index:300;max-width:90vw;box-shadow:0 6px 24px #0008;text-align:center;font-size:16px}
 
-/* Larger, projection-first text for clues, answers and explanations. */
-.qtext{font-size:clamp(34px,4.2vw,72px);line-height:1.17;max-width:min(1440px,96vw);text-wrap:balance}
-.qtext.small{font-size:clamp(29px,3.5vw,56px);line-height:1.2}
-.answer{max-width:min(1400px,96vw);padding:18px 26px}
-.answer .a{font-size:clamp(32px,3.7vw,62px);line-height:1.18}
-.answer .w{font-size:clamp(25px,2.5vw,40px);line-height:1.3}
-.clue{gap:clamp(12px,2vh,28px)}
-@media(max-height:740px){.qtext{font-size:clamp(28px,3.4vw,53px)}.qtext.small{font-size:clamp(25px,2.9vw,45px)}.answer .a{font-size:clamp(28px,3.1vw,48px)}.answer .w{font-size:clamp(22px,2vw,32px)}.vis{max-height:36vh}}
-@media(max-width:640px){.qtext{font-size:clamp(27px,6.5vw,39px)}.qtext.small{font-size:clamp(25px,5.7vw,34px)}.answer .a{font-size:clamp(25px,6vw,36px)}.answer .w{font-size:clamp(21px,4.5vw,29px)}}
+@media(max-height:760px){
+  .qtext{font-size:calc(clamp(32px,3.8vw,60px)*var(--font-scale,1))}
+  .qtext.small{font-size:calc(clamp(28px,3.2vw,50px)*var(--font-scale,1))}
+  .answer .a{font-size:calc(clamp(32px,3.6vw,58px)*var(--font-scale,1))}
+  .answer .w{font-size:calc(clamp(23px,2.3vw,36px)*var(--font-scale,1))}
+  .vis{max-height:34vh}
+}
+@media(max-width:640px){
+  .qtext{font-size:calc(clamp(28px,6.8vw,44px)*var(--font-scale,1))}
+  .qtext.small{font-size:calc(clamp(24px,5.8vw,38px)*var(--font-scale,1))}
+  .answer .a{font-size:calc(clamp(28px,6.8vw,42px)*var(--font-scale,1))}
+  .answer .w{font-size:calc(clamp(22px,5vw,32px)*var(--font-scale,1))}
+}
 </style>
 </head>
 <body>
@@ -384,60 +402,316 @@ const sfx={
   fanfare(){[[60,0],[64,.15],[67,.3],[72,.45],[67,.65],[72,.8]].forEach(([m,t],i)=>tone(mf(m),t,i===5?1.2:.22,{type:'sawtooth',vol:.08}));
             [48,55,60].forEach(m=>tone(mf(m),.8,1.2,{type:'triangle',vol:.1}))}
 };
-/* ===== Countdown music: 5 original 20-second tracks, synthesized live with Web Audio ===== */
+/* ===== Countdown music: 5 original studio-grade tracks, synthesized live with Web Audio ===== */
 function createCountdownMusic(ctx){
-  // Airy, harmonically rich minimalist cues, designed for classroom discussion.
-  const tracks=[
-    {name:'Afterglow',r:45,c:[[57,60,64,67],[55,60,64,67],[53,57,60,64],[55,59,62,65]],m:[76,72,79,74,72]},
-    {name:'Glasshouse',r:48,c:[[60,64,67,71],[57,60,64,69],[55,59,64,67],[57,60,65,69]],m:[79,76,72,74,76]},
-    {name:'Blue Hour',r:41,c:[[53,57,60,64],[55,59,62,67],[57,60,64,67],[52,57,60,64]],m:[72,76,79,76,69]},
-    {name:'Quiet Orbit',r:43,c:[[55,59,62,66],[57,60,64,67],[59,62,66,69],[57,60,64,69]],m:[74,78,81,78,76]}
-  ];
-  let bag=[],last=-1,current=null;const hz=n=>440*Math.pow(2,(n-69)/12);
-  function next(){if(!bag.length){bag=tracks.map((_,i)=>i).sort(()=>Math.random()-.5);if(bag[0]===last)bag.push(bag.shift())}last=bag.shift();return tracks[last]}
-  function note(dest,t,n,d,v,w='sine',attack=.025,filter=0){
-    const osc=ctx.createOscillator(),g=ctx.createGain();
-    osc.type=w;osc.frequency.value=hz(n);
-    const end=t+d;g.gain.setValueAtTime(.00001,t);
-    g.gain.linearRampToValueAtTime(v,t+Math.min(attack,d*.45));
-    g.gain.setValueAtTime(v*.78,Math.max(t+attack,end-.65));
-    g.gain.exponentialRampToValueAtTime(.00001,end);
-    if(filter){const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=filter;osc.connect(lp);lp.connect(g)}
-    else osc.connect(g);
-    g.connect(dest);osc.start(t);osc.stop(end+.04);
+  function getNoise(){
+    if(ctx._noiseBuf)return ctx._noiseBuf;
+    const len=Math.floor(ctx.sampleRate*2.0),buf=ctx.createBuffer(1,len,ctx.sampleRate),data=buf.getChannelData(0);
+    for(let i=0;i<len;i++)data[i]=Math.random()*2-1;
+    ctx._noiseBuf=buf;return buf;
   }
-  function score(p,seconds){
-    const out=ctx.createGain(),dry=ctx.createGain(),wet=ctx.createGain(),delay=ctx.createDelay(1),feedback=ctx.createGain(),lp=ctx.createBiquadFilter();
-    out.connect(SND.master);dry.gain.value=.7;dry.connect(out);
-    wet.gain.value=.16;wet.connect(delay);delay.delayTime.value=.33;feedback.gain.value=.17;lp.type='lowpass';lp.frequency.value=1700;
-    delay.connect(lp);lp.connect(out);lp.connect(feedback);feedback.connect(delay);
-    const t=ctx.currentTime+.06,E=t+seconds;
-    out.gain.setValueAtTime(.00001,t);out.gain.linearRampToValueAtTime(.46,t+.85);
-    out.gain.setValueAtTime(.46,Math.max(t+.85,E-2));
-    out.gain.linearRampToValueAtTime(.28,E-.25);out.gain.linearRampToValueAtTime(.00001,E+1.5);
-    const section=seconds/4;
-    for(let i=0;i<4;i++){
-      const when=t+i*section,ch=p.c[i];
-      ch.forEach((n,k)=>{note(dry,when+k*.05,n,Math.min(section+1.5,seconds-i*section+1),.032,'sine',.65);
-        if(k===2)note(wet,when+.12,n+12,Math.min(section+1,seconds-i*section+1),.016,'triangle',.65,1600)});
-      note(dry,when,p.r+[0,0,-2,-5][i],Math.min(section+1,seconds-i*section+1),.078,'sine',.12);
-    }
-    [.16,.34,.55,.73,.87].forEach((x,i)=>{
-      const when=t+seconds*x;
-      note(dry,when,p.m[i],1.35,.05,'sine',.012);
-      note(wet,when,p.m[i]+12,.8,.012,'sine',.005);
+  function buildReverb(){
+    const input=ctx.createGain(),output=ctx.createGain();
+    const combDelays=[0.0297,0.0371,0.0411,0.0437],combGains=[0.82,0.79,0.76,0.73];
+    const combSum=ctx.createGain();combSum.gain.value=0.28;
+    combDelays.forEach((dt,i)=>{
+      const delay=ctx.createDelay(0.1);delay.delayTime.value=dt;
+      const fb=ctx.createGain();fb.gain.value=combGains[i];
+      const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=3200;
+      input.connect(delay);delay.connect(filter);filter.connect(fb);fb.connect(delay);filter.connect(combSum);
     });
-    for(let x=2;x<seconds-3;x+=2.7)note(dry,t+x,p.r-12,.26,.022,'sine',.014);
-    note(dry,E,p.m[0]-12,1.3,.055,'sine',.025);
-    note(wet,E+.12,p.m[0],1.15,.033,'sine',.025);
-    return out;
+    const ap1=ctx.createDelay(0.01);ap1.delayTime.value=0.0051;
+    const ap2=ctx.createDelay(0.01);ap2.delayTime.value=0.0017;
+    combSum.connect(ap1);ap1.connect(ap2);ap2.connect(output);
+    return {input,output};
   }
-  return {tracks,
-    play(out,sec,index){this.stop();const p=index==null?next():tracks[index%tracks.length];current=score(p,sec);return p.name},
-    stop(){if(!current)return;const n=current;current=null;const t=ctx.currentTime;
-      n.gain.cancelScheduledValues(t);n.gain.setValueAtTime(Math.max(.00001,n.gain.value),t);
-      n.gain.exponentialRampToValueAtTime(.00001,t+.18);
-      setTimeout(()=>{try{n.disconnect()}catch(e){}},300)}
+  function buildPingPong(timeL=0.33,timeR=0.49,feedback=0.2,cutoff=2400){
+    const input=ctx.createGain(),output=ctx.createGain();
+    const merger=ctx.createChannelMerger?ctx.createChannelMerger(2):ctx.createGain();
+    const dL=ctx.createDelay(1.2),dR=ctx.createDelay(1.2);
+    dL.delayTime.value=timeL;dR.delayTime.value=timeR;
+    const fbL=ctx.createGain();fbL.gain.value=feedback;
+    const fbR=ctx.createGain();fbR.gain.value=feedback;
+    const fL=ctx.createBiquadFilter();fL.type='lowpass';fL.frequency.value=cutoff;
+    const fR=ctx.createBiquadFilter();fR.type='lowpass';fR.frequency.value=cutoff;
+    input.connect(dL);dL.connect(fL);fL.connect(fbL);fbL.connect(dR);
+    dR.connect(fR);fR.connect(fbR);fbR.connect(dL);
+    if(ctx.createChannelMerger){fL.connect(merger,0,0);fR.connect(merger,0,1)}
+    else{fL.connect(merger);fR.connect(merger)}
+    merger.connect(output);
+    return {input,output};
+  }
+
+  const tracks=[
+    {name:'Quantum Groove',bpm:92},
+    {name:'Celestial Helix',bpm:96},
+    {name:'Midnight Laboratory',bpm:108},
+    {name:'Golden Molecule',bpm:90},
+    {name:'Deep Focus',bpm:100}
+  ];
+
+  let bag=[],last=-1,current=null;
+  function nextTrack(){
+    if(!bag.length){bag=tracks.map((_,i)=>i).sort(()=>Math.random()-.5);if(bag[0]===last)bag.push(bag.shift())}
+    last=bag.shift();return tracks[last];
+  }
+
+  function score(track,seconds){
+    const activeSources=[],masterOut=ctx.createGain(),dryBus=ctx.createGain();
+    const revNet=buildReverb(),delayNet=buildPingPong();
+    dryBus.gain.value=0.82;revNet.output.gain.value=0.38;delayNet.output.gain.value=0.28;
+    dryBus.connect(masterOut);revNet.output.connect(masterOut);delayNet.output.connect(masterOut);
+    masterOut.connect(SND.master);
+
+    const t0=ctx.currentTime+0.05,tend=t0+seconds;
+    masterOut.gain.setValueAtTime(0.0001,t0);
+    masterOut.gain.linearRampToValueAtTime(0.55,t0+0.6);
+    masterOut.gain.setValueAtTime(0.55,Math.max(t0+0.6,tend-1.8));
+    masterOut.gain.linearRampToValueAtTime(0.35,tend-0.3);
+    masterOut.gain.linearRampToValueAtTime(0.0001,tend+1.0);
+
+    function noiseBurst(t,dur,hp,bp,vol){
+      if(t>=tend)return;
+      const src=ctx.createBufferSource();src.buffer=getNoise();src.loop=true;let lastNode=src;
+      if(hp){const h=ctx.createBiquadFilter();h.type='highpass';h.frequency.value=hp;lastNode.connect(h);lastNode=h}
+      if(bp){const b=ctx.createBiquadFilter();b.type='bandpass';b.frequency.value=bp;b.Q.value=1.8;lastNode.connect(b);lastNode=b}
+      const g=ctx.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol,t+0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      lastNode.connect(g);g.connect(dryBus);src.start(t);src.stop(t+dur+0.05);activeSources.push(src);
+    }
+    function playRhodes(t,midi,dur,vel=0.07){
+      if(t>=tend)return;
+      const f=mf(midi),end=Math.min(t+dur,tend+0.5),out=ctx.createGain(),g=ctx.createGain();
+      g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vel,t+0.006);
+      g.gain.exponentialRampToValueAtTime(vel*0.45,t+Math.min(dur*0.5,1.8));
+      g.gain.exponentialRampToValueAtTime(0.0001,end);
+      [f,f*2,f*3].forEach((freq,i)=>{
+        const osc=ctx.createOscillator();osc.type='sine';osc.frequency.value=freq;
+        const og=ctx.createGain();og.gain.value=[1.0,0.22,0.06][i];
+        osc.connect(og);og.connect(g);osc.start(t);osc.stop(end+0.05);activeSources.push(osc);
+      });
+      g.connect(out);out.connect(dryBus);
+      const rSend=ctx.createGain();rSend.gain.value=0.25;out.connect(rSend);rSend.connect(revNet.input);
+      const dSend=ctx.createGain();dSend.gain.value=0.15;out.connect(dSend);dSend.connect(delayNet.input);
+    }
+    function playPad(t,chord,dur,vel=0.04){
+      if(t>=tend)return;
+      const end=Math.min(t+dur,tend+0.8),padGain=ctx.createGain(),filter=ctx.createBiquadFilter();
+      filter.type='lowpass';filter.frequency.setValueAtTime(800,t);
+      filter.frequency.linearRampToValueAtTime(1300,t+(end-t)*0.5);
+      filter.frequency.linearRampToValueAtTime(750,end);filter.Q.value=1.0;
+      padGain.gain.setValueAtTime(0.0001,t);padGain.gain.linearRampToValueAtTime(vel,t+0.35);
+      padGain.gain.setValueAtTime(vel*0.9,Math.max(t+0.35,end-0.5));
+      padGain.gain.exponentialRampToValueAtTime(0.0001,end);
+      chord.forEach(midi=>{
+        const f=mf(midi);
+        const osc1=ctx.createOscillator();osc1.type='sawtooth';osc1.frequency.value=f*1.0008;
+        const osc2=ctx.createOscillator();osc2.type='triangle';osc2.frequency.value=f*0.9992;
+        osc1.connect(filter);osc2.connect(filter);osc1.start(t);osc2.start(t);
+        osc1.stop(end+0.05);osc2.stop(end+0.05);activeSources.push(osc1,osc2);
+      });
+      filter.connect(padGain);padGain.connect(dryBus);
+      const rSend=ctx.createGain();rSend.gain.value=0.45;padGain.connect(rSend);rSend.connect(revNet.input);
+    }
+    function playBass(t,midi,dur,vel=0.11){
+      if(t>=tend)return;
+      const f=mf(midi),end=Math.min(t+dur,tend+0.2),osc=ctx.createOscillator();
+      osc.type='triangle';osc.frequency.value=f;
+      const filter=ctx.createBiquadFilter();filter.type='lowpass';
+      filter.frequency.setValueAtTime(1100,t);filter.frequency.exponentialRampToValueAtTime(450,t+0.14);
+      const g=ctx.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vel,t+0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001,end);
+      osc.connect(filter);filter.connect(g);g.connect(dryBus);
+      osc.start(t);osc.stop(end+0.05);activeSources.push(osc);
+    }
+    function playMallet(t,midi,dur,vel=0.05,pan=0){
+      if(t>=tend)return;
+      const f=mf(midi),end=Math.min(t+dur,tend+0.5),out=ctx.createGain();
+      const osc1=ctx.createOscillator();osc1.type='sine';osc1.frequency.value=f;
+      const g1=ctx.createGain();g1.gain.setValueAtTime(0.0001,t);g1.gain.linearRampToValueAtTime(vel,t+0.002);
+      g1.gain.exponentialRampToValueAtTime(0.0001,end);osc1.connect(g1);g1.connect(out);
+      osc1.start(t);osc1.stop(end+0.05);
+      const osc2=ctx.createOscillator();osc2.type='sine';osc2.frequency.value=f*2.756;
+      const g2=ctx.createGain();g2.gain.setValueAtTime(vel*0.2,t);g2.gain.exponentialRampToValueAtTime(0.0001,t+dur*0.4);
+      osc2.connect(g2);g2.connect(out);osc2.start(t);osc2.stop(t+dur*0.45);
+      activeSources.push(osc1,osc2);
+      let finalNode=out;
+      if(ctx.createStereoPanner){
+        const panner=ctx.createStereoPanner();panner.pan.value=Math.max(-1,Math.min(1,pan));
+        out.connect(panner);finalNode=panner;
+      }
+      finalNode.connect(dryBus);
+      const rSend=ctx.createGain();rSend.gain.value=0.35;finalNode.connect(rSend);rSend.connect(revNet.input);
+      const dSend=ctx.createGain();dSend.gain.value=0.25;finalNode.connect(dSend);dSend.connect(delayNet.input);
+    }
+    function playKick(t,vel=0.13){
+      if(t>=tend)return;
+      const osc=ctx.createOscillator();osc.type='sine';
+      osc.frequency.setValueAtTime(120,t);osc.frequency.exponentialRampToValueAtTime(42,t+0.06);
+      const g=ctx.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vel,t+0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.11);
+      osc.connect(g);g.connect(dryBus);osc.start(t);osc.stop(t+0.14);activeSources.push(osc);
+    }
+    function playSnareRim(t,vel=0.055){
+      if(t>=tend)return;
+      noiseBurst(t,0.055,1200,2400,vel*0.75);
+      const osc=ctx.createOscillator();osc.type='triangle';osc.frequency.value=260;
+      const g=ctx.createGain();g.gain.setValueAtTime(vel*0.4,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
+      osc.connect(g);g.connect(dryBus);osc.start(t);osc.stop(t+0.045);activeSources.push(osc);
+    }
+    function playShaker(t,vel=0.022){if(t>=tend)return;noiseBurst(t,0.02,6500,0,vel)}
+    function playClave(t,vel=0.045){
+      if(t>=tend)return;
+      const osc=ctx.createOscillator();osc.type='sine';osc.frequency.value=1950;
+      const g=ctx.createGain();g.gain.setValueAtTime(vel,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.02);
+      osc.connect(g);g.connect(dryBus);osc.start(t);osc.stop(t+0.03);activeSources.push(osc);
+    }
+
+    const beat=60/track.bpm,bar=beat*4;
+
+    if(track.name==='Quantum Groove'){
+      const chords=[
+        {pad:[57,60,64,69],root:38,walk:[38,41,43,45]},
+        {pad:[55,59,64,69],root:43,walk:[43,47,50,53]},
+        {pad:[55,59,62,67],root:36,walk:[36,40,43,47]},
+        {pad:[55,58,61,65],root:45,walk:[45,49,52,55]}
+      ];
+      const melody=[76,74,72,69,72,74,76,79];let b=0,mIdx=0;
+      for(let cur=t0;cur<tend-0.5;cur+=bar){
+        const ch=chords[b%chords.length];
+        playPad(cur,ch.pad,bar+0.2,0.035);
+        playRhodes(cur,ch.pad[0],0.7,0.06);
+        playRhodes(cur+beat*1.5,ch.pad[2],0.5,0.05);
+        playRhodes(cur+beat*3,ch.pad[1],0.6,0.055);
+        for(let i=0;i<4;i++){
+          const tBeat=cur+i*beat;
+          playBass(tBeat,ch.walk[i],beat*0.85,0.1);
+          if(i===0||i===2)playKick(tBeat,0.12);
+          if(i===1||i===3)playSnareRim(tBeat,0.05);
+          for(let s=0;s<4;s++)playShaker(tBeat+s*(beat/4),(s%2===0?0.025:0.015));
+        }
+        if(b%2===1){
+          playMallet(cur+beat*2,melody[mIdx%melody.length],0.9,0.05,0.3);
+          playMallet(cur+beat*3,melody[(mIdx+1)%melody.length],0.7,0.045,-0.3);
+          mIdx+=2;
+        }
+        b++;
+      }
+    } else if(track.name==='Celestial Helix'){
+      const chords=[
+        {pad:[53,57,60,64,65],root:41},
+        {pad:[55,59,62,67],root:43},
+        {pad:[52,55,59,62,66],root:40},
+        {pad:[52,57,60,64,67],root:45}
+      ];
+      const arp=[76,79,83,84,88,84,83,79];let b=0;
+      for(let cur=t0;cur<tend-0.5;cur+=bar){
+        const ch=chords[b%chords.length];
+        playPad(cur,ch.pad,bar+0.3,0.04);
+        playBass(cur,ch.root,beat*1.8,0.12);
+        playBass(cur+beat*2.5,ch.root,beat*1.2,0.09);
+        for(let i=0;i<4;i++){
+          const tBeat=cur+i*beat;playClave(tBeat,0.04);
+          if(i===0||i===2)playKick(tBeat,0.09);
+        }
+        for(let a=0;a<8;a++){
+          const tArp=cur+a*(beat/2),pan=(a%2===0?-0.4:0.4);
+          playMallet(tArp,arp[(a+b*2)%arp.length],0.6,0.038,pan);
+        }
+        b++;
+      }
+    } else if(track.name==='Midnight Laboratory'){
+      const chords=[
+        {pad:[55,58,62,67],root:43},
+        {pad:[51,55,58,65],root:39},
+        {pad:[53,57,62,65],root:46},
+        {pad:[53,57,60,65],root:41}
+      ];
+      let b=0;
+      for(let cur=t0;cur<tend-0.5;cur+=bar){
+        const ch=chords[b%chords.length];
+        playPad(cur,ch.pad,bar+0.1,0.03);
+        for(let i=0;i<8;i++){
+          const t8=cur+i*(beat/2),bassNote=(i%2===0?ch.root:ch.root+7);
+          playBass(t8,bassNote,(beat/2)*0.7,0.08);
+          if(i%2===1)playRhodes(t8,ch.pad[i%ch.pad.length],0.3,0.045);
+        }
+        for(let i=0;i<4;i++){
+          const tBeat=cur+i*beat;
+          if(i===0||i===2)playKick(tBeat,0.13);
+          if(i===1||i===3)playSnareRim(tBeat,0.05);
+          for(let s=0;s<4;s++)playShaker(tBeat+s*(beat/4),0.02);
+        }
+        b++;
+      }
+    } else if(track.name==='Golden Molecule'){
+      const chords=[
+        {pad:[52,56,59,63,66],root:40},
+        {pad:[51,56,59,66],root:44},
+        {pad:[52,57,61,64],root:45},
+        {pad:[54,59,63,66],root:47}
+      ];
+      const bells=[68,71,75,78,80,78,75,71];let b=0;
+      for(let cur=t0;cur<tend-0.5;cur+=bar){
+        const ch=chords[b%chords.length];
+        playPad(cur,ch.pad,bar+0.3,0.032);
+        playBass(cur,ch.root,beat*1.5,0.1);
+        playBass(cur+beat*2,ch.root+7,beat*1.5,0.09);
+        for(let i=0;i<4;i++){
+          const tBeat=cur+i*beat;
+          playSnareRim(tBeat+beat*0.5,0.035);
+          if(i===0||i===2)playKick(tBeat,0.09);
+        }
+        for(let j=0;j<4;j++){
+          const tBell=cur+j*beat;
+          playMallet(tBell,bells[(j+b*2)%bells.length],0.8,0.045,(j%2===0?-0.3:0.3));
+        }
+        b++;
+      }
+    } else { // Deep Focus
+      const chords=[
+        {pad:[54,57,62,66],root:47},
+        {pad:[50,54,57,62],root:43},
+        {pad:[50,54,57,61],root:50},
+        {pad:[49,54,57,61],root:42}
+      ];
+      const pattern=[59,62,66,69,71,69,66,62];let b=0;
+      for(let cur=t0;cur<tend-0.5;cur+=bar){
+        const ch=chords[b%chords.length];
+        playPad(cur,ch.pad,bar+0.3,0.038);
+        playBass(cur,ch.root,bar*0.9,0.1);
+        for(let i=0;i<8;i++){
+          const t8=cur+i*(beat/2),pan=((i%4)-1.5)*0.4;
+          playMallet(t8,pattern[(i+b)%pattern.length],0.5,0.04,pan);
+          if(i%2===0)playClave(t8,0.03);
+          if(i===0||i===4)playKick(t8,0.08);
+        }
+        b++;
+      }
+    }
+    return {masterOut,activeSources};
+  }
+
+  return {
+    tracks,
+    play(out,sec,index){
+      this.stop();
+      const p=index==null?nextTrack():tracks[index%tracks.length];
+      current=score(p,sec);
+      return p.name;
+    },
+    stop(){
+      if(!current)return;
+      const n=current;current=null;
+      const t=ctx.currentTime;
+      n.masterOut.gain.cancelScheduledValues(t);
+      n.masterOut.gain.setValueAtTime(Math.max(0.0001,n.masterOut.gain.value),t);
+      n.masterOut.gain.exponentialRampToValueAtTime(0.0001,t+0.18);
+      setTimeout(()=>{
+        try{n.masterOut.disconnect()}catch(e){}
+        n.activeSources.forEach(s=>{try{s.stop();s.disconnect()}catch(e){}});
+      },250);
+    }
   };
 }
 
@@ -455,7 +729,16 @@ function stopAllMusic(){stopMusic();stopAud('theme',true);stopAud('dd',true)}
 /* ======================= TEACHER EDITS + FULL SCREEN ======================= */
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function plain(s){const d=document.createElement('div');d.innerHTML=s;return (d.textContent||'').replace(/\s+/g,' ').trim()}
-const isSmall=Q=>!!Q.small||plain(Q.q).length>110;
+const isSmall=Q=>!!Q.small||plain(Q.q).length>180;
+let fontScale=parseFloat(localStorage.getItem('jeopardy-font-scale')||'1.0');
+function applyFontScale(scale){
+  fontScale=Math.max(0.8,Math.min(1.5,Math.round(scale*10)/10));
+  document.documentElement.style.setProperty('--font-scale',fontScale);
+  try{localStorage.setItem('jeopardy-font-scale',fontScale.toString())}catch(e){}
+  document.querySelectorAll('#font-val').forEach(el=>el.textContent=Math.round(fontScale*100)+'%');
+}
+function changeFontScale(delta){applyFontScale(fontScale+delta)}
+applyFontScale(fontScale);
 const typing=e=>{const t=e.target;return !!(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))};
 function toast(msg,ms){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),ms||3200)}
 const NOSAVE='Saved for now, but this browser is blocking storage. Use 💾 Backup / Restore to keep your edits.';
@@ -475,7 +758,7 @@ function toggleFS(){
 }
 document.addEventListener('fullscreenchange',setCompact);document.addEventListener('webkitfullscreenchange',setCompact);
 
-/* --- content store: only differences from the originals are saved --- */
+/* --- content store: differences from originals, with cloud sync & offline exports --- */
 const CKEY='dna-atoms-jeopardy-content-v1';
 const CLOUD_REPO='stephenborish/simulations',CLOUD_FILE='dna-atoms-jeopardy-questions.json';
 const CLOUD_URL='https://api.github.com/repos/'+CLOUD_REPO+'/contents/'+CLOUD_FILE;
@@ -483,55 +766,154 @@ let cloudSha=null,cloudPublished=null,cloudReady=false,cloudBusy=false,cloudDirt
 const decode64=str=>new TextDecoder().decode(Uint8Array.from(atob(str.replace(/\s/g,'')),x=>x.charCodeAt(0)));
 const encode64=str=>{const bytes=new TextEncoder().encode(str);let bin='';for(let i=0;i<bytes.length;i+=8192)bin+=String.fromCharCode(...bytes.subarray(i,i+8192));return btoa(bin)};
 function sameEdits(x,y){return JSON.stringify(x)===JSON.stringify(y)}
+
+/* Fast rate-limit-free cloud fetch for students and other classroom devices */
+async function fetchCloudRaw(){
+  const rawUrl='https://raw.githubusercontent.com/'+CLOUD_REPO+'/main/'+CLOUD_FILE+'?t='+Date.now();
+  const cdnUrl='https://cdn.jsdelivr.net/gh/'+CLOUD_REPO+'@main/'+CLOUD_FILE+'?t='+Date.now();
+  try{
+    const r=await fetch(rawUrl,{cache:'no-store'});
+    if(r.ok)return await r.json();
+  }catch(e){}
+  try{
+    const r=await fetch(cdnUrl,{cache:'no-store'});
+    if(r.ok)return await r.json();
+  }catch(e){}
+  return null;
+}
+
+/* GitHub API fetch with token for checking commit SHA when publishing */
 async function fetchCloud(token){
   const res=await fetch(CLOUD_URL+'?t='+Date.now(),{headers:{Accept:'application/vnd.github+json',...(token?{Authorization:'Bearer '+token}:{})},cache:'no-store'});
   if(!res.ok)throw Error('GitHub read failed ('+res.status+').');
   const item=await res.json();
   return {sha:item.sha,content:JSON.parse(decode64(item.content))};
 }
+
 async function loadCloud(){
   try{
-    const latest=await fetchCloud();cloudSha=latest.sha;cloudPublished=latest.content;cloudReady=true;
+    const latest=await fetchCloudRaw();
+    if(!latest)return;
+    cloudPublished=latest;cloudReady=true;
     const local=localStorage.getItem(CKEY);
-    if(local&&!sameEdits(JSON.parse(local),latest.content)){
-      cloudDirty=true; // Preserve older local-only edits; teacher can publish explicitly.
+    if(local&&!sameEdits(JSON.parse(local),latest)){
+      cloudDirty=true; // Preserve local-only edits draft; teacher can publish explicitly.
     }else{
-      resetAll();applyEdits(latest.content);persist(false);cloudDirty=false;
+      resetAll();
+      if(typeof EMBEDDED_EDITS!=='undefined'&&EMBEDDED_EDITS)applyEdits(EMBEDDED_EDITS);
+      applyEdits(latest);
+      persist(false);
+      cloudDirty=false;
     }
     if(S&&editMode)redrawBoard();
-  }catch(error){console.warn('Shared question loading unavailable:',error.message);cloudReady=false}
+  }catch(error){
+    console.warn('Shared question loading unavailable:',error.message);
+    cloudReady=false;
+  }
 }
+
+/* Download standalone HTML game file with current questions permanently baked in */
+async function downloadGameHTML(){
+  try{
+    const edits=collectEdits();
+    let src='';
+    try{
+      const res=await fetch(location.href,{cache:'no-store'});
+      if(res.ok)src=await res.text();
+    }catch(e){}
+    if(!src||!src.includes('EMBEDDED_EDITS')){
+      const docClone=document.documentElement.cloneNode(true);
+      docClone.querySelectorAll('.modal,.toast').forEach(el=>el.remove());
+      const scripts=Array.from(document.querySelectorAll('script')).map(s=>s.outerHTML).join('\n');
+      src='<!doctype html>\n<html lang="en">\n'+docClone.innerHTML.replace(/<div id="app">[\s\S]*?<\/body>/,'<div id="app"></div>\n'+scripts+'\n</body>')+'\n</html>';
+    }
+    if(src.includes('const EMBEDDED_EDITS')){
+      src=src.replace(/const EMBEDDED_EDITS\s*=\s*[^;]+;/,'const EMBEDDED_EDITS = '+JSON.stringify(edits)+';');
+    }
+    const blob=new Blob([src],{type:'text/html;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='dna-atoms-jeopardy.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    toast('✔ Downloaded updated game HTML! Your edits are permanently baked in.',5000);
+  }catch(err){
+    console.error(err);
+    toast('Error generating game file: '+err.message,6000);
+  }
+}
+
+/* Copy a shareable link that loads all current edits into any browser */
+function copyShareLink(){
+  const edits=collectEdits();
+  if(!Object.keys(edits.cats).length&&!Object.keys(edits.clues).length&&!Object.keys(edits.final).length){
+    toast('No edits have been made yet to share. Edit questions first!');
+    return;
+  }
+  const str=btoa(unescape(encodeURIComponent(JSON.stringify(edits))));
+  const url=location.protocol+'//'+location.host+location.pathname+'#edits='+encodeURIComponent(str);
+  const fb=()=>{prompt('Copy this link to share your questions:',url)};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>toast('✔ Shareable link copied to clipboard!'),fb);
+  }else fb();
+}
+
 function openPublish(){
   const m=document.createElement('div');m.className='modal ed-modal';document.body.appendChild(m);
+  const savedToken=localStorage.getItem('dna-atoms-gh-token')||'';
   m.innerHTML='<div class="mtop"><div class="mcat">Publish questions to GitHub</div></div>'+
     '<div class="edwrap" style="max-width:760px">'+
-    '<p style="font-size:20px;line-height:1.5">Edits are saved as a draft in this browser. Publishing updates the shared question file so everyone using the game sees your new questions after refreshing. The game never stores your GitHub token.</p>'+
-    '<p style="font-size:18px">Use a fine-grained GitHub personal access token restricted to the <b>stephenborish/simulations</b> repository, with <b>Contents: Read and write</b>. Enter it only to publish. Never share this token with students.</p>'+
-    '<label class="edl" for="publish-token">GitHub access token</label><input id="publish-token" type="password" autocomplete="off" placeholder="Paste token (used once)" style="width:100%;padding:14px;font-size:19px;border-radius:9px">'+
-    '<div id="publish-status" class="ederr" role="status" style="margin-top:14px"></div></div>'+
-    '<div class="mbar"><button class="big" id="publish-now">Publish shared questions</button><button class="ghost" id="publish-cancel">Cancel</button></div>';
+    '<p style="font-size:20px;line-height:1.5">Publishing saves your changes directly to the <b>stephenborish/simulations</b> GitHub repository so all devices and students automatically receive your new questions!</p>'+
+    '<p style="font-size:18px;line-height:1.45;color:var(--muted)">Use a GitHub Personal Access Token (fine-grained or classic) with <b>Contents: Read and write</b> for <b>stephenborish/simulations</b>.</p>'+
+    '<label class="edl" for="publish-token">GitHub Personal Access Token</label>'+
+    '<input id="publish-token" type="password" autocomplete="off" value="'+esc(savedToken)+'" placeholder="github_pat_... or ghp_..." style="width:100%;padding:14px;font-size:18px;border-radius:9px;border:2px solid var(--panel-line)">'+
+    '<div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'+
+      '<label style="display:flex;align-items:center;gap:8px;font-size:16px;cursor:pointer"><input type="checkbox" id="save-token" '+(savedToken?'checked':'')+'> Remember token on this browser (teacher only)</label>'+
+      (savedToken?'<button type="button" id="forget-token" style="background:transparent;border:0;color:#ff9b9b;cursor:pointer;text-decoration:underline;font-size:15px">Forget saved token</button>':'')+
+    '</div>'+
+    '<div id="publish-status" class="ederr" role="status" style="margin-top:14px;font-size:16px"></div></div>'+
+    '<div class="mbar"><button class="big" id="publish-now">🚀 Publish shared questions</button><button class="ghost" id="publish-cancel">Cancel</button></div>';
   const status=m.querySelector('#publish-status'),btn=m.querySelector('#publish-now');
+  const tokInput=m.querySelector('#publish-token'),chk=m.querySelector('#save-token');
+  const forgetBtn=m.querySelector('#forget-token');
+  if(forgetBtn){
+    forgetBtn.onclick=()=>{
+      localStorage.removeItem('dna-atoms-gh-token');
+      tokInput.value='';chk.checked=false;forgetBtn.remove();
+      toast('Saved token cleared.');
+    };
+  }
   m.querySelector('#publish-cancel').onclick=()=>m.remove();
   m.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape'&&!cloudBusy)m.remove()});
   btn.onclick=async()=>{
-    if(cloudBusy)return;const token=m.querySelector('#publish-token').value.trim();
-    if(!token){status.textContent='Enter a GitHub token with permission to edit this repository.';return}
-    cloudBusy=true;btn.disabled=true;status.textContent='Checking the latest published version…';
+    if(cloudBusy)return;const token=tokInput.value.trim();
+    if(!token){status.textContent='Please enter a GitHub token with write permission.';return}
+    if(chk.checked){try{localStorage.setItem('dna-atoms-gh-token',token)}catch(e){}}
+    else{try{localStorage.removeItem('dna-atoms-gh-token')}catch(e){}}
+    cloudBusy=true;btn.disabled=true;status.style.color='#ff9b9b';status.textContent='Checking the latest published version on GitHub…';
     try{
       const current=await fetchCloud(token);
       if(cloudSha&&current.sha!==cloudSha&&!sameEdits(current.content,cloudPublished)){
         throw Error('Another version was published since this game was opened. Your draft was kept. Refresh, reconcile the edits, and try again; nothing was overwritten.');
       }
       const data=collectEdits();
-      const response=await fetch(CLOUD_URL,{method:'PUT',headers:{Accept:'application/vnd.github+json','Content-Type':'application/json',Authorization:'Bearer '+token},
-        body:JSON.stringify({message:'Update DNA & Atoms Jeopardy shared questions',content:encode64(JSON.stringify(data,null,2)+'\n'),sha:current.sha,branch:'main'})});
-      if(!response.ok){let detail='';try{detail=(await response.json()).message||''}catch(e){}throw Error('GitHub rejected the publish ('+response.status+'). '+detail)}
-      const result=await response.json();cloudSha=result.content.sha;cloudPublished=data;cloudReady=true;cloudDirty=false;
+      const response=await fetch(CLOUD_URL,{
+        method:'PUT',
+        headers:{Accept:'application/vnd.github+json','Content-Type':'application/json',Authorization:'Bearer '+token},
+        body:JSON.stringify({message:'Update DNA & Atoms Jeopardy shared questions',content:encode64(JSON.stringify(data,null,2)+'\n'),sha:current.sha,branch:'main'})
+      });
+      if(!response.ok){
+        let detail='';try{detail=(await response.json()).message||''}catch(e){}
+        throw Error('GitHub rejected the publish ('+response.status+'). '+detail);
+      }
+      const result=await response.json();
+      cloudSha=result.content.sha;cloudPublished=data;cloudReady=true;cloudDirty=false;
       try{localStorage.setItem(CKEY,JSON.stringify(data))}catch(e){}
-      m.querySelector('#publish-token').value='';
-      status.style.color='#a8ffcb';status.textContent='Published successfully. The changes are now saved in GitHub. Other devices can refresh to load them; GitHub Pages may cache updates briefly.';
-      btn.textContent='Published';btn.disabled=true;
-    }catch(error){status.textContent=error.message;btn.disabled=false}
+      status.style.color='#a8ffcb';status.textContent='✔ Published successfully! The shared questions are now saved in GitHub. Other devices can refresh to load them.';
+      btn.textContent='Published!';
+      setTimeout(()=>{m.remove();toast('✔ Questions published to GitHub!')},1800);
+    }catch(error){status.style.color='#ff9b9b';status.textContent=error.message;btn.disabled=false}
     finally{cloudBusy=false}
   };
 }
@@ -675,8 +1057,27 @@ function openTransfer(){
 }
 function exitTemp(){S=null;editMode=false;renderSetup()}
 
-/* load saved edits before anything renders */
-try{const raw=localStorage.getItem(CKEY);if(raw)applyEdits(JSON.parse(raw))}catch(e){}
+/* ======================= LOAD SAVED EDITS ======================= */
+const EMBEDDED_EDITS = null;
+if (EMBEDDED_EDITS) {
+  applyEdits(EMBEDDED_EDITS);
+}
+if (location.hash && location.hash.startsWith('#edits=')) {
+  try {
+    const raw = decodeURIComponent(location.hash.slice(7));
+    const data = JSON.parse(decode64(raw));
+    applyEdits(data);
+    persist(true);
+    toast('✔ Loaded shared questions from link!');
+  } catch(e) {
+    console.warn('Could not parse edits from URL hash', e);
+  }
+} else {
+  try {
+    const raw = localStorage.getItem(CKEY);
+    if (raw) applyEdits(JSON.parse(raw));
+  } catch(e) {}
+}
 document.addEventListener('keydown',e=>{
   if(e.ctrlKey||e.metaKey||e.altKey||typing(e))return;
   if(e.key==='f'||e.key==='F')toggleFS();
@@ -758,7 +1159,7 @@ function renderGame(){
 }
 function renderBoard(){
   const R=ROUNDS[S.round];
-  const bar=editMode?`<div class="editbar"><b>✏️ EDIT MODE</b><span>Click a tile to edit its clue, answer &amp; explanation · click a category name to rename it · saves drafts on this device</span><span class="sp"></span><button class="tool" id="publish">Publish to GitHub</button><button class="tool" id="xfer">💾 Backup / Restore</button><button class="tool" id="rall">Reset all edits</button></div>`:'';
+  const bar=editMode?`<div class="editbar"><b>✏️ EDIT MODE</b><span>Click a tile to edit clue &amp; answer · click category to rename</span><span class="sp"></span><button class="tool" id="savehtml" title="Download standalone HTML with all edits permanently saved into the game file">💾 Download Game HTML</button><button class="tool" id="sharelink" title="Copy shareable link with your edits">🔗 Share Link</button><button class="tool" id="publish" title="Publish to GitHub so all devices sync">🌐 Publish to GitHub</button><button class="tool" id="xfer">📋 Backup / Restore JSON</button><button class="tool" id="rall">Reset all edits</button></div>`:'';
   let h=`${bar}<div class="board">`;
   R.cats.forEach((c,ci)=>h+=`<div class="cat" ${editMode?`contenteditable="true" spellcheck="false" data-c="${ci}" title="Click to rename"`:''}>${esc(c.t)}</div>`);
   for(let i=0;i<5;i++) R.cats.forEach((c,ci)=>{const id=`${S.round}-${ci}-${i}`,u=S.used[id];
@@ -775,6 +1176,8 @@ function renderBoard(){
         if(v&&v!==cat.t){cat.t=v;const ok=persist();toast(ok?'✔ Category renamed':NOSAVE,ok?1800:6000)}
         el.textContent=cat.t};
     });
+    if($('#savehtml'))$('#savehtml').onclick=downloadGameHTML;
+    if($('#sharelink'))$('#sharelink').onclick=copyShareLink;
     $('#xfer').onclick=openTransfer;
     $('#publish').onclick=openPublish;
     let armed=false;
@@ -805,7 +1208,7 @@ function openClue(r,c,i){
   const R=ROUNDS[r],cat=R.cats[c],Q=cat.q[i],val=R.values[i],id=`${r}-${c}-${i}`;
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   stopAud('theme',true);isDD(r,c,i)?sfx.dd():sfx.select();
-  const top=`<div class="mtop"><div class="mcat">${esc(cat.t)}</div><div class="mval" id="mv">${val}</div></div>`;
+  const top=`<div class="mtop"><div class="mcat">${esc(cat.t)}</div><div class="mfont" title="Adjust text size (press + / -)"><button id="font-dn" aria-label="Decrease font">A−</button><span id="font-val">${Math.round(fontScale*100)}%</span><button id="font-up" aria-label="Increase font">A+</button></div><div class="mval" id="mv">${val}</div></div>`;
   let ddTeam=null,wager=val;
   const clueInner=()=>`<div class="qtext ${isSmall(Q)?'small':''}">${Q.q}</div>${Q.v?VIS[Q.v]():''}<div id="ans"></div>`;
   const ansHTML=()=>`<div class="answer"><div class="a">${Q.a}</div><div class="w">${Q.w}</div></div>`;
@@ -821,11 +1224,28 @@ function openClue(r,c,i){
         <button class="ghost" id="cancel">Back to board</button>
       </div>`;
     if(ddTeam!==null)$('#mv').textContent=`DAILY DOUBLE · ${S.teams[ddTeam].name} wagered ${wager}`;
+    const fdn=$('#font-dn'),fup=$('#font-up');
+    if(fdn)fdn.onclick=e=>{e.stopPropagation();changeFontScale(-0.1)};
+    if(fup)fup.onclick=e=>{e.stopPropagation();changeFontScale(0.1)};
+    const tk=$('#trk');
+    if(tk){
+      tk.title='Click to switch countdown track';
+      tk.onclick=()=>{
+        if(!CD)return;
+        const nextName=CD.play(SND.master,20);
+        tk.textContent='♪ '+nextName;
+      };
+    }
     $('#t30').onclick=()=>startTimer(20);
     $('#cancel').onclick=closeModal;
     $('#edit').onclick=()=>{clearInterval(timerH);stopMusic();editClue()};
     $('#reveal').onclick=reveal;
-    document.onkeydown=e=>{if(e.code==='Space'){e.preventDefault();reveal()}if(e.key==='Escape')closeModal()};
+    document.onkeydown=e=>{
+      if(e.code==='Space'&&!typing(e)){e.preventDefault();reveal()}
+      else if(e.key==='Escape')closeModal();
+      else if((e.key==='='||e.key==='+')&&!typing(e)){e.preventDefault();changeFontScale(0.1)}
+      else if((e.key==='-'||e.key==='_')&&!typing(e)){e.preventDefault();changeFontScale(-0.1)}
+    };
   };
   const reveal=()=>{
     if($('#ans').innerHTML)return; clearInterval(timerH); stopMusic(); sfx.reveal();
@@ -836,9 +1256,16 @@ function openClue(r,c,i){
       <button class="ghost" id="edit2">✏️ Edit</button><button class="big" id="done">Back to board</button>`;
     m.querySelectorAll('.ok').forEach(b=>b.onclick=()=>{award(+b.dataset.k,pts);m.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x=>x.disabled=true)});
     m.querySelectorAll('.no').forEach(b=>b.onclick=()=>{award(+b.dataset.k,-pts);m.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x=>x.disabled=true)});
+    const fdn2=$('#font-dn'),fup2=$('#font-up');
+    if(fdn2)fdn2.onclick=e=>{e.stopPropagation();changeFontScale(-0.1)};
+    if(fup2)fup2.onclick=e=>{e.stopPropagation();changeFontScale(0.1)};
     $('#done').onclick=()=>{closeModal();renderBoard()};
     $('#edit2').onclick=editClue;
-    document.onkeydown=e=>{if(e.key==='Escape'){closeModal();renderBoard()}};
+    document.onkeydown=e=>{
+      if(e.key==='Escape'){closeModal();renderBoard()}
+      else if((e.key==='='||e.key==='+')&&!typing(e)){e.preventDefault();changeFontScale(0.1)}
+      else if((e.key==='-'||e.key==='_')&&!typing(e)){e.preventDefault();changeFontScale(-0.1)}
+    };
   };
   if(isDD(r,c,i)){
     const maxW=v=>Math.max(v,R.values[4]);
@@ -859,20 +1286,22 @@ function openClue(r,c,i){
 /* ======================= FINAL JEOPARDY ======================= */
 function renderFinalIntro(){
   const T=!!S.temp;
-  $('#main').innerHTML=`${editMode?`<div class="editbar"><b>✏️ EDIT MODE</b><span>Edit the Final Jeopardy category, clue and answer</span><span class="sp"></span><button class="tool" id="xfer">💾 Backup / Restore</button><button class="tool" id="publish">Publish to GitHub</button></div>`:''}<div class="board" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;text-align:center;color:#fff;background:var(--board)">
+  $('#main').innerHTML=`${editMode?`<div class="editbar"><b>✏️ EDIT MODE</b><span>Edit the Final Jeopardy category, clue and answer</span><span class="sp"></span><button class="tool" id="savehtml" title="Download standalone HTML with all edits permanently saved into the game file">💾 Download Game HTML</button><button class="tool" id="sharelink" title="Copy shareable link with your edits">🔗 Share Link</button><button class="tool" id="publish">🌐 Publish to GitHub</button><button class="tool" id="xfer">📋 Backup / Restore JSON</button></div>`:''}<div class="board" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;text-align:center;color:#fff;background:var(--board)">
     <div class="mcat" style="color:var(--gold);font-size:clamp(34px,5vw,70px)">FINAL JEOPARDY!</div>
     <div style="font-family:var(--head);font-weight:700;font-size:clamp(24px,3vw,44px)">Category: ${esc(FINAL.cat)}</div>
     ${T?'':'<button class="big" id="openF">Open Final Jeopardy</button>'}
     ${editMode?'<button class="big" id="edF">✏️ Edit Final Jeopardy clue</button>':''}</div>`;
   if($('#openF'))$('#openF').onclick=openFinal;
   if($('#edF'))$('#edF').onclick=()=>editFinal(renderFinalIntro);
+  if($('#savehtml'))$('#savehtml').onclick=downloadGameHTML;
+  if($('#sharelink'))$('#sharelink').onclick=copyShareLink;
   if($('#xfer'))$('#xfer').onclick=openTransfer;
-   if($('#publish'))$('#publish').onclick=openPublish;
+  if($('#publish'))$('#publish').onclick=openPublish;
 }
 function openFinal(){
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
   const F=S.final;
-  const head=()=>`<div class="mtop"><div class="mcat">Final Jeopardy · ${esc(FINAL.cat)}</div><div class="mval">Wager it all?</div></div>`;
+  const head=()=>`<div class="mtop"><div class="mcat">Final Jeopardy · ${esc(FINAL.cat)}</div><div class="mfont" title="Adjust text size (press + / -)"><button id="font-dn" aria-label="Decrease font">A−</button><span id="font-val">${Math.round(fontScale*100)}%</span><button id="font-up" aria-label="Increase font">A+</button></div><div class="mval">Wager it all?</div></div>`;
   const stage0=()=>{
     m.innerHTML=head()+`<div class="clue"><div class="qtext">Each team writes a secret wager (0 up to their score). Enter wagers below.</div>
       <div class="final-wagers">${S.teams.map((t,k)=>`<div class="fw"><div>${t.name} <span style="color:var(--gold)">(${t.score})</span></div><input class="wager" data-k="${k}" type="number" min="0" max="${Math.max(0,t.score)}" value="${F.w[k]??0}"></div>`).join('')}</div></div>
@@ -883,6 +1312,18 @@ function openFinal(){
   const stage1=()=>{
     m.innerHTML=head()+`<div class="clue"><div class="qtext small">${FINAL.q}</div><div id="ans"></div></div>
       <div class="mbar" id="bar"><button class="ghost" id="t60">⏱ 30 s</button><div class="timer" id="tm"></div><div id="trk" style="font-size:16px;color:var(--muted)"></div><button class="ghost" id="edF">✏️ Edit</button><button class="big" id="rev">Show answer</button><button class="ghost" id="x">Close</button></div>`;
+    const fdn=$('#font-dn'),fup=$('#font-up');
+    if(fdn)fdn.onclick=e=>{e.stopPropagation();changeFontScale(-0.1)};
+    if(fup)fup.onclick=e=>{e.stopPropagation();changeFontScale(0.1)};
+    const tk=$('#trk');
+    if(tk){
+      tk.title='Click to switch countdown track';
+      tk.onclick=()=>{
+        if(!CD)return;
+        const nextName=CD.play(SND.master,30);
+        tk.textContent='♪ '+nextName;
+      };
+    }
     $('#edF').onclick=()=>{clearInterval(timerH);stopMusic();editFinal(refreshFinal)};
     $('#t60').onclick=()=>startTimer(30,true);$('#x').onclick=closeModal;$('#rev').onclick=stage2;
   };
@@ -891,6 +1332,9 @@ function openFinal(){
     $('#ans').innerHTML=`<div class="answer"><div class="a">${FINAL.a}</div><div class="w">${FINAL.w}</div></div>`;
     $('#bar').innerHTML=`<div class="judge">${S.teams.map((t,k)=>`<div class="jt"><span>${t.name} (${F.w[k]??0})</span><button class="ok" data-k="${k}" ${F.judged[k]?'disabled':''}>✓</button><button class="no" data-k="${k}" ${F.judged[k]?'disabled':''}>✗</button></div>`).join('')}</div><button class="ghost" id="edF2">✏️ Edit</button><button class="big" id="win">Show winner</button>`;
     m.querySelectorAll('.ok,.no').forEach(b=>b.onclick=()=>{const k=+b.dataset.k,w=F.w[k]??0;award(k,b.classList.contains('ok')?w:-w);F.judged[k]=true;save();m.querySelectorAll(`[data-k="${k}"]`).forEach(x=>x.disabled=true)});
+    const fdn2=$('#font-dn'),fup2=$('#font-up');
+    if(fdn2)fdn2.onclick=e=>{e.stopPropagation();changeFontScale(-0.1)};
+    if(fup2)fup2.onclick=e=>{e.stopPropagation();changeFontScale(0.1)};
     $('#edF2').onclick=()=>editFinal(refreshFinal);
     $('#win').onclick=()=>{
       sfx.fanfare();
