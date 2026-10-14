@@ -148,26 +148,41 @@ body.compact footer{padding:4px 10px 8px}
 #tx{width:100%;min-height:42vh;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;border-radius:10px;padding:10px;background:#fff;color:#0c1446;border:0}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%);background:#111;color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;z-index:300;max-width:90vw;box-shadow:0 6px 24px #0008;text-align:center;font-size:16px}
 
-/* Classroom Rules Modal */
-.rules-modal{z-index:90;background:radial-gradient(circle at 50% 25%, #0d1e8c 0%, var(--board) 85%)}
-.rules-wrap{max-width:1240px;width:100%;margin:0 auto;padding:6px 4px 28px}
-.rules-hero{text-align:center;margin-bottom:18px}
-.rules-hero h2{font-family:var(--head);font-size:clamp(34px,4.4vw,62px);margin:0;color:var(--gold);text-shadow:3px 3px 0 #000;letter-spacing:.5px;line-height:1.05}
-.rules-hero p{font-size:clamp(17px,1.9vw,24px);color:var(--muted);margin:6px 0 0;font-weight:600}
-.rule-materials{background:rgba(255,255,255,0.08);border:2px dashed rgba(255,201,39,0.45);border-radius:12px;padding:10px 18px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;font-size:clamp(15px,1.6vw,20px);margin-bottom:20px;color:#e1e7ff}
-.rule-materials b{color:var(--gold)}
-.rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px;margin-bottom:24px}
-.rule-card{background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.18);border-radius:14px;padding:18px 20px;backdrop-filter:blur(8px);display:flex;flex-direction:column;gap:8px;transition:border-color .15s,transform .15s}
-.rule-card:hover{border-color:var(--gold);transform:translateY(-2px)}
-.rule-header{display:flex;align-items:center;gap:10px}
-.rule-icon{font-size:30px;line-height:1}
-.rule-title{font-family:var(--head);font-weight:800;font-size:clamp(20px,2.3vw,28px);color:var(--gold);letter-spacing:.3px}
-.rule-body{font-size:clamp(15px,1.55vw,20px);line-height:1.45;color:#edf1ff;margin:0}
-.rule-body b{color:#fff;font-weight:700}
-.rule-body em{color:var(--gold);font-style:normal;font-weight:700}
-.rule-badge{display:inline-block;font-size:13px;font-weight:800;text-transform:uppercase;padding:2px 8px;border-radius:6px;letter-spacing:.5px;margin:2px 0}
-.rule-badge.plus{background:#16a34a33;border:1.5px solid #16a34a;color:#4ade80}
-.rule-badge.minus{background:#dc262633;border:1.5px solid #dc2626;color:#f87171}
+
+/* All-Play: single-screen student rules */
+.rules-modal{z-index:90;background:radial-gradient(ellipse at 50% 4%,#122f94 0%,#071153 66%,#03092c 100%);padding:clamp(14px,2vw,25px)}
+.rules-wrap{flex:1;min-height:0;display:flex;flex-direction:column;max-width:1470px;width:100%;margin:auto;justify-content:center;gap:clamp(12px,2.2vh,27px)}
+.rules-kicker{text-align:center;color:#bacbff;font-weight:800;letter-spacing:.19em;font-size:clamp(13px,1vw,18px)}
+.rules-heading{text-align:center;font:800 clamp(42px,6vw,98px)/.98 var(--head);color:#fff;margin:0;text-wrap:balance}
+.rules-heading em{font-style:normal;color:var(--gold)}
+.rules-lede{text-align:center;color:#dce5ff;font-weight:650;font-size:clamp(19px,1.9vw,29px);margin:0}
+.rules-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,1.2vw,21px)}
+.rules-step{border:1.5px solid #7184dc66;background:linear-gradient(160deg,#1a2d79cc,#091550cc);border-radius:19px;padding:clamp(15px,1.65vw,27px);min-height:200px;display:flex;flex-direction:column;gap:13px;box-shadow:0 10px 24px #0005}
+.rules-num{background:var(--gold);color:#081046;width:47px;height:47px;border-radius:13px;display:grid;place-items:center;font:800 28px var(--head)}
+.rules-step h3{font:800 clamp(24px,2.1vw,36px)/1.06 var(--head);color:#fff;margin:0}
+.rules-step p{font-size:clamp(17px,1.34vw,22px);line-height:1.33;margin:0;color:#e2eaff;font-weight:550}
+.rules-score{display:flex;justify-content:center;gap:clamp(10px,2vw,28px);flex-wrap:wrap}
+.rules-points{min-width:265px;border:1.5px solid #ffffff40;background:#ffffff0d;padding:12px 23px;border-radius:14px;display:flex;align-items:center;gap:14px}
+.rules-sign{font:800 47px var(--head)}.rules-sign.positive{color:#72ffba}.rules-sign.negative{color:#ff899a}
+.rules-points strong{display:block;font:800 clamp(22px,1.85vw,34px) var(--head)}
+.rules-points span{display:block;color:#d4dfff;font-size:clamp(16px,1.2vw,19px)}
+.rules-bottom{text-align:center;color:#ccdcff;font-size:clamp(16px,1.2vw,20px);font-weight:600;line-height:1.3;margin:0}
+.rules-footer{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap}
+.rules-footer .big{font-size:clamp(21px,2vw,30px);padding:14px 42px}
+.judge-panel{width:min(1250px,100%);display:flex;flex-direction:column;gap:12px;margin:auto;align-items:center}
+.judge-summary{font-size:clamp(16px,1.3vw,20px);font-weight:700;color:#dce6ff;text-align:center}
+.judge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));width:100%;gap:10px}
+.judge-team{border:1px solid #a9b9f180;background:#ffffff11;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.judge-team-title{display:flex;justify-content:space-between;gap:12px;font:800 clamp(19px,1.7vw,25px) var(--head)}
+.judge-team output{font:800 22px var(--head)}.judge-team output.positive{color:#71ffb3}.judge-team output.negative{color:#ff94a8}
+.judge-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.judge-options button{min-width:0;padding:10px 3px;border:1px solid #9ca7d27a;border-radius:8px;color:#fff;background:#ffffff18;font-weight:700;font-size:clamp(14px,1.1vw,17px)}
+.judge-options button[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:#061044}
+.judge-panel .big{min-height:52px}
+.judge-tip{color:#d1dbff;text-align:center;font-size:15px}
+@media(max-width:1050px){.rules-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.rules-step{min-height:140px}.rules-wrap{justify-content:flex-start}}
+@media(max-width:600px){.rules-steps{grid-template-columns:1fr}.rules-step{min-height:0}.rules-heading{font-size:42px}.rules-modal{overflow-y:auto}.rules-points{min-width:0;width:100%;max-width:380px}}
+@media(max-height:740px) and (min-width:1051px){.rules-step{min-height:170px;padding:14px;gap:7px}.rules-wrap{gap:12px}.rules-num{width:40px;height:40px;font-size:23px}.rules-points{padding:8px 20px}}
 
 @media(max-height:760px){
   .qtext{font-size:calc(clamp(32px,3.8vw,60px)*var(--font-scale,1))}
@@ -1056,102 +1071,35 @@ function openEditor(cfg){
 }
 function editFinal(onDone){openEditor({title:'Final Jeopardy',obj:FINAL,orig:ORIG.final,fields:[{k:'cat',label:'Category',single:1},...CLUE_FIELDS],onSave:onDone})}
 
-/* --- classroom rules modal --- */
-function openRulesModal(onClose){
+/* --- streamlined classroom briefing --- */
+function openRulesModal(options={}){
+  const isStart=typeof options.onStart==='function';
   const m=document.createElement('div');m.className='modal rules-modal';document.body.appendChild(m);
+  m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');m.setAttribute('aria-label','How to play');
   m.innerHTML=`
-    <div class="mtop">
-      <div class="mcat">Classroom Jeopardy Guide</div>
-      <button class="ghost" id="rulesX" style="font-size:16px;padding:6px 14px">✕ Close</button>
-    </div>
     <div class="rules-wrap">
-      <div class="rules-hero">
-        <h2>CLASSROOM JEOPARDY RULES</h2>
-        <p>Active Whiteboard Defense · All Teams Compete Simultaneously</p>
+      <div class="rules-kicker">DNA &amp; ATOMS · HOW TO PLAY</div>
+      <h2 class="rules-heading">EVERY TEAM. <em>EVERY QUESTION.</em></h2>
+      <p class="rules-lede">One whiteboard per team. No buzzers. Everyone plays.</p>
+      <div class="rules-steps">
+        <section class="rules-step"><div class="rules-num">1</div><h3>TEAM UP</h3><p>Everyone thinks. Talk quietly and agree on one answer.</p></section>
+        <section class="rules-step"><div class="rules-num">2</div><h3>WRITE IT</h3><p>Write your team's answer before the timer reaches zero.</p></section>
+        <section class="rules-step"><div class="rules-num">3</div><h3>BOARDS UP!</h3><p>Show your answer when time is up. No changes or copying.</p></section>
+        <section class="rules-step"><div class="rules-num">4</div><h3>SCORE IT</h3><p>Every team earns or loses the question's point value.</p></section>
       </div>
-
-      <div class="rule-materials">
-        <span>🎒 <b>Table Setup:</b></span>
-        <span>1 Whiteboard + Marker per team</span>
-        <span>·</span>
-        <span>Periodic Table / Formula Sheet</span>
-        <span>·</span>
-        <span>Whisper voice level</span>
+      <div class="rules-score">
+        <div class="rules-points"><div class="rules-sign positive">+</div><div><strong>CORRECT</strong><span>Gain the full points.</span></div></div>
+        <div class="rules-points"><div class="rules-sign negative">−</div><div><strong>WRONG · BLANK · LATE</strong><span>Lose the full points.</span></div></div>
       </div>
-
-      <div class="rules-grid">
-        <div class="rule-card">
-          <div class="rule-header">
-            <span class="rule-icon">👥</span>
-            <div class="rule-title">1. All Teams Play Every Clue</div>
-          </div>
-          <p class="rule-body">
-            <b>No buzzers, no passive waiting!</b> Every team solves every question at the same time. The team whose turn it is selects the category &amp; value from the board, but <em>every team is playing for points on every clue</em>.
-          </p>
-        </div>
-
-        <div class="rule-card">
-          <div class="rule-header">
-            <span class="rule-icon">✏️</span>
-            <div class="rule-title">2. Whiteboards &amp; Collaboration</div>
-          </div>
-          <p class="rule-body">
-            Teams collaborate in <b>quiet table whispers</b> to solve the problem and write their final answer clearly on the whiteboard. <em>Rotate the marker writer</em> each round so every student actively participates!
-          </p>
-        </div>
-
-        <div class="rule-card">
-          <div class="rule-header">
-            <span class="rule-icon">⏱️</span>
-            <div class="rule-title">3. "Boards Up!" on the Buzzer</div>
-          </div>
-          <p class="rule-body">
-            Answers must be written before the <b>20-second timer hits zero</b>. When the countdown finishes, the teacher calls <em>"BOARDS UP!"</em> All teams immediately raise their boards facing the teacher. Late writing forfeits the clue!
-          </p>
-        </div>
-
-        <div class="rule-card">
-          <div class="rule-header">
-            <span class="rule-icon">⚖️</span>
-            <div class="rule-title">4. Scoring: Rewards &amp; Deductions</div>
-          </div>
-          <p class="rule-body">
-            <span class="rule-badge plus">✓ Correct</span> <b>Gain full clue points</b>.<br>
-            <span class="rule-badge minus">✗ Incorrect / Blank</span> <b>Deduct clue points</b>.<br>
-            Every team must attempt an answer! Teams that collaborate effectively will thrive. Teacher is the ultimate judge for partial credit!
-          </p>
-        </div>
-
-        <div class="rule-card">
-          <div class="rule-header">
-            <span class="rule-icon">⚡</span>
-            <div class="rule-title">5. Daily Doubles &amp; Final Jeopardy</div>
-          </div>
-          <p class="rule-body">
-            <b>Daily Double:</b> The choosing team wagers up to their total score (or board max). Other teams play for normal face value!<br>
-            <b>Final Jeopardy:</b> Secret wagers locked in first. Whiteboards stay face down until the big reveal!
-          </p>
-        </div>
-
-        <div class="rule-card">
-          <div class="rule-header">
-            <span class="rule-icon">🤝</span>
-            <div class="rule-title">6. Scientific Evidence &amp; Appeals</div>
-          </div>
-          <p class="rule-body">
-            If your team wrote a valid scientific equivalent that was marked incorrect, you may make a polite <b>30-second appeal</b> to the teacher using your <em>periodic table, formula sheet, or notes</em> as evidence.
-          </p>
-        </div>
+      <p class="rules-bottom">Rotate who writes. Give your best answer. The teacher decides what's scientifically correct.</p>
+      <div class="rules-footer">
+        ${isStart?'<button class="ghost" id="rulesBack">Back to setup</button>':''}
+        <button class="big" id="rulesGo">${isStart?'START THE GAME':'BACK TO THE GAME'} →</button>
       </div>
-
-      <div class="mbar" style="justify-content:center;margin-top:10px">
-        <button class="big" id="rulesStart" style="font-size:22px;padding:14px 36px">🚀 Got It — Let's Play!</button>
-      </div>
-    </div>
-  `;
-  const close=()=>{m.remove();if(onClose)onClose()};
-  m.querySelector('#rulesX').onclick=close;
-  m.querySelector('#rulesStart').onclick=close;
+    </div>`;
+  const close=()=>m.remove();
+  m.querySelector('#rulesGo').onclick=()=>{close();if(isStart)options.onStart()};
+  if(isStart)m.querySelector('#rulesBack').onclick=close;
   m.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape')close()});
 }
 
@@ -1210,11 +1158,9 @@ let S=null, timerH=null;
 function save(){if(S&&S.temp)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function load(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
 function rnd(n){return Math.floor(Math.random()*n)}
-function pickDD(){
-  const r0=[[rnd(6),1+rnd(4)]]; const c1=rnd(6); let c2=rnd(6); while(c2===c1)c2=rnd(6);
-  return {'0':r0,'1':[[c1,1+rnd(4)],[c2,1+rnd(4)]]};
-}
-function isDD(r,c,i){return (S.dd[r]||[]).some(([a,b])=>a===c&&b===i)}
+// Every team answers every clue: individual Daily Double wagers are disabled.
+function pickDD(){return {'0':[],'1':[]}}
+function isDD(){return false}
 const $=s=>document.querySelector(s);
 const app=$('#app');
 
@@ -1231,7 +1177,7 @@ function renderSetup(){
       <div class="names" id="names"></div>
       <button class="big" id="go">Start new game</button>
       <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="tool" id="rules">📜 Review Game Rules</button>
+        <button class="tool" id="rules">How to play</button>
         <button class="tool" id="edq">✏️ Edit questions &amp; answers</button>
       </div>
       ${saved&&saved.teams?`<div style="margin-top:12px"><button class="tool" id="resume">Resume saved game</button></div>`:''}
@@ -1241,8 +1187,10 @@ function renderSetup(){
   draw(); $('#nt').onchange=draw;
   $('#go').onclick=()=>{
     const names=[...document.querySelectorAll('#names input')].map((x,i)=>x.value.trim()||`Team ${i+1}`);
-    S={teams:names.map(n=>({name:n,score:0})),used:{},round:0,dd:pickDD(),log:[],final:{stage:0,w:{},judged:{}}};
-    save(); renderGame(); playAud('theme',true);
+    openRulesModal({onStart:()=>{
+      S={teams:names.map(n=>({name:n,score:0})),used:{},round:0,dd:pickDD(),log:[],final:{stage:0,w:{},judged:{}}};
+      save();renderGame();playAud('theme',true);
+    }});
   };
   if($('#resume'))$('#resume').onclick=()=>{S=saved;renderGame();playAud('theme',true)};
   $('#fsb').onclick=toggleFS;
@@ -1262,7 +1210,7 @@ function renderGame(){
       <button data-r="2" class="${S.round===2?'on':''}">Final Jeopardy</button>
       ${T?'':`<button class="tool" id="snd" title="Sound effects on/off">${SND.on?'🔊 Sound':'🔇 Sound'}</button>
       <button class="tool" id="mus" title="Thinking music on/off">${SND.music?'🎵 Music':'🚫 Music'}</button>`}
-      <button class="tool" id="rulesNav" title="Review classroom rules with students">📜 Rules</button>
+      <button class="tool" id="rulesNav" title="Review classroom rules with students">Rules</button>
       <button class="tool ${editMode?'on':''}" id="edt" title="Edit questions, answers and category names">${editMode?'✔ Done editing':'✏️ Edit questions'}</button>
       <button class="tool" id="fsb" title="Full screen (press F)">${fsLabel()}</button>
       ${T?'':`<button class="tool" id="undo" title="Undo last score change">↶ Undo</button>
@@ -1320,7 +1268,47 @@ function renderScores(){
   document.querySelectorAll('.adj button').forEach(b=>b.onclick=()=>award(+b.dataset.t,+b.dataset.d,true));
 }
 function award(t,d,silent){if(!silent){stopMusic();clearInterval(timerH);d>0?sfx.correct():sfx.wrong()}S.teams[t].score+=d;S.log.push({t,d});save();renderScores()}
-function undo(){const L=S.log.pop();if(!L)return;S.teams[L.t].score-=L.d;save();renderScores()}
+function undo(){
+  const L=S.log.pop();if(!L)return;
+  if(Array.isArray(L.changes))L.changes.forEach(({t,d})=>{if(S.teams[t])S.teams[t].score-=d});
+  else if(S.teams[L.t])S.teams[L.t].score-=L.d;
+  save();renderScores();
+}
+function gradeAll(points,outcomes){
+  const changes=outcomes.map((decision,t)=>({t,d:decision==='correct'?points:-points}));
+  changes.forEach(({t,d})=>{S.teams[t].score+=d});
+  S.log.push({changes});save();renderScores();
+  if(changes.some(x=>x.d>0))sfx.correct();else sfx.wrong();
+}
+function showGroupScoring(target,points,label,onFinish){
+  const choices=S.teams.map(()=>'blank');
+  target.innerHTML=`<div class="judge-panel">
+    <div class="judge-summary">Check every board. Unmarked teams count as no answer.</div>
+    <div class="judge-grid">${S.teams.map((team,k)=>`<div class="judge-team" data-team="${k}">
+      <div class="judge-team-title"><span>${esc(team.name)}</span><output class="negative">−${points}</output></div>
+      <div class="judge-options">
+        <button type="button" data-decision="correct" aria-pressed="false">✓ Correct</button>
+        <button type="button" data-decision="wrong" aria-pressed="false">✕ Wrong</button>
+        <button type="button" data-decision="blank" aria-pressed="true">— Blank</button>
+      </div>
+    </div>`).join('')}</div>
+    <button class="big" id="gradeCommit">${label}</button>
+    <div class="judge-tip">Wrong, blank, or late = −${points}. One click scores the whole class.</div>
+  </div>`;
+  target.querySelectorAll('.judge-team').forEach(row=>{
+    const k=+row.dataset.team;
+    row.querySelectorAll('[data-decision]').forEach(button=>button.onclick=()=>{
+      choices[k]=button.dataset.decision;
+      row.querySelectorAll('[data-decision]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+      const o=row.querySelector('output');o.textContent=(choices[k]==='correct'?'+':'−')+points;
+      o.className=choices[k]==='correct'?'positive':'negative';
+    });
+  });
+  target.querySelector('#gradeCommit').onclick=()=>{
+    target.querySelector('#gradeCommit').disabled=true;
+    gradeAll(points,choices);onFinish();
+  };
+}
 
 /* ======================= CLUE MODAL ======================= */
 function closeModal(){clearInterval(timerH);stopMusic();stopAud('dd',true);const m=$('.modal');if(m)m.remove();document.onkeydown=null}
@@ -1328,86 +1316,57 @@ function startTimer(sec,final){
   clearInterval(timerH);const el=$('#tm');if(!el)return;let t=sec;el.textContent=t;el.classList.remove('low');
   const name=startMusic(sec,final),tk=$('#trk');if(tk)tk.textContent=name?'♪ '+name:'';
   timerH=setInterval(()=>{t--;el.textContent=Math.max(t,0);if(t<=5&&t>0){el.classList.add('low');if(!name)sfx.tick()}
-    if(t<=0){clearInterval(timerH);el.textContent="TIME!";if(!name)sfx.timeUp()}},1000);
+    if(t<=0){clearInterval(timerH);el.textContent="BOARDS UP!";if(!name)sfx.timeUp()}},1000);
 }
 function openClue(r,c,i){
-  const R=ROUNDS[r],cat=R.cats[c],Q=cat.q[i],val=R.values[i],id=`${r}-${c}-${i}`;
+  const R=ROUNDS[r],cat=R.cats[c],Q=cat.q[i],pts=R.values[i],id=`${r}-${c}-${i}`;
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
-  stopAud('theme',true);isDD(r,c,i)?sfx.dd():sfx.select();
-  const top=`<div class="mtop"><div class="mcat">${esc(cat.t)}</div><div class="mfont" title="Adjust text size (press + / -)"><button id="font-dn" aria-label="Decrease font">A−</button><span id="font-val">${Math.round(fontScale*100)}%</span><button id="font-up" aria-label="Increase font">A+</button></div><div class="mval" id="mv">${val}</div></div>`;
-  let ddTeam=null,wager=val;
-  const clueInner=()=>`<div class="qtext ${isSmall(Q)?'small':''}">${Q.q}</div>${Q.v?VIS[Q.v]():''}<div id="ans"></div>`;
-  const ansHTML=()=>`<div class="answer"><div class="a">${Q.a}</div><div class="w">${Q.w}</div></div>`;
-  const editClue=()=>openEditor({title:`${cat.t} · ${val}`,obj:Q,orig:ORIG.clues[id],fields:CLUE_FIELDS,visual:true,onSave:()=>{
-    const was=!!($('#ans')&&$('#ans').innerHTML),cl=m.querySelector('.clue');
-    if(cl&&cl.querySelector('.qtext')){cl.innerHTML=clueInner();if(was)$('#ans').innerHTML=ansHTML()}}});
-  const showClue=()=>{
-    m.innerHTML=top+`<div class="clue">${clueInner()}</div>
+  stopAud('theme',true);sfx.select();
+  const top=`<div class="mtop"><div class="mcat">${esc(cat.t)}</div>
+    <div class="mfont" title="Adjust text size"><button id="font-dn" aria-label="Decrease font">A−</button>
+    <span id="font-val">${Math.round(fontScale*100)}%</span><button id="font-up" aria-label="Increase font">A+</button></div>
+    <div class="mval">${pts} POINTS</div></div>`;
+  const question=()=>`<div class="qtext ${isSmall(Q)?'small':''}">${Q.q}</div>${Q.v?VIS[Q.v]():''}`;
+  const answer=()=>`<div class="answer"><div class="a">${Q.a}</div><div class="w">${Q.w}</div></div>`;
+  const hookFont=()=>{
+    const down=m.querySelector('#font-dn'),up=m.querySelector('#font-up');
+    if(down)down.onclick=()=>changeFontScale(-.1);
+    if(up)up.onclick=()=>changeFontScale(.1);
+  };
+  const editClue=()=>openEditor({title:`${cat.t} · ${pts}`,obj:Q,orig:ORIG.clues[id],
+    fields:CLUE_FIELDS,visual:true,onSave:()=>{if(m.isConnected)drawQuestion()}});
+  const drawQuestion=()=>{
+    clearInterval(timerH);stopMusic();
+    m.innerHTML=top+`<div class="clue">${question()}<div id="ans"></div></div>
       <div class="mbar" id="bar">
-        <button class="ghost" id="t30">⏱ 20 s</button><div class="timer" id="tm"></div><div id="trk" style="font-size:16px;color:var(--muted);min-width:0"></div>
-        <button class="big" id="reveal">Show answer (space)</button>
-        <button class="ghost" id="edit">✏️ Edit</button>
-        <button class="ghost" id="clueRules" title="Review game rules">📜 Rules</button><button class="ghost" id="cancel">Back to board</button>
+        <button class="ghost" id="t30">Start 30 seconds</button><button class="ghost" id="t45">45 seconds</button>
+        <div class="timer" id="tm"></div><div id="trk" style="font-size:16px;color:var(--muted)"></div>
+        <button class="big" id="reveal">Reveal answer</button><button class="ghost" id="edit">Edit</button>
+        <button class="ghost" id="cancel">Back to board</button>
       </div>`;
-    if(ddTeam!==null)$('#mv').textContent=`DAILY DOUBLE · ${S.teams[ddTeam].name} wagered ${wager}`;
-    const fdn=$('#font-dn'),fup=$('#font-up');
-    if(fdn)fdn.onclick=e=>{e.stopPropagation();changeFontScale(-0.1)};
-    if(fup)fup.onclick=e=>{e.stopPropagation();changeFontScale(0.1)};
-    const tk=$('#trk');
-    if(tk){
-      tk.title='Click to switch countdown track';
-      tk.onclick=()=>{
-        if(!CD)return;
-        const nextName=CD.play(SND.master,20);
-        tk.textContent='♪ '+nextName;
-      };
-    }
-    $('#t30').onclick=()=>startTimer(20);
-    if($('#clueRules'))$('#clueRules').onclick=()=>openRulesModal();
-    $('#cancel').onclick=closeModal;
-    $('#edit').onclick=()=>{clearInterval(timerH);stopMusic();editClue()};
-    $('#reveal').onclick=reveal;
+    hookFont();
+    m.querySelector('#t30').onclick=()=>startTimer(30);
+    m.querySelector('#t45').onclick=()=>startTimer(45);
+    m.querySelector('#cancel').onclick=closeModal;
+    m.querySelector('#edit').onclick=()=>{clearInterval(timerH);stopMusic();editClue()};
+    m.querySelector('#reveal').onclick=reveal;
     document.onkeydown=e=>{
       if(e.code==='Space'&&!typing(e)){e.preventDefault();reveal()}
       else if(e.key==='Escape')closeModal();
-      else if((e.key==='='||e.key==='+')&&!typing(e)){e.preventDefault();changeFontScale(0.1)}
-      else if((e.key==='-'||e.key==='_')&&!typing(e)){e.preventDefault();changeFontScale(-0.1)}
+      else if((e.key==='='||e.key==='+')&&!typing(e))changeFontScale(.1);
+      else if((e.key==='-'||e.key==='_')&&!typing(e))changeFontScale(-.1);
     };
   };
   const reveal=()=>{
-    if($('#ans').innerHTML)return; clearInterval(timerH); stopMusic(); sfx.reveal();
-    S.used[id]=true;save();
-    $('#ans').innerHTML=ansHTML();
-    const teams=ddTeam!==null?[ddTeam]:S.teams.map((_,k)=>k), pts=ddTeam!==null?wager:val;
-    $('#bar').innerHTML=`<div class="judge">${teams.map(k=>`<div class="jt"><span>${S.teams[k].name}</span><button class="ok" data-k="${k}" aria-label="correct">✓</button><button class="no" data-k="${k}" aria-label="incorrect">✗</button></div>`).join('')}</div>
-      <button class="ghost" id="edit2">✏️ Edit</button><button class="big" id="done">Back to board</button>`;
-    m.querySelectorAll('.ok').forEach(b=>b.onclick=()=>{award(+b.dataset.k,pts);m.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x=>x.disabled=true)});
-    m.querySelectorAll('.no').forEach(b=>b.onclick=()=>{award(+b.dataset.k,-pts);m.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x=>x.disabled=true)});
-    const fdn2=$('#font-dn'),fup2=$('#font-up');
-    if(fdn2)fdn2.onclick=e=>{e.stopPropagation();changeFontScale(-0.1)};
-    if(fup2)fup2.onclick=e=>{e.stopPropagation();changeFontScale(0.1)};
-    $('#done').onclick=()=>{closeModal();renderBoard()};
-    $('#edit2').onclick=editClue;
-    document.onkeydown=e=>{
-      if(e.key==='Escape'){closeModal();renderBoard()}
-      else if((e.key==='='||e.key==='+')&&!typing(e)){e.preventDefault();changeFontScale(0.1)}
-      else if((e.key==='-'||e.key==='_')&&!typing(e)){e.preventDefault();changeFontScale(-0.1)}
-    };
-  };
-  if(isDD(r,c,i)){
-    const maxW=v=>Math.max(v,R.values[4]);
-    m.innerHTML=top+`<div class="clue"><div class="dd">DAILY DOUBLE!</div>
-      <div style="font-size:22px;font-weight:600">Which team found it?</div>
-      <div class="pick">${S.teams.map((t,k)=>`<button data-k="${k}">${t.name}</button>`).join('')}</div>
-      <div id="wbox"></div></div>`;
-    m.querySelectorAll('.pick button').forEach(b=>b.onclick=()=>{
-      m.querySelectorAll('.pick button').forEach(x=>x.classList.remove('on'));b.classList.add('on');ddTeam=+b.dataset.k;
-      const mx=maxW(S.teams[ddTeam].score);
-      $('#wbox').innerHTML=`<div style="font-size:20px;margin-bottom:8px">Wager (5 – ${mx}):</div><input class="wager" id="wg" type="number" min="5" max="${mx}" value="${Math.min(val,mx)}"> <button class="big" id="sc">Show the clue</button>`;
-      $('#sc').onclick=()=>{stopAud('dd',true);let w=parseInt($('#wg').value,10);if(isNaN(w))w=val;wager=Math.max(5,Math.min(mx,w));showClue()};
+    clearInterval(timerH);stopMusic();sfx.reveal();
+    m.innerHTML=top+`<div class="clue"><div class="qtext small">${Q.q}</div>${Q.v?VIS[Q.v]():''}${answer()}</div><div class="mbar" id="bar"></div>`;
+    hookFont();
+    showGroupScoring(m.querySelector('#bar'),pts,'Apply scores · Next clue',()=>{
+      S.used[id]=true;save();closeModal();renderBoard();
     });
     document.onkeydown=e=>{if(e.key==='Escape')closeModal()};
-  } else showClue();
+  };
+  drawQuestion();
 }
 
 /* ======================= FINAL JEOPARDY ======================= */
@@ -1427,53 +1386,50 @@ function renderFinalIntro(){
 }
 function openFinal(){
   const m=document.createElement('div');m.className='modal';document.body.appendChild(m);
-  const F=S.final;
-  const head=()=>`<div class="mtop"><div class="mcat">Final Jeopardy · ${esc(FINAL.cat)}</div><div class="mfont" title="Adjust text size (press + / -)"><button id="font-dn" aria-label="Decrease font">A−</button><span id="font-val">${Math.round(fontScale*100)}%</span><button id="font-up" aria-label="Increase font">A+</button></div><div class="mval">Wager it all?</div></div>`;
-  const stage0=()=>{
-    m.innerHTML=head()+`<div class="clue"><div class="qtext">Each team writes a secret wager (0 up to their score). Enter wagers below.</div>
-      <div class="final-wagers">${S.teams.map((t,k)=>`<div class="fw"><div>${t.name} <span style="color:var(--gold)">(${t.score})</span></div><input class="wager" data-k="${k}" type="number" min="0" max="${Math.max(0,t.score)}" value="${F.w[k]??0}"></div>`).join('')}</div></div>
-      <div class="mbar"><button class="big" id="showQ">Lock wagers &amp; show clue</button><button class="ghost" id="x">Close</button></div>`;
-    $('#x').onclick=closeModal;
-    $('#showQ').onclick=()=>{m.querySelectorAll('.fw input').forEach(x=>{const k=+x.dataset.k,mx=Math.max(0,S.teams[k].score);let v=parseInt(x.value,10);if(isNaN(v))v=0;F.w[k]=Math.max(0,Math.min(mx,v))});F.stage=1;save();stage1()};
+  const F=S.final,points=1000;
+  const head=()=>`<div class="mtop"><div class="mcat">Final Jeopardy · ${esc(FINAL.cat)}</div>
+    <div class="mval">${points} POINTS</div></div>`;
+  const ans=()=>`<div class="answer"><div class="a">${FINAL.a}</div><div class="w">${FINAL.w}</div></div>`;
+  const question=()=>{
+    clearInterval(timerH);stopMusic();F.stage=1;save();
+    m.innerHTML=head()+`<div class="clue"><div class="qtext small">${FINAL.q}</div></div>
+      <div class="mbar" id="bar"><button class="ghost" id="t60">Start 45 seconds</button><div class="timer" id="tm"></div><div id="trk"></div>
+      <button class="big" id="rev">Reveal answer</button><button class="ghost" id="edF">Edit</button><button class="ghost" id="x">Close</button></div>`;
+    m.querySelector('#t60').onclick=()=>startTimer(45,true);
+    m.querySelector('#x').onclick=closeModal;
+    m.querySelector('#rev').onclick=reveal;
+    m.querySelector('#edF').onclick=()=>{clearInterval(timerH);stopMusic();editFinal(question)};
+    document.onkeydown=e=>{if(e.key==='Escape')closeModal()};
   };
-  const stage1=()=>{
-    m.innerHTML=head()+`<div class="clue"><div class="qtext small">${FINAL.q}</div><div id="ans"></div></div>
-      <div class="mbar" id="bar"><button class="ghost" id="t60">⏱ 30 s</button><div class="timer" id="tm"></div><div id="trk" style="font-size:16px;color:var(--muted)"></div><button class="ghost" id="edF">✏️ Edit</button><button class="big" id="rev">Show answer</button><button class="ghost" id="x">Close</button></div>`;
-    const fdn=$('#font-dn'),fup=$('#font-up');
-    if(fdn)fdn.onclick=e=>{e.stopPropagation();changeFontScale(-0.1)};
-    if(fup)fup.onclick=e=>{e.stopPropagation();changeFontScale(0.1)};
-    const tk=$('#trk');
-    if(tk){
-      tk.title='Click to switch countdown track';
-      tk.onclick=()=>{
-        if(!CD)return;
-        const nextName=CD.play(SND.master,30);
-        tk.textContent='♪ '+nextName;
-      };
-    }
-    $('#edF').onclick=()=>{clearInterval(timerH);stopMusic();editFinal(refreshFinal)};
-    $('#t60').onclick=()=>startTimer(30,true);$('#x').onclick=closeModal;$('#rev').onclick=stage2;
+  const reveal=()=>{
+    clearInterval(timerH);stopMusic();F.stage=2;save();sfx.reveal();
+    m.innerHTML=head()+`<div class="clue"><div class="qtext small">${FINAL.q}</div>${ans()}</div><div class="mbar" id="bar"></div>`;
+    showGroupScoring(m.querySelector('#bar'),points,'Apply scores · See winner',()=>{
+      F.stage=3;save();winner();
+    });
+    document.onkeydown=e=>{if(e.key==='Escape')closeModal()};
   };
-  const stage2=quiet=>{
-    clearInterval(timerH);stopMusic();if(quiet!==true)sfx.reveal();F.stage=2;save();
-    $('#ans').innerHTML=`<div class="answer"><div class="a">${FINAL.a}</div><div class="w">${FINAL.w}</div></div>`;
-    $('#bar').innerHTML=`<div class="judge">${S.teams.map((t,k)=>`<div class="jt"><span>${t.name} (${F.w[k]??0})</span><button class="ok" data-k="${k}" ${F.judged[k]?'disabled':''}>✓</button><button class="no" data-k="${k}" ${F.judged[k]?'disabled':''}>✗</button></div>`).join('')}</div><button class="ghost" id="edF2">✏️ Edit</button><button class="big" id="win">Show winner</button>`;
-    m.querySelectorAll('.ok,.no').forEach(b=>b.onclick=()=>{const k=+b.dataset.k,w=F.w[k]??0;award(k,b.classList.contains('ok')?w:-w);F.judged[k]=true;save();m.querySelectorAll(`[data-k="${k}"]`).forEach(x=>x.disabled=true)});
-    const fdn2=$('#font-dn'),fup2=$('#font-up');
-    if(fdn2)fdn2.onclick=e=>{e.stopPropagation();changeFontScale(-0.1)};
-    if(fup2)fup2.onclick=e=>{e.stopPropagation();changeFontScale(0.1)};
-    $('#edF2').onclick=()=>editFinal(refreshFinal);
-    $('#win').onclick=()=>{
-      sfx.fanfare();
-      const max=Math.max(...S.teams.map(t=>t.score)),w=S.teams.filter(t=>t.score===max).map(t=>t.name);
-      m.innerHTML=`<div class="clue"><div class="dd">CHAMPIONS!</div><div class="winner">${w.join(' & ')}</div><div style="font-size:26px">${max} points</div>
-        <div style="font-size:20px;max-width:800px;color:var(--muted)">Before the exam: redo any question your team missed, and practice Bohr models, ion tables, and gel reading from your packets.</div>
-        <button class="big" id="x">Close</button></div>`;
-      $('#x').onclick=closeModal;
-    };
+  const winner=()=>{
+    clearInterval(timerH);stopMusic();sfx.fanfare();
+    const max=Math.max(...S.teams.map(t=>t.score)),teams=S.teams.filter(t=>t.score===max).map(t=>t.name);
+    m.innerHTML=`<div class="clue"><div class="dd">CHAMPIONS!</div>
+      <div class="winner">${teams.map(esc).join(' & ')}</div>
+      <div style="font-size:30px;color:var(--gold);font-weight:800">${max} points</div>
+      <p style="font-size:clamp(20px,2vw,28px)">Review the explanations for questions your team missed.</p>
+      <button class="big" id="x">Back to board</button></div>`;
+    m.querySelector('#x').onclick=closeModal;
   };
-  const refreshFinal=()=>{if(F.stage===2){stage1();stage2(true)}else if(F.stage===1)stage1();else stage0()};
-  if(F.stage===0)stage0();else{stage1();if(F.stage===2)stage2()}
+  if(F.stage===1)question();
+  else if(F.stage===2)reveal();
+  else if(F.stage===3)winner();
+  else{
+    m.innerHTML=head()+`<div class="clue"><div class="dd">FINAL ROUND</div>
+      <div class="qtext small">One last question. Every team answers.</div>
+      <p style="font-size:clamp(22px,2vw,32px)">Correct: +${points} · Wrong, blank, or late: −${points}</p></div>
+      <div class="mbar"><button class="big" id="showQ">Show final question</button><button class="ghost" id="x">Back</button></div>`;
+    m.querySelector('#showQ').onclick=question;
+    m.querySelector('#x').onclick=closeModal;
+  }
 }
 
 /* boot */
