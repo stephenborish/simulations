@@ -45,6 +45,23 @@ main{flex:1;min-height:0;padding:0 16px 10px;display:flex;flex-direction:column;
 .tile:active{transform:scale(.98)}
 .tile.used{background:var(--used);color:transparent;text-shadow:none;cursor:default}
 
+
+/* Whose turn to select — all teams still answer. */
+.chooser-banner{display:flex;align-items:center;gap:clamp(10px,1.5vw,20px);flex-wrap:wrap;flex:0 0 auto;
+  min-height:64px;padding:10px clamp(12px,1.5vw,23px);border:2px solid #f5c63b;border-radius:12px;
+  background:linear-gradient(110deg,#101d69,#0b1861 75%,#1c2b7d);color:#fff}
+.chooser-label{font:800 clamp(13px,1vw,17px) var(--body);color:#c2d0ff;letter-spacing:.11em;text-transform:uppercase}
+.chooser-name{font:800 clamp(25px,2.6vw,44px)/1 var(--head);color:var(--gold);overflow-wrap:anywhere}
+.chooser-hint{font-size:clamp(15px,1.15vw,19px);font-weight:600;color:#e3e9ff}
+.chooser-switch{margin-left:auto;display:flex;align-items:center;gap:8px}
+.chooser-switch button{border:1px solid #e0e7ff7a;background:#ffffff1a;color:#fff;border-radius:8px;
+  padding:8px 12px;font-weight:750;font-size:15px}
+.chooser-switch button:hover{background:#ffffff30}
+.chooser-switch select{max-width:225px;font-size:17px;font-weight:700;padding:7px;border-radius:8px}
+.chooser-switch select[hidden]{display:none!important}
+@media(max-width:700px){.chooser-banner{gap:7px;min-height:0}.chooser-name{font-size:30px}.chooser-hint{font-size:14px}
+ .chooser-switch{width:100%;justify-content:flex-end;margin-left:0}}
+
 /* scores */
 footer{display:flex;gap:8px;padding:8px 16px 14px;flex-wrap:wrap;align-items:stretch}
 .team{flex:1 1 150px;background:var(--board);color:var(--white);border-radius:10px;padding:8px 10px;text-align:center;border:3px solid transparent}
@@ -1090,7 +1107,7 @@ function openRulesModal(options={}){
     <div class="rules-wrap">
       <div class="rules-kicker">DNA &amp; ATOMS · HOW TO PLAY</div>
       <h2 class="rules-heading">EVERY TEAM. <em>EVERY QUESTION.</em></h2>
-      <p class="rules-lede">One whiteboard per team. No buzzers. Everyone plays.</p>
+      <p class="rules-lede">First team is chosen randomly. Teams take turns selecting clues. Everyone answers.</p>
       <div class="rules-steps">
         <section class="rules-step"><div class="rules-num">1</div><h3>TEAM UP</h3><p>Everyone thinks. Talk quietly and agree on one answer.</p></section>
         <section class="rules-step"><div class="rules-num">2</div><h3>WRITE IT</h3><p>Write your team's answer before the timer reaches zero.</p></section>
@@ -1101,7 +1118,7 @@ function openRulesModal(options={}){
         <div class="rules-points"><div class="rules-sign positive">+</div><div><strong>CORRECT</strong><span>Gain the full points.</span></div></div>
         <div class="rules-points"><div class="rules-sign negative">−</div><div><strong>WRONG · BLANK · LATE</strong><span>Lose the full points.</span></div></div>
       </div>
-      <p class="rules-bottom">Rotate who writes. Give your best answer. The teacher decides what's scientifically correct.</p>
+      <p class="rules-bottom">The next team picks after each scored clue. Rotate your writer. The teacher judges answers.</p>
       <div class="rules-footer">
         ${isStart?'<button class="ghost" id="rulesBack">Back to setup</button>':''}
         <button class="big" id="rulesGo">${isStart?'START THE GAME':'BACK TO THE GAME'} →</button>
@@ -1173,6 +1190,46 @@ function pickDD(){return {'0':[],'1':[]}}
 function isDD(){return false}
 const $=s=>document.querySelector(s);
 const app=$('#app');
+function ensurePicker(){
+  if(!S||S.temp||!Array.isArray(S.teams)||!S.teams.length)return;
+  let changed=false;
+  if(!Number.isInteger(S.pickerIndex)||S.pickerIndex<0||S.pickerIndex>=S.teams.length){
+    S.pickerIndex=rnd(S.teams.length);changed=true;
+  }
+  if(!Number.isInteger(S.pickerTurn)||S.pickerTurn<0){
+    S.pickerTurn=Object.keys(S.used||{}).length;changed=true;
+  }
+  if(changed)save();
+}
+function chooserHTML(){
+  ensurePicker();
+  const i=S.pickerIndex;
+  return `<div class="chooser-banner" role="status" aria-live="polite" aria-label="Team choosing the next question">
+    <div class="chooser-label">${S.pickerTurn===0?'FIRST PICK':'NEXT QUESTION'}</div>
+    <div class="chooser-name">${esc(S.teams[i].name)}</div>
+    <div class="chooser-hint">chooses the clue · Every team answers</div>
+    <div class="chooser-switch"><button id="changeChooser" type="button" title="Choose a different team">Change</button>
+      <select id="chooserSelect" aria-label="Change the team choosing the next clue" hidden>
+      ${S.teams.map((t,k)=>`<option value="${k}" ${k===i?'selected':''}>${esc(t.name)}</option>`).join('')}
+      </select>
+    </div>
+  </div>`;
+}
+function wireChooser(){
+  const btn=$('#changeChooser'),select=$('#chooserSelect');
+  if(!btn||!select)return;
+  btn.onclick=()=>{
+    select.hidden=!select.hidden;btn.textContent=select.hidden?'Change':'Cancel';
+    if(!select.hidden)select.focus();
+  };
+  select.onchange=()=>{
+    S.pickerIndex=Number(select.value);save();renderBoard();
+  };
+  select.onkeydown=e=>{
+    if(e.key==='Escape'){e.stopPropagation();select.hidden=true;btn.textContent='Change';btn.focus()}
+  };
+}
+
 
 /* ======================= SETUP ======================= */
 function renderSetup(){
@@ -1198,7 +1255,7 @@ function renderSetup(){
   $('#go').onclick=()=>{
     const names=[...document.querySelectorAll('#names input')].map((x,i)=>x.value.trim()||`Team ${i+1}`);
     openRulesModal({onStart:()=>{
-      S={teams:names.map(n=>({name:n,score:0})),used:{},round:0,dd:pickDD(),log:[],final:{stage:0,w:{},judged:{}}};
+      S={teams:names.map(n=>({name:n,score:0})),used:{},round:0,dd:pickDD(),log:[],pickerIndex:rnd(names.length),pickerTurn:0,final:{stage:0,w:{},judged:{}}};
       save();renderGame();playAud('theme',true);
     }});
   };
@@ -1211,7 +1268,7 @@ function renderSetup(){
 /* ======================= GAME ======================= */
 let resetArm=false;
 function renderGame(){
-  const T=!!S.temp;if(T)editMode=true;
+  const T=!!S.temp;if(T)editMode=true;else ensurePicker();
   app.innerHTML=`<header>
     <div class="logo">DNA &amp; ATOMS <span>JEOPARDY!</span></div>
     <div class="nav">
@@ -1244,11 +1301,12 @@ function renderGame(){
 function renderBoard(){
   const R=ROUNDS[S.round];
   const bar=editMode?`<div class="editbar"><b>✏️ EDIT MODE</b><span>Click a tile to edit clue &amp; answer · click category to rename</span><span class="sp"></span><button class="tool" id="savehtml" title="Download standalone HTML with all edits permanently saved into the game file">💾 Download Game HTML</button><button class="tool" id="sharelink" title="Copy shareable link with your edits">🔗 Share Link</button><button class="tool" id="publish" title="Publish to GitHub so all devices sync">🌐 Publish to GitHub</button><button class="tool" id="xfer">📋 Backup / Restore JSON</button><button class="tool" id="rall">Reset all edits</button></div>`:'';
-  let h=`${bar}<div class="board">`;
+  let h=`${bar}${!S.temp&&!editMode?chooserHTML():''}<div class="board">`;
   R.cats.forEach((c,ci)=>h+=`<div class="cat" ${editMode?`contenteditable="true" spellcheck="false" data-c="${ci}" title="Click to rename"`:''}>${esc(c.t)}</div>`);
   for(let i=0;i<5;i++) R.cats.forEach((c,ci)=>{const id=`${S.round}-${ci}-${i}`,u=S.used[id];
     h+=`<button class="tile ${u?'used':''} ${editMode?'editing':''}" data-c="${ci}" data-i="${i}" ${(u&&!editMode)?'disabled':''} aria-label="${esc(c.t)} for ${R.values[i]}" ${editMode?`title="${esc(plain(c.q[i].q).slice(0,200))}"`:''}>${R.values[i]}</button>`});
   $('#main').innerHTML=h+`</div>`;
+  if(!S.temp&&!editMode)wireChooser();
   if(editMode){
     document.querySelectorAll('.tile').forEach(t=>t.onclick=()=>{
       const c=+t.dataset.c,i=+t.dataset.i,cat=R.cats[c];
@@ -1282,15 +1340,24 @@ function undo(){
   const L=S.log.pop();if(!L)return;
   if(Array.isArray(L.changes)){L.changes.forEach(({t,d})=>{if(S.teams[t])S.teams[t].score-=d});
     if(L.clueId)delete S.used[L.clueId];
+    if(Number.isInteger(L.previousPicker)){S.pickerIndex=L.previousPicker;S.pickerTurn=L.previousPickerTurn}
     if(L.final&&S.final)S.final.stage=2;
   }
   else if(S.teams[L.t])S.teams[L.t].score-=L.d;
   save();renderScores();
+  if(S.round<2&&!editMode)renderBoard();
 }
 function gradeAll(points,outcomes,meta={}){
   const changes=outcomes.map((decision,t)=>({t,d:decision==='correct'?points:-points}));
   changes.forEach(({t,d})=>{S.teams[t].score+=d});
-  S.log.push({changes,...meta});save();renderScores();
+  const record={changes,...meta};
+  if(meta.clueId){
+    ensurePicker();
+    record.previousPicker=S.pickerIndex;record.previousPickerTurn=S.pickerTurn;
+    S.pickerIndex=(S.pickerIndex+1)%S.teams.length;
+    S.pickerTurn++;
+  }
+  S.log.push(record);save();renderScores();
   if(changes.some(x=>x.d>0))sfx.correct();else sfx.wrong();
 }
 function showGroupScoring(target,points,label,onFinish,meta={}){
