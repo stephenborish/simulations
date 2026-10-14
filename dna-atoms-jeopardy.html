@@ -329,97 +329,97 @@ const VIS={
 const ROUNDS=[
 { name:'Jeopardy!', values:[100,200,300,400,500], cats:[
  {t:'Nucleotide Know-How', q:[
-  {q:'What does <b>DNA</b> stand for?', a:'Deoxyribonucleic acid', w:'“Deoxyribo-” comes from DNA’s sugar, <b>deoxyribose</b>.'},
-  {q:'Name the <b>three parts</b> that make up every nucleotide.', a:'A phosphate group, a deoxyribose sugar, and a nitrogen base', w:'Nucleotides are the building blocks (monomers) that link together to form a DNA strand.'},
-  {q:'Every DNA nucleotide has the same sugar and the same phosphate. Which part is <b>different</b>, and what are its <b>four</b> possible types?', a:'The nitrogen base: adenine (A), thymine (T), guanine (G), cytosine (C)', w:'The <b>order</b> of these bases is the genetic code — it is what makes your DNA different from a pea plant’s.'},
-  {q:'Identify each numbered part. (<b>#4</b> is everything inside the dashed box.)<br><span style="font-size:.8em">BONUS: Which base pairs with #3?</span>', v:'ladder', small:1, a:'1 = phosphate group · 2 = deoxyribose sugar · 3 = nitrogen base (guanine) · 4 = one nucleotide. Bonus: cytosine', w:'A nucleotide = 1 phosphate + 1 sugar + 1 base. The sides of the ladder are the <b>sugar-phosphate backbone</b>; the rungs are the paired <b>bases</b>.'},
-  {q:'One single strand of DNA contains <b>15 phosphate groups</b>. How many nucleotides, sugars, and nitrogen bases does it have? If it pairs up to make a double strand, how many nucleotides total?', small:1, a:'15 nucleotides, 15 sugars, 15 bases → 30 nucleotides in the double strand', w:'Each nucleotide carries exactly one of each part, so the counts always match. DNA is a <b>polymer</b> of nucleotide <b>monomers</b>.'}
+   {q:"What does <b>DNA</b> stand for?",a:"Deoxyribonucleic acid",w:"DNA is made of repeating nucleotides, each with a sugar, phosphate, and nitrogen base."},
+   {q:"Which <b>sugar</b> is found in DNA?",a:"Deoxyribose",w:"Every DNA nucleotide includes a deoxyribose sugar, a phosphate group, and a nitrogen base."},
+   {q:"Which <b>part</b> of a DNA nucleotide can be adenine, thymine, guanine, or cytosine?",a:"The nitrogen base",w:"DNA contains four nitrogen bases. Their sequence stores genetic information."},
+   {q:"Which <b>number</b> labels one complete nucleotide in the diagram?",a:"4",w:"One nucleotide consists of one phosphate group, one deoxyribose sugar, and one nitrogen base.",v:"ladder"},
+   {q:"A single DNA strand contains <b>15 phosphate groups</b>. How many <b>nucleotides</b> does it contain?",a:"15",w:"Each nucleotide contains one phosphate group, so 15 phosphates represent 15 nucleotides."}
  ]},
  {t:'Pair Up!', q:[
-  {q:'Complete the base-pairing rules:<br>A pairs with ___ &nbsp;·&nbsp; G pairs with ___', a:'A–T and G–C', w:'These are called <b>complementary base pairs</b>.'},
-  {q:'Write the complementary strand:<br><span style="font-family:monospace;letter-spacing:.2em;font-size:1.3em">G A T T A C A</span>', a:'C T A A T G T', w:'Swap each base for its partner: G→C, A→T, T→A, C→G. Check one letter at a time!'},
-  {q:'Write the complementary strand:<br><span style="font-family:monospace;letter-spacing:.15em;font-size:1.2em">T T A G C C G A T C</span>', a:'A A T C G G C T A G', w:'Common trap: copying the strand instead of pairing it. Read your answer back against the original — every column should be an A–T or G–C pair.'},
-  {q:'A DNA sample is <b>30% adenine</b>. What percent is thymine, guanine, and cytosine?', a:'Thymine 30%, guanine 20%, cytosine 20%', w:'<b>Chargaff’s rule</b>: A = T and G = C. 100 − 60 = 40% left for G + C, split evenly.'},
-  {q:'A double-stranded DNA segment has <b>20 base pairs</b>. <b>8</b> of them are G–C pairs. How many <b>adenines</b> are in the whole segment?', a:'12 adenines', w:'20 − 8 = 12 A–T pairs. Every A–T pair contains exactly one adenine (on one strand or the other).'}
+   {q:"Which DNA base pairs with <b>guanine</b>?",a:"Cytosine (C)",w:"Guanine pairs with cytosine. Adenine pairs with thymine."},
+   {q:"Write the complementary DNA sequence:<br><span style='font-family:monospace;letter-spacing:.15em'>G A T T A C A</span>",a:"C T A A T G T",w:"For every position, pair G with C and A with T. The result is one complementary DNA sequence."},
+   {q:"Write the complementary DNA sequence:<br><span style='font-family:monospace;letter-spacing:.15em'>T T A G C C G A T C</span>",a:"A A T C G G C T A G",w:"Pair each base with its complement. Do not simply copy the original sequence."},
+   {q:"A double-stranded DNA sample contains <b>30% adenine</b>. What percentage is <b>thymine</b>?",a:"30%",w:"A pairs with T, so the percentages of adenine and thymine are equal in double-stranded DNA."},
+   {q:"A double-stranded DNA segment has <b>20 base pairs</b>; <b>8</b> are G–C pairs. How many <b>adenine bases</b> are present?",a:"12",w:"The remaining 12 pairs are A–T, and each contains one adenine."}
  ]},
  {t:'Gel Detectives', q:[
-  {q:'What <b>charge</b> does DNA have, and which <b>part of the nucleotide</b> gives it that charge?', a:'Negative — from the phosphate groups', w:'This negative charge is what lets an electric current pull DNA through a gel.'},
-  {q:'In a gel chamber, which electrode does DNA travel <b>toward</b>? So which end of the gel should the <b>wells</b> be placed near?', a:'DNA travels toward the positive (+, red) electrode, so the wells go at the negative (−, black) end', w:'Opposites attract. If the wells are next to the + electrode, the DNA runs right out of the gel into the buffer.'},
-  {q:'List bands <b>W, X, Y, Z</b> from <b>smallest</b> to <b>largest</b> fragment.<br><span style="font-size:.8em">BONUS: Use the ladder to estimate the size of X.</span>', v:'gelSize', small:1, a:'Z, Y, X, W (smallest → largest). Bonus: X ≈ 500 bp', w:'Small fragments slip through the gel’s mesh fastest, so they travel <b>farthest from the wells</b>. The ladder is a “molecular ruler” of known sizes.'},
-  {q:'DNA from a crime scene and four suspects was cut with the same restriction enzyme. Whose DNA <b>matches</b> the crime scene?', v:'gelCrime', small:1, a:'Suspect 3', w:'A match needs <b>every</b> band to line up. Suspect 2 shares two bands, but not the top one — that is not a match.'},
-  {q:'Which numbered bands did the puppy inherit from its <b>father</b>? Which male could be the father?', v:'gelPup', small:1, a:'Bands 2 and 3 came from the father. Male A could be the father; Male B is ruled out.', w:'First cross off the bands the puppy shares with the mother (1 and 4). The father must have <b>all</b> the leftover bands. Male B has band 2 but not band 3.'}
+   {q:"Which part of DNA gives it an overall <b>negative charge</b>?",a:"Phosphate groups",w:"DNA's sugar–phosphate backbone carries negative charges. This allows an electric field to move DNA through a gel."},
+   {q:"During gel electrophoresis, toward which <b>electrode</b> does DNA migrate?",a:"Positive (+) electrode",w:"DNA has a negative charge, so it moves toward the positive electrode."},
+   {q:"Using the DNA ladder, what is the approximate size of the <b>smallest fragment</b> in any suspect lane?",a:"564 bp",w:"The lowest suspect band aligns closely with the 564-bp ladder marker. Smaller DNA fragments move farther through the gel.",v:"gelCrime"},
+   {q:"Which suspect's DNA band pattern <b>matches the crime scene</b>?",a:"Suspect 2",w:"Every band in Suspect 2 aligns with the crime-scene sample. A partial match is not sufficient.",v:"gelCrime"},
+   {q:"Which possible father can account for the child's DNA bands <b>not found in the mother</b>?",a:"Father 3",w:"The child inherits DNA from both parents. Father 3 contains the bands that are absent from the mother's lane.",v:"gelPup"}
  ]},
  {t:'Molecular Scissors', q:[
-  {q:'What does a <b>restriction enzyme</b> do? What is the specific sequence it searches for called?', a:'It cuts DNA at a specific sequence — the recognition sequence', w:'Think “molecular scissors.” Bacteria make them naturally to chop up invading virus DNA.'},
-  {q:'In the DNA extraction lab, what job did the <b>detergent (soap)</b> do? What did the <b>cold alcohol</b> do?', small:1, a:'Soap breaks down the cell (and nuclear) membranes. Cold alcohol makes the DNA clump together and come out of solution so we can see it.', w:'Other ingredients: <b>salt</b> helps DNA clump; <b>meat tenderizer</b> (protease) breaks down proteins attached to the DNA.'},
-  {q:'<i>Eco</i>RI cuts at <b>G|AATTC</b>. How many fragments will this DNA make?<br><span style="font-family:monospace;letter-spacing:.06em">CCGAATTCTAGCATGAATTCGGTA</span>', small:1, a:'3 fragments', w:'Find every GAATTC: there are 2. Two cuts in a straight piece of DNA → <b>cuts + 1 = 3</b> fragments: CCG | AATTCTAGCATG | AATTCGGTA.'},
-  {q:'The graph shows how far two DNA fragments traveled in a gel. Calculate the <b>speed</b> of Fragment X (with units). Which fragment is <b>larger</b>?', v:'slope', small:1, a:'Fragment X: 3 mm/min. Fragment Y is larger.', w:'Slope = rise ÷ run = (24 mm − 0 mm) ÷ (8 min − 0 min) = <b>3 mm/min</b>. Fragment Y moves slower (1.5 mm/min), and bigger fragments move slower.'},
-  {q:'Two people’s DNA is cut with the <b>same</b> restriction enzyme, but their band patterns are different. <b>Explain why.</b>', small:1, a:'Their DNA sequences are slightly different, so the recognition sequences are in different places (or different numbers) → different fragment lengths', w:'This is <b>RFLP</b> (Restriction Fragment Length Polymorphism). Humans are ~99.6% identical, but the ~0.4% difference is enough. Identical twins would give identical patterns.'}
+   {q:"What is the specific DNA sequence recognized by a <b>restriction enzyme</b> called?",a:"Recognition sequence",w:"Restriction enzymes cut DNA at particular recognition sequences."},
+   {q:"Which DNA-extraction ingredient helps <b>break open cell membranes</b>?",a:"Detergent (soap)",w:"Detergents disrupt lipid membranes, releasing DNA and other cellular contents."},
+   {q:"A restriction enzyme makes <b>two cuts</b> in a linear DNA molecule. How many fragments result?",a:"3 fragments",w:"Two cuts at distinct positions on a linear DNA molecule produce three pieces."},
+   {q:"From the graph, calculate the <b>speed</b> of Fragment X in mm/min.",a:"3 mm/min",w:"Speed equals the slope of the distance–time line: 24 mm divided by 8 minutes.",v:"slope"},
+   {q:"Two DNA samples are cut with the <b>same restriction enzyme</b> but produce different band patterns. What is the most likely reason?",a:"Differences in their DNA sequences",w:"Differences in recognition-site locations can produce DNA fragments of different lengths."}
  ]},
  {t:'Gene → Protein → Trait', q:[
-  {q:'What is a <b>gene</b>?', a:'A sequence of DNA that the cell uses as instructions to make a protein', w:'Your <b>genome</b> is the complete set of DNA instructions found in your cells.'},
-  {q:'How many chromosomes are in a human body cell? How many come from <b>each parent</b>?', a:'46 (23 pairs) — 23 from mom and 23 from dad', w:'Almost every cell contains the same full set of DNA you inherited.'},
-  {q:'Put these in the order of the <b>central dogma</b>: <b>Protein · DNA · RNA</b>.<br><span style="font-size:.8em">BONUS: What cell structure builds proteins?</span>', small:1, a:'DNA → RNA → Protein. Bonus: ribosomes', w:'Information flows from DNA to RNA to protein — not the other way around.'},
-  {q:'Where is DNA located in a <b>eukaryotic</b> cell? In a <b>prokaryotic</b> (bacterial) cell?<br><span style="font-size:.8em">BONUS: Plant cells have a ___ outside the membrane made of ___.</span>', small:1, a:'Eukaryote: inside the nucleus. Prokaryote: loose in the cytoplasm (no nucleus). Bonus: cell wall, made of cellulose.', w:'Eukaryotes = plants, animals, fungi. Prokaryotes = bacteria.'},
-  {q:'A mutation changes one nucleotide in a gene. Explain how that change could end up changing a <b>trait</b>.', small:1, a:'Mutated DNA → the protein is built differently (wrong sequence/shape) → the protein may not work the same → the trait changes', w:'A protein’s job depends on its shape, and its shape depends on the instructions in the gene. Sickle-cell is a real example.'}
+   {q:"What is a <b>gene</b>?",a:"A DNA sequence containing instructions for a functional product",w:"Many genes provide instructions for proteins; some produce functional RNA molecules."},
+   {q:"How many chromosomes are normally present in a <b>human body cell</b>?",a:"46",w:"Most human body cells have 23 pairs of chromosomes."},
+   {q:"Put the steps of genetic information flow in order: <b>protein · DNA · RNA</b>.",a:"DNA → RNA → protein",w:"During gene expression, DNA is transcribed into RNA and RNA may be translated into protein."},
+   {q:"In a typical <b>bacterial cell</b>, where is most DNA located?",a:"The nucleoid region of the cytoplasm",w:"Bacteria do not have a membrane-bound nucleus. Their main chromosome occupies a nucleoid region."},
+   {q:"A mutation changes a protein's amino-acid sequence. What cellular product may now have a different <b>shape or function</b>?",a:"The protein",w:"A changed amino-acid sequence can alter protein structure and function; some mutations have little or no effect."}
  ]},
  {t:'Science Hall of Fame', q:[
-  {q:'Her X-ray image of DNA (“Photo 51”) showed that DNA has a <b>helix</b> shape. Who is she?', a:'Rosalind Franklin', w:'Her data was key evidence for the double helix model.'},
-  {q:'Which two scientists used Franklin’s data and Chargaff’s rule to build the first accurate model of DNA? What <b>shape</b> did they describe?', small:1, a:'James Watson & Francis Crick — a double helix (twisted ladder)', w:'Two strands twist around each other, held together by paired bases.'},
-  {q:'J.J. Thomson saw a beam bend <b>toward a positively charged plate</b>. What particle did he discover — and which of <b>Dalton’s</b> ideas did this disprove?', small:1, a:'The electron — it disproved Dalton’s idea that atoms cannot be divided', w:'If atoms contain smaller particles, they can’t be indivisible. Thomson’s model: “plum pudding.”'},
-  {q:'In Rutherford’s gold foil experiment, <b>most</b> alpha particles passed straight through, but a <b>few bounced back</b>. What two conclusions did he draw?', small:1, a:'1) Atoms are mostly empty space. 2) Atoms have a tiny, dense, positively charged nucleus.', w:'The bounce-backs could only happen if they hit something small, heavy, and positive.'},
-  {q:'Match the scientist:<br>(A) Each element gives off its own <b>specific colors of light</b>.<br>(B) A <b>neutral particle</b> in the nucleus explains the “extra” mass.', small:1, a:'(A) Niels Bohr — electrons are in specific energy levels (shells). (B) James Chadwick — the neutron.', w:'Models change when new evidence appears. Today’s best model is the quantum (electron cloud) model.'}
+   {q:"Whose X-ray diffraction work provided key evidence that DNA has a <b>helical shape</b>?",a:"Rosalind Franklin",w:"Franklin and her colleagues generated essential structural evidence for DNA."},
+   {q:"Who worked with <b>James Watson</b> to propose the double-helix model of DNA?",a:"Francis Crick",w:"Watson and Crick proposed the model using evidence from several researchers, including Rosalind Franklin."},
+   {q:"Which negatively charged subatomic particle did <b>J. J. Thomson</b> discover?",a:"Electron",w:"The electron's discovery demonstrated that atoms contain smaller particles."},
+   {q:"What small, dense structure did <b>Rutherford's gold-foil experiment</b> reveal?",a:"The atomic nucleus",w:"A small fraction of alpha particles were sharply deflected, showing that positive charge is concentrated in a tiny nucleus."},
+   {q:"Who discovered the <b>neutron</b>?",a:"James Chadwick",w:"Chadwick identified a neutral particle that helps account for atomic mass."}
  ]}
 ]},
 { name:'Double Jeopardy!', values:[200,400,600,800,1000], cats:[
  {t:'Subatomic Smackdown', q:[
-  {q:'Give the <b>charge</b> and <b>location</b> of protons, neutrons, and electrons.', small:1, a:'Proton: +, nucleus · Neutron: 0 (neutral), nucleus · Electron: −, shells outside the nucleus', w:'Protons and neutrons make up almost all of the mass; electrons are tiny.'},
-  {q:'An atom has <b>26 protons</b>. What element is it? If you add 2 neutrons, is it still the same element?', a:'Iron (Fe) — yes, still iron (just a heavier isotope)', w:'The number of protons = the atomic number = the element’s identity. Neutrons only change the mass.'},
-  {q:'In a neutral atom of <b>xenon-131</b>, compare the number of protons to the number of electrons and to the number of neutrons.', small:1, a:'Protons (54) = electrons (54); protons are fewer than neutrons (77)', w:'Neutral → p = e. Neutrons = mass # − atomic # = 131 − 54 = 77.'},
-  {q:'This diagram shows the nucleus of a neutral atom. What is its <b>atomic number</b>, <b>mass number</b>, and <b>element</b>?', v:'nucleus', small:1, a:'Atomic number 7, mass number 15 — nitrogen (nitrogen-15)', w:'Atomic # = protons only (7). Mass # = protons + neutrons (7 + 8 = 15).'},
-  {q:'A neutral atom has a mass number of <b>79</b> and <b>45 neutrons</b>. What element is it, and how many <b>valence electrons</b> does it have?', small:1, a:'Selenium (Se) — 6 valence electrons', w:'Protons = 79 − 45 = 34 → selenium. It’s in group 16, so it has 6 valence electrons.'}
+   {q:"What is the electrical <b>charge of an electron</b>?",a:"1− (negative)",w:"Electrons are negatively charged; protons are positive and neutrons are neutral."},
+   {q:"Which element has <b>26 protons</b> in every atom?",a:"Iron (Fe)",w:"The number of protons determines an element's identity. Iron has atomic number 26."},
+   {q:"How many <b>neutrons</b> are in xenon-131? (Xenon has 54 protons.)",a:"77",w:"Neutrons = mass number − atomic number = 131 − 54 = 77."},
+   {q:"The diagram shows an atomic nucleus. What is the atom's <b>atomic number</b>?",a:"7",w:"The atomic number equals the number of protons in the nucleus.",v:"nucleus"},
+   {q:"A neutral atom has mass number <b>79</b> and <b>45 neutrons</b>. Identify the element.",a:"Selenium (Se)",w:"79 − 45 = 34 protons. Atomic number 34 is selenium."}
  ]},
  {t:'Ion Zone', q:[
-  {q:'A fluorine atom <b>gains 1 electron</b>. Is it now a cation or an anion? Write its symbol with charge.', a:'An anion — F⁻ (charge 1−)', w:'Gaining negative electrons → negative charge → anion. Losing electrons → positive → cation.'},
-  {q:'An ion has <b>7 protons</b> and <b>10 electrons</b>. What is its charge? Write its symbol.', a:'3− · N³⁻ (nitride ion)', w:'<b>Charge = protons − electrons</b> = 7 − 10 = −3. 7 protons = nitrogen.'},
-  {q:'How many electrons are in a <b>Ba²⁺</b> ion?', a:'54 electrons', w:'Barium has 56 protons. A 2+ charge means it <b>lost</b> 2 electrons: 56 − 2 = 54.'},
-  {q:'When an atom becomes an ion, does its <b>nucleus</b> change? Why can’t atoms gain or lose protons to become ions?', small:1, a:'No. Protons are locked in the nucleus — changing the number of protons would make a different element.', w:'Only <b>electrons</b> move between atoms.'},
-  {q:'For <b><sup>39</sup>K⁺</b>: give the protons, neutrons, and electrons. Did it gain or lose electrons? Cation or anion?<br><span style="font-size:.8em">BONUS: Which is smaller, K or K⁺?</span>', small:1, a:'19 p, 20 n, 18 e — lost 1 electron — cation. Bonus: K⁺ is smaller.', w:'K⁺ lost its only electron in shell 4, so it lost a whole shell and its radius shrinks.'}
+   {q:"A fluorine atom gains one electron. Write the resulting <b>ion symbol</b>.",a:"F⁻",w:"Fluorine gains one electron to become a negatively charged fluoride ion."},
+   {q:"An ion has <b>7 protons</b> and <b>10 electrons</b>. Write its <b>ion symbol</b>.",a:"N³⁻",w:"Seven protons identify nitrogen. Three extra electrons give the ion a 3− charge."},
+   {q:"How many electrons are in a <b>Ba²⁺</b> ion?",a:"54",w:"Barium has atomic number 56 and loses two electrons to form Ba²⁺."},
+   {q:"Which subatomic particles are <b>gained or lost</b> when an atom forms an ion?",a:"Electrons",w:"Ion formation changes the number of electrons, not the number of protons."},
+   {q:"How many <b>neutrons</b> are in <b><sup>39</sup>K⁺</b>?",a:"20",w:"Potassium has 19 protons. The mass number is 39, so 39 − 19 = 20 neutrons."}
  ]},
  {t:'Isotope Island', q:[
-  {q:'Two atoms of the <b>same element</b> have different masses. Which particle number must be different? What are these atoms called?', small:1, a:'Neutrons — they are isotopes', w:'Same protons (same element), different neutrons (different mass).'},
-  {q:'Which pair are <b>isotopes</b>?<br>(A) <sup>56</sup>Fe and <sup>56</sup>Fe³⁺ &nbsp; (B) <sup>24</sup>Mg and <sup>26</sup>Mg<br>(C) <sup>40</sup>Ar and <sup>40</sup>Ca &nbsp; (D) <sup>11</sup>B and <sup>11</sup>C', small:1, a:'(B) ²⁴Mg and ²⁶Mg', w:'Same element, different mass numbers. (A) is the same isotope with a different charge (an ion). (C) and (D) are different elements.'},
-  {q:'Lithium has two isotopes: lithium-6 (7.5%) and lithium-7 (92.5%). Will lithium’s average atomic mass be closer to <b>6</b> or <b>7</b>? Why?', small:1, a:'Closer to 7 (it’s 6.94)', w:'Average atomic mass is a <b>weighted average</b> — it leans toward the most abundant isotope.'},
-  {q:'Calculate the average atomic mass of magnesium:<br>Mg-24: <b>79%</b> · Mg-25: <b>10%</b> · Mg-26: <b>11%</b>', small:1, a:'24.32 amu', w:'(24 × 0.79) + (25 × 0.10) + (26 × 0.11) = 18.96 + 2.50 + 2.86 = <b>24.32 amu</b>. Convert % to decimals first!'},
-  {q:'Carbon-14 has a half-life of <b>5,730 years</b>. A fossil has <b>12.5%</b> of its original carbon-14 left. How old is it?', small:1, a:'17,190 years', w:'100% → 50% → 25% → 12.5% is <b>3 half-lives</b>. 3 × 5,730 = 17,190 years.'}
+   {q:"Atoms of the same element can have different mass numbers. Which <b>particle count</b> differs between these isotopes?",a:"Neutrons",w:"Isotopes have the same number of protons but different numbers of neutrons."},
+   {q:"Which pair represents <b>isotopes of the same element</b>?<br>A. <sup>56</sup>Fe / <sup>56</sup>Fe³⁺ &nbsp; B. <sup>24</sup>Mg / <sup>26</sup>Mg<br>C. <sup>40</sup>Ar / <sup>40</sup>Ca &nbsp; D. <sup>11</sup>B / <sup>11</sup>C",a:"B — ²⁴Mg and ²⁶Mg",w:"Isotopes have the same proton number but different numbers of neutrons."},
+   {q:"Lithium-6 makes up <b>7.5%</b> of natural lithium and lithium-7 makes up <b>92.5%</b>. Which isotope has the <b>greater influence</b> on lithium's average atomic mass?",a:"Lithium-7",w:"Average atomic mass is weighted by abundance. The more common isotope has greater influence."},
+   {q:"<b>Optional calculation:</b> Magnesium has Mg-24 (79%), Mg-25 (10%), and Mg-26 (11%). Estimate its <b>average atomic mass</b>.",a:"24.32 amu",w:"Weighted average: (24 × 0.79) + (25 × 0.10) + (26 × 0.11) = 24.32 amu."},
+   {q:"An atom has <b>8 protons</b> and <b>10 neutrons</b>. Which <b>isotope</b> is it?",a:"Oxygen-18 (¹⁸O)",w:"Eight protons identify oxygen; mass number = 8 + 10 = 18."}
  ]},
  {t:'Bohr & the Octet', q:[
-  {q:'In our Bohr model rules, how many electrons fit in shell 1, shell 2, and shell 3?', a:'2, then 8, then 8', w:'Fill from the inside out: 2 → 8 → 8 → 18.'},
-  {q:'How many <b>valence electrons</b> does this atom have? What element is it?', v:'bohrAl', small:1, a:'3 valence electrons — aluminum', w:'Valence electrons = the electrons in the <b>outermost</b> shell only. Total electrons 2 + 8 + 3 = 13 = aluminum.'},
-  {q:'Sulfur has 6 valence electrons. Will it <b>gain 2</b> or <b>lose 6</b>? What ion forms, and which noble gas does it match?', small:1, a:'Gain 2 → S²⁻ → matches argon', w:'<b>Octet rule</b>: atoms move the fewest electrons possible to get a full outer shell like a noble gas.'},
-  {q:'Describe the Bohr model of <b><sup>40</sup>Ca²⁺</b>: protons, neutrons, electrons, and how many electrons go in each shell.', small:1, a:'20 p, 20 n, 18 e — shells: 2, 8, 8', w:'Electrons = protons − charge = 20 − 2 = 18. It now matches argon’s arrangement.'},
-  {q:'This Bohr model is an <b>ion</b>. Identify the element, its charge, and the noble gas it matches.', v:'bohrF', small:1, a:'Fluorine — F⁻ (1− charge) — matches neon', w:'9 protons = fluorine. Count electrons: 2 + 8 = 10. Charge = 9 − 10 = <b>1−</b>.'}
+   {q:"In the simplified Bohr model used in class, what is the maximum number of electrons in the <b>second shell</b>?",a:"8",w:"In this classroom model, shell capacities begin 2, then 8, then 8."},
+   {q:"How many <b>valence electrons</b> are shown in this Bohr model?",a:"3",w:"Count electrons in the outermost occupied shell.",v:"bohrAl"},
+   {q:"Sulfur gains two electrons to complete its outer shell. Write the resulting <b>ion symbol</b>.",a:"S²⁻",w:"Sulfur gains two electrons and develops a 2− charge."},
+   {q:"How many <b>electrons</b> are in <b><sup>40</sup>Ca²⁺</b>?",a:"18",w:"Calcium has 20 protons. Forming Ca²⁺ means losing two electrons."},
+   {q:"This Bohr model shows an atom with <b>9 protons</b> and <b>10 electrons</b>. Write its <b>ion symbol</b>.",a:"F⁻",w:"Nine protons identify fluorine. Ten electrons yield a 1− charge.",v:"bohrF"}
  ]},
  {t:'Periodic Table Talk', q:[
-  {q:'Rows on the periodic table are called ___ and columns are called ___. Elements in the same <b>row</b> have the same number of ___.', small:1, a:'Periods; groups; electron shells (energy levels)', w:'Period 3 elements all have 3 shells. Moving down a group adds a shell.'},
-  {q:'Name the family for <b>Group 1</b>, <b>Group 2</b>, <b>Group 17</b>, and <b>Group 18</b>.', small:1, a:'Alkali metals, alkaline earth metals, halogens, noble gases', w:'Noble gases have full outer shells and are <b>inert</b> — they don’t form ions.'},
-  {q:'Name the <b>six</b> most abundant elements in living organisms.', a:'Carbon, hydrogen, nitrogen, oxygen, phosphorus, sulfur (CHNOPS)', w:'DNA’s nucleotides are built from C, H, N, O, and P.'},
-  {q:'What is the typical ion charge for <b>Group 2</b>? For <b>Group 16</b>? Which tend to form <b>cations</b> — metals or nonmetals?', small:1, a:'Group 2: 2+ · Group 16: 2− · Metals form cations', w:'Metals have few valence electrons and lose them; nonmetals are close to an octet and gain electrons.'},
-  {q:'Mystery element: I’m in <b>period 4</b> and I have <b>7 valence electrons</b>. Who am I? How many shells do I have, and what ion do I form?', small:1, a:'Bromine (Br) — 4 shells — Br⁻', w:'Period number = number of shells. 7 valence electrons = halogen (Group 17) → gains 1 electron.'}
+   {q:"Elements in the same <b>period</b> (row) have the same number of occupied what?",a:"Electron shells",w:"In the simplified model, a period number indicates the highest occupied electron shell."},
+   {q:"What is the family name of <b>Group 17</b>?",a:"Halogens",w:"Group 17 includes fluorine, chlorine, bromine, and iodine."},
+   {q:"Which element does <b>P</b> stand for in CHNOPS?",a:"Phosphorus",w:"The six common elements in living organisms are carbon, hydrogen, nitrogen, oxygen, phosphorus, and sulfur."},
+   {q:"What ion charge do <b>Group 2 metals</b> usually form?",a:"2+",w:"Group 2 metals typically lose two valence electrons."},
+   {q:"An element is in <b>period 4</b> and <b>Group 17</b>. Which element is it?",a:"Bromine (Br)",w:"Bromine is the period-4 halogen."}
  ]},
  {t:'Charge It!', q:[
-  {q:'Complete the rule: Like charges ___. Opposite charges ___.', a:'Like charges repel; opposite charges attract', w:'This rule explains the tape lab, the balloon lab, AND gel electrophoresis.'},
-  {q:'After you rub a balloon on your hair, the balloon is <b>negative</b>. Which particle moved, and in which direction? What is the charge on your hair?', small:1, a:'Electrons moved from the hair to the balloon. Hair is now positive.', w:'Only electrons move between objects — protons stay locked in the nucleus.'},
-  {q:'A negative balloon is held near a neutral wall. What happens to the wall’s electrons, and why does the balloon <b>stick</b>?', small:1, a:'The wall’s electrons are pushed away (repelled), so the surface near the balloon becomes slightly positive and attracts the balloon', w:'This is <b>polarization</b>: charges rearrange, but the wall is still neutral overall.'},
-  {q:'Tape lab: Two <b>negatively charged</b> tapes are brought together. What happens? A negative tape is brought near a <b>neutral</b> scrap of paper. What happens?', small:1, a:'The two negative tapes repel. The negative tape attracts the neutral paper.', w:'Rule: a charged object attracts a neutral object, because the neutral object becomes polarized.'},
-  {q:'A thin stream of water bends <b>toward</b> a negatively charged balloon. Why? Which end of the water molecules points toward the balloon?', small:1, a:'Water is polar; its slightly positive hydrogen ends are attracted to the negative balloon', w:'The water molecules rotate so their positive (H) side faces the balloon — opposites attract.'}
+   {q:"What happens when two <b>negatively charged</b> objects are brought near each other?",a:"They repel",w:"Like charges repel; opposite charges attract."},
+   {q:"A balloon becomes negatively charged after rubbing against hair. Which particle was <b>transferred</b> to the balloon?",a:"Electrons",w:"Electrons can move between objects. Protons remain in atomic nuclei."},
+   {q:"Why can a <b>negatively charged balloon</b> stick to a neutral wall?",a:"Polarization",w:"The wall's charges redistribute slightly, creating an attractive force without making the wall net charged."},
+   {q:"Two strips of tape are both negatively charged. What happens when they are brought together?",a:"They repel",w:"Both tapes carry the same type of charge."},
+   {q:"Which end of a water molecule tends to face a <b>negatively charged balloon</b>?",a:"The slightly positive hydrogen end",w:"Water is polar, and its hydrogen end has a partial positive charge."}
  ]}
 ]}
 ];
-const FINAL={cat:'Average Atomic Mass Mystery',
- q:'An element has two natural isotopes:<br>mass 63 amu — <b>69.2%</b> &nbsp;·&nbsp; mass 65 amu — <b>30.8%</b><br>Calculate the average atomic mass (round to 2 decimals) and use your periodic table to <b>identify the element</b>.',
- a:'63.62 amu — copper (Cu)',
- w:'(63 × 0.692) + (65 × 0.308) = 43.596 + 20.020 = <b>63.62 amu</b>. The closest average atomic mass on the periodic table is copper (63.546).'};
+const FINAL={cat:'The Mystery Ion',
+ q:'An ion contains <b>20 protons, 20 neutrons, and 18 electrons</b>.<br>Write its complete isotope symbol, including its mass number and charge.',
+ a:'<sup>40</sup>Ca²⁺',
+ w:'20 protons identify calcium (Ca). The mass number is 20 + 20 = 40. With two fewer electrons than protons, its charge is 2+.'};
 
 /* Mix topics: each round alternates DNA and Atoms columns */
 (function(){
