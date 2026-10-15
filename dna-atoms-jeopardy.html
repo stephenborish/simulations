@@ -531,7 +531,7 @@ const ROUNDS=[
    {q:"How many chromosomes are in one of your body cells — and how many came from <b>each</b> parent?",a:"46 · 23 from each parent",w:"Body cells have 23 pairs. One chromosome of each pair came from your mother and one from your father."},
    {q:"Suppose Father 2 is the real father. Why are <b>two of his four bands</b> missing from the child?",a:"The child inherits only half of each parent's DNA",w:"A child gets one chromosome of each pair from each parent, so only some of each parent's bands show up.",v:"gelPup"},
    {q:"Where in the cell is a protein actually <b>built</b>, and which molecule carries the gene's instructions there?",a:"At a ribosome · RNA",w:"DNA stays in the nucleus. An RNA copy of the gene travels to a ribosome, which links amino acids in the order the RNA specifies."},
-   {q:"A mutation changes one base in the gene for a skin-pigment protein. Trace the effect: list the <b>four</b> levels it passes through, in order.",a:"DNA → RNA → protein → trait",w:"The changed DNA is copied into changed RNA, which builds a changed protein. If the protein no longer works, the trait (skin color) changes."}
+   {q:"A mutation in the gene for a skin-pigment protein makes the protein stop working, and the person's skin color changes. List the <b>four</b> levels the change passed through, in order.",a:"DNA → RNA → protein → trait",w:"The changed gene (DNA) is copied into changed RNA, which builds a protein that no longer works — so the trait (skin color) changes. Not every mutation does this; some have no effect."}
  ]},
  {t:'Charge It!', q:[
    {q:"After you rub a balloon on your hair, your hair is <b>positive</b>. Did your hair gain protons or lose electrons?",a:"Lost electrons",w:"Protons are locked in nuclei. Only electrons move between objects."},
@@ -985,10 +985,11 @@ function toggleFS(){
 document.addEventListener('fullscreenchange',setCompact);document.addEventListener('webkitfullscreenchange',setCompact);
 
 /* --- content store: differences from originals, with cloud sync & offline exports --- */
-// v2: the clue set was rewritten. Edits are keyed by board position, so every edit source
-// (local storage, share links, backups, cloud file) must carry EDITS_V or it is ignored.
-const EDITS_V=2;
-const CKEY='dna-atoms-jeopardy-content-v2';
+// Edits are keyed by board position. Bump EDITS_V (and CKEY) whenever the clue layout changes,
+// so edits from every source (local storage, share links, backups, cloud file) made for the
+// old layout are ignored. v3: clues rewritten as original, non-exam questions.
+const EDITS_V=3;
+const CKEY='dna-atoms-jeopardy-content-v3';
 const CLOUD_REPO='stephenborish/simulations',CLOUD_FILE='dna-atoms-jeopardy-questions.json';
 const CLOUD_URL='https://api.github.com/repos/'+CLOUD_REPO+'/contents/'+CLOUD_FILE;
 let cloudSha=null,cloudPublished=null,cloudReady=false,cloudBusy=false,cloudDirty=false;
