@@ -299,54 +299,46 @@ const svgOpen=(w,h,label)=>`<svg class="vis" viewBox="0 0 ${w} ${h}" xmlns="http
 const callout=(x,y,n)=>`<circle cx="${x}" cy="${y}" r="19" fill="#0c1446"/><text x="${x}" y="${y+8}" text-anchor="middle" font-size="23" font-weight="800" fill="#ffc927">${n}</text>`;
 function pent(cx,cy,r){let p=[];for(let i=0;i<5;i++){const a=-Math.PI/2+2*Math.PI*i/5;p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1))}return p.join(' ')}
 
-/* DNA ladder in the class style: circle = phosphate, pentagon = deoxyribose,
-   long tab = purine (A, G), short tab = pyrimidine (T, C). Callouts 1–5. */
-function dnaPartsSVG(){
-  const ys=[75,165,255,345], left=['A','C','G','T'], comp={A:'T',T:'A',G:'C',C:'G'};
+/* Five-rung DNA model with exactly one structural mistake: on rung 4 the
+   left base hangs from a phosphate, and the sugar and phosphate trade places. */
+function dnaErrorSVG(){
+  const ys=[60,140,220,300,380], left=['A','G','T','C','G'], comp={A:'T',T:'A',G:'C',C:'G'};
   const col={A:'#e74c3c',T:'#f59e0b',G:'#16a34a',C:'#2e86de'}, len=b=>(b==='A'||b==='G')?95:65;
-  const LS=150,RS=370,LP=108,RP=412;
-  let s=svgOpen(520,430,'DNA ladder with numbered parts');
-  const lp=[[LP,ys[0]-45]],rp=[];
-  ys.forEach(y=>{lp.push([LS,y],[LP,y+45]);rp.push([RS,y],[RP,y+45])});
-  lp.pop();
-  s+=`<polyline points="${lp.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#475569" stroke-width="4"/>`;
-  s+=`<polyline points="${rp.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#475569" stroke-width="4"/>`;
+  const LS=150,RS=370,LP=108,RP=412,BAD=3;
+  let s=svgOpen(520,430,'Five-rung DNA model with numbered rungs');
+  const P=(x,y)=>`<circle cx="${x}" cy="${y}" r="14" fill="#facc15" stroke="#a16207" stroke-width="2.5"/>`;
+  const S=(x,y)=>`<polygon points="${pent(x,y,21)}" fill="#a78bfa" stroke="#5b21b6" stroke-width="2.5"/>`;
+  const lp=[];ys.forEach((y,i)=>{const sw=i===BAD;lp.push({k:sw?'S':'P',x:LP,y:y-40},{k:sw?'P':'S',x:LS,y})});
+  const rp=[];ys.forEach(y=>rp.push({k:'S',x:RS,y},{k:'P',x:RP,y:y+40}));
+  s+=`<polyline points="${lp.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="#475569" stroke-width="4"/>`;
+  s+=`<polyline points="${rp.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="#475569" stroke-width="4"/>`;
   ys.forEach((y,i)=>{
-    const L=left[i],R=comp[L],lw=len(L),x0=176,mid=x0+lw,x1=344,g=9;
-    s+=`<rect x="${x0}" y="${y-16}" width="${lw-g}" height="32" rx="5" fill="${col[L]}"/><text x="${x0+(lw-g)/2}" y="${y+8}" text-anchor="middle" font-size="22" font-weight="800" fill="#fff">${L}</text>`;
+    const L=left[i],R=comp[L],lw=len(L),x0=176,mid=x0+lw,x1=344,g=9,start=i===BAD?x0-12:x0;
+    s+=`<rect x="${start}" y="${y-16}" width="${mid-g-start}" height="32" rx="5" fill="${col[L]}"/><text x="${(start+mid-g)/2}" y="${y+8}" text-anchor="middle" font-size="22" font-weight="800" fill="#fff">${L}</text>`;
     s+=`<rect x="${mid+g}" y="${y-16}" width="${x1-mid-g}" height="32" rx="5" fill="${col[R]}"/><text x="${(mid+g+x1)/2}" y="${y+8}" text-anchor="middle" font-size="22" font-weight="800" fill="#fff">${R}</text>`;
     [-8,0,8].forEach(d=>s+=`<line x1="${mid-g}" y1="${y+d}" x2="${mid+g}" y2="${y+d}" stroke="#64748b" stroke-width="2" stroke-dasharray="3 3"/>`);
-    s+=`<polygon points="${pent(LS,y,21)}" fill="#a78bfa" stroke="#5b21b6" stroke-width="2.5"/>`;
-    s+=`<polygon points="${pent(RS,y,21)}" fill="#a78bfa" stroke="#5b21b6" stroke-width="2.5"/>`;
   });
-  lp.forEach(([x,y],i)=>{if(i%2===0)s+=`<circle cx="${x}" cy="${y}" r="14" fill="#facc15" stroke="#a16207" stroke-width="2.5"/>`});
-  rp.forEach(([x,y],i)=>{if(i%2===1)s+=`<circle cx="${x}" cy="${y}" r="14" fill="#facc15" stroke="#a16207" stroke-width="2.5"/>`});
-  // 4 = phosphate + sugar only (no base); 5 = one complete nucleotide
-  s+=`<rect x="86" y="278" width="88" height="94" rx="10" fill="none" stroke="#111" stroke-width="3" stroke-dasharray="9 6"/>`;
-  s+=`<rect x="${176+95}" y="50" width="${436-271}" height="92" rx="10" fill="none" stroke="#111" stroke-width="3" stroke-dasharray="9 6"/>`;
-  const line=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#111" stroke-width="2.5"/>`;
-  s+=line(482,210,428,210)+callout(482,210,1);
-  s+=line(225,305,225,273)+callout(225,312,2);
-  s+=line(38,75,127,75)+callout(38,75,3);
-  s+=line(38,325,86,325)+callout(38,325,4);
-  s+=line(482,96,436,96)+callout(482,96,5);
-  return s+`</svg>`;
+  lp.concat(rp).forEach(p=>s+=p.k==='P'?P(p.x,p.y):S(p.x,p.y));
+  ys.forEach((y,i)=>s+=`<line x1="${RP+16}" y1="${y}" x2="${470}" y2="${y}" stroke="#94a3b8" stroke-width="2"/>`+callout(484,y,i+1));
+  s+=`<circle cx="30" cy="398" r="11" fill="#facc15" stroke="#a16207" stroke-width="2"/><text x="47" y="405" font-size="17" font-weight="700" fill="#0c1446">phosphate</text>`;
+  s+=`<polygon points="${pent(30,424,12)}" fill="#a78bfa" stroke="#5b21b6" stroke-width="2"/><text x="47" y="430" font-size="17" font-weight="700" fill="#0c1446">sugar</text>`;
+  return s.replace('viewBox="0 0 520 430"','viewBox="0 0 520 440"')+`</svg>`;
 }
 
-/* Hex-packed nucleus with protons and neutrons mixed deterministically. */
-function nucleusSVG(p,n){
-  const N=p+n,d=34,pts=[];
-  for(let j=-5;j<=5;j++)for(let i=-6;i<=6;i++){const x=(i+(j&1)/2)*d,y=j*d*0.866;pts.push([x,y,Math.hypot(x,y+0.3)])}
-  pts.sort((a,b)=>a[2]-b[2]);const use=pts.slice(0,N);
-  let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
-  const types=Array(p).fill('p').concat(Array(n).fill('n'));
-  for(let i=types.length-1;i>0;i--){const k=Math.floor(rnd()*(i+1));[types[i],types[k]]=[types[k],types[i]]}
-  let s=svgOpen(360,300,`Nucleus with ${p} protons and ${n} neutrons`);
-  use.forEach(([x,y],i)=>{const P=types[i]==='p';
-    s+=`<circle cx="${180+x}" cy="${135+y}" r="16" fill="${P?'#e35d4f':'#e5e7eb'}" stroke="${P?'#8c1d12':'#4b5563'}" stroke-width="2.5"/>`;
-    if(P)s+=`<text x="${180+x}" y="${142+y}" text-anchor="middle" font-size="22" font-weight="800" fill="#fff">+</text>`});
-  s+=`<circle cx="62" cy="276" r="14" fill="#e35d4f" stroke="#8c1d12" stroke-width="2.5"/><text x="62" y="283" text-anchor="middle" font-size="19" font-weight="800" fill="#fff">+</text><text x="84" y="283" font-size="21" fill="#0c1446" font-weight="700">= proton</text>`;
-  s+=`<circle cx="210" cy="276" r="14" fill="#e5e7eb" stroke="#4b5563" stroke-width="2.5"/><text x="232" y="283" font-size="21" fill="#0c1446" font-weight="700">= neutron</text>`;
+/* Family DNA fingerprint: Children 1, 2 and 4 each carry 2 maternal + 2 paternal
+   bands; Child 3 shares two bands with the mother but has two from neither parent. */
+function gelFamilySVG(){
+  const labels=['Mother','Father','Child 1','Child 2','Child 3','Child 4'];
+  const bands=[[120,180,330,400],[150,250,300,440],[120,150,330,440],[180,250,400,440],[120,215,330,365],[120,250,300,400]];
+  const x0=110,lw=110,W=x0+labels.length*lw+30;
+  let s=svgOpen(W,560,'DNA fingerprints of a mother, a father and four children');
+  s+=`<rect x="${x0-30}" y="80" width="${labels.length*lw+40}" height="460" rx="14" fill="#f8f8f8" stroke="#262626" stroke-width="3"/>`;
+  labels.forEach((l,i)=>{const cx=x0+i*lw+lw/2-10;
+    s+=`<text transform="translate(${cx-14} 66) rotate(-35)" font-size="24" font-weight="800" fill="#171717">${l}</text>`;
+    s+=`<rect x="${cx-36}" y="98" width="72" height="14" rx="3" fill="none" stroke="#303030" stroke-width="2.5"/>`;
+    bands[i].forEach(y=>s+=`<rect x="${cx-34}" y="${y+10}" width="68" height="13" rx="6" fill="#131313"/>`);
+  });
+  s+=`<text x="44" y="120" text-anchor="middle" font-size="26" font-weight="800" fill="#111">−</text><text x="44" y="530" text-anchor="middle" font-size="26" font-weight="800" fill="#c0392b">+</text>`;
   return s+`</svg>`;
 }
 
@@ -355,7 +347,6 @@ function bohrSVG(shells,nucLines,label){
   const R=[66,104,142,180].slice(0,shells.length),M=R[R.length-1]+24,c=M;
   let s=svgOpen(2*M,2*M,label||'Bohr model');
   R.forEach(r=>s+=`<circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="#5b6b9a" stroke-width="2.5"/>`);
-  const base=[-90,90,0,180];
   shells.forEach((k,si)=>{
     const ang=[];
     if(k<=2){ang.push(-90);if(k===2)ang.push(90)}
@@ -369,71 +360,15 @@ function bohrSVG(shells,nucLines,label){
   return s+`</svg>`;
 }
 
-/* Four electrophoresis setups; only C has the wells at the negative end. */
-function gelSetupSVG(){
-  const setups=[{k:'A',wellsTop:true,top:'+',bot:'−'},{k:'B',wellsTop:false,top:'−',bot:'+'},
-                {k:'C',wellsTop:false,top:'+',bot:'−'},{k:'D',wellsTop:true,top:'−',bot:'−'}];
-  let s=svgOpen(640,600,'Four gel electrophoresis setups labeled A to D');
-  const sign=(x,y,v)=>`<circle cx="${x}" cy="${y}" r="17" fill="${v==='+'?'#c0392b':'#111'}"/><text x="${x}" y="${y+8}" text-anchor="middle" font-size="26" font-weight="800" fill="#fff">${v}</text>`;
-  setups.forEach((S,i)=>{
-    const ox=(i%2)*320+20,oy=Math.floor(i/2)*300+10;
-    s+=`<text x="${ox+4}" y="${oy+34}" font-size="32" font-weight="800" fill="#0c1446">${S.k}</text>`;
-    s+=`<rect x="${ox+60}" y="${oy+18}" width="190" height="262" rx="12" fill="#dbeafe" stroke="#64748b" stroke-width="2.5"/>`;
-    s+=`<rect x="${ox+86}" y="${oy+50}" width="138" height="198" rx="4" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>`;
-    s+=`<rect x="${ox+66}" y="${oy+26}" width="178" height="8" rx="3" fill="#475569"/><rect x="${ox+66}" y="${oy+264}" width="178" height="8" rx="3" fill="#475569"/>`;
-    s+=sign(ox+275,oy+30,S.top)+sign(ox+275,oy+268,S.bot);
-    const wy=S.wellsTop?oy+64:oy+222;
-    for(let w=0;w<4;w++)s+=`<rect x="${ox+96+w*32}" y="${wy}" width="22" height="12" rx="2" fill="#334155"/>`;
-    s+=`<text x="${ox+155}" y="${S.wellsTop?wy+40:wy-16}" text-anchor="middle" font-size="18" font-weight="700" fill="#475569">wells</text>`;
-  });
-  return s+`</svg>`;
-}
-
-/* Linear DNA with 4 cut sites; drawn NOT to scale so students must read the sizes. */
-function restrictionMapSVG(){
-  const frags=[['A','1,200 bp'],['B','300 bp'],['C','2,500 bp'],['D','800 bp'],['E','1,700 bp']];
-  const x0=24,w=118;let s=svgOpen(640,250,'Linear DNA cut into fragments A to E');
-  s+=`<rect x="${x0}" y="96" width="${w*5}" height="26" rx="6" fill="#93c5fd" stroke="#1e40af" stroke-width="2.5"/>`;
-  frags.forEach(([k,bp],i)=>{const cx=x0+w*i+w/2;
-    s+=`<text x="${cx}" y="76" text-anchor="middle" font-size="30" font-weight="800" fill="#0c1446">${k}</text>`;
-    s+=`<text x="${cx}" y="160" text-anchor="middle" font-size="21" font-weight="700" fill="#0c1446">${bp}</text>`;
-    if(i>0){const x=x0+w*i;s+=`<line x1="${x}" y1="84" x2="${x}" y2="134" stroke="#dc2626" stroke-width="5"/>`}
-  });
-  s+=`<text x="320" y="212" text-anchor="middle" font-size="19" font-style="italic" fill="#475569">Red lines = cut sites. Not drawn to scale.</text>`;
-  return s+`</svg>`;
-}
-
-/* Distance vs. time for two fragments (matches the exam graph format). */
-function slopeSVG(){
-  const X=t=>78+t*50,Y=d=>330-d*36;
-  let s=svgOpen(740,410,'Distance traveled by DNA Fragments 1 and 2 over time');
-  s+=`<text x="${X(5)}" y="28" text-anchor="middle" font-size="21" font-weight="800" fill="#0c1446">Speed of DNA Fragments Traveling Through a Gel</text>`;
-  for(let t=0;t<=10;t+=2)s+=`<line x1="${X(t)}" y1="${Y(0)}" x2="${X(t)}" y2="${Y(8)}" stroke="#cbd5e1"/><text x="${X(t)}" y="${Y(0)+26}" text-anchor="middle" font-size="19" fill="#0c1446">${t}</text>`;
-  for(let d=0;d<=8;d++)s+=`<line x1="${X(0)}" y1="${Y(d)}" x2="${X(10)}" y2="${Y(d)}" stroke="#cbd5e1"/><text x="${X(0)-10}" y="${Y(d)+6}" text-anchor="end" font-size="19" fill="#0c1446">${d}</text>`;
-  s+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(10)}" y2="${Y(0)}" stroke="#0c1446" stroke-width="2.5"/><line x1="${X(0)}" y1="${Y(0)}" x2="${X(0)}" y2="${Y(8)}" stroke="#0c1446" stroke-width="2.5"/>`;
-  s+=`<text x="${X(5)}" y="400" text-anchor="middle" font-size="20" font-weight="700" fill="#0c1446">Time (minutes)</text>`;
-  s+=`<text x="24" y="${Y(4)}" text-anchor="middle" font-size="20" font-weight="700" fill="#0c1446" transform="rotate(-90 24 ${Y(4)})">Distance (cm)</text>`;
-  const line=(m,c,lab)=>{const ts=[0,2,4,6,8,10];let z=`<polyline points="${ts.map(t=>`${X(t)},${Y(m*t)}`).join(' ')}" fill="none" stroke="${c}" stroke-width="4"/>`;
-    ts.forEach(t=>z+=`<circle cx="${X(t)}" cy="${Y(m*t)}" r="6" fill="${c}"/>`);
-    return z+`<text x="${X(10)+10}" y="${Y(m*10)+7}" font-size="19" font-weight="800" fill="${c}">${lab}</text>`};
-  s+=line(.75,'#dc2626','Fragment 1')+line(.25,'#2563eb','Fragment 2');
-  return s+`</svg>`;
-}
-
-/* Negative balloon bending a water stream, with a magnified water molecule (ends X and Y). */
+/* Positively charged rod bending a stream of water, with one water molecule zoomed in. */
 function waterSVG(){
-  let s=svgOpen(720,420,'Negatively charged balloon bending a stream of water, with one water molecule zoomed in');
-  // faucet
+  let s=svgOpen(720,420,'Positively charged rod bending a stream of water, with one water molecule zoomed in');
   s+=`<rect x="226" y="26" width="110" height="26" rx="6" fill="#94a3b8" stroke="#64748b" stroke-width="2"/>`;
   s+=`<rect x="306" y="40" width="30" height="44" rx="4" fill="#94a3b8" stroke="#64748b" stroke-width="2"/><rect x="300" y="80" width="42" height="12" rx="4" fill="#64748b"/>`;
-  // stream bends toward the balloon
   s+=`<path d="M321 92 C 321 150, 318 190, 296 236 S 236 330, 226 404" fill="none" stroke="#38bdf8" stroke-width="13" stroke-linecap="round"/>`;
-  // balloon with string
-  s+=`<path d="M112 336 C 100 360, 128 378, 112 410" fill="none" stroke="#a16207" stroke-width="2.5"/>`;
-  s+=`<ellipse cx="112" cy="232" rx="76" ry="94" fill="#facc15" stroke="#a16207" stroke-width="3"/><path d="M112 324 l-10 14 h20 z" fill="#a16207"/>`;
-  s+=`<ellipse cx="72" cy="196" rx="11" ry="24" fill="#fff" opacity=".5"/>`;
-  [[110,168],[150,196],[112,226],[150,262],[90,280],[124,306]].forEach(([x,y])=>s+=`<text x="${x}" y="${y}" text-anchor="middle" font-size="36" font-weight="800" fill="#0c1446">−</text>`);
-  // zoomed-in water molecule (space-filling, bent shape)
+  s+=`<g transform="rotate(-62 120 250)"><rect x="-10" y="226" width="270" height="48" rx="24" fill="#dbeafe" stroke="#1e40af" stroke-width="3"/>`;
+  [30,80,130,180,230].forEach(x=>s+=`<text x="${x}" y="262" text-anchor="middle" font-size="34" font-weight="800" fill="#b91c1c" transform="rotate(62 ${x} 250)">+</text>`);
+  s+=`</g>`;
   s+=`<rect x="420" y="70" width="282" height="300" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>`;
   s+=`<text x="561" y="104" text-anchor="middle" font-size="19" font-weight="800" fill="#475569">Zoomed in: one water molecule</text>`;
   const ox=561,oy=190,hx=56,hy=44;
@@ -508,117 +443,121 @@ function referenceGel(path,fallback,alt){
     '<div class="reference-gel-fallback">'+fallback()+'</div></div>';
 }
 const VIS={
-  dnaParts:dnaPartsSVG,
-  nucleusNa:()=>nucleusSVG(11,12),
-  gelSetup:gelSetupSVG,
+  dnaError:dnaErrorSVG,
   gelCrime:()=>referenceGel('assets/gel-electrophoresis-11.png',gelReferenceCrimeSVG,'Crime scene gel with ladder and suspects 1–4'),
   gelPup:()=>referenceGel('assets/gel-electrophoresis-13.png',gelReferencePaternitySVG,'Paternity gel with mother, child and fathers 1–3'),
+  gelFamily:gelFamilySVG,
   water:waterSVG,
-  cutMap:restrictionMapSVG,
-  slope:slopeSVG,
-  bohrP:()=>bohrSVG([2,8,5],['15 p⁺','16 n⁰'],'Bohr model with 15 protons'),
-  bohrCl:()=>bohrSVG([2,8,8],['17 p⁺','18 n⁰'],'Bohr model with 17 protons and 18 electrons'),
-  bohrK:()=>bohrSVG([2,8,8,1],['19 p⁺','20 n⁰'],'Bohr model with 19 protons'),
+  bohrGain:()=>bohrSVG([2,8,7],['? p⁺','? n⁰'],'Bohr model of an unknown atom with shells 2, 8, 7'),
+  bohrBad:()=>bohrSVG([3,4],['7 p⁺','7 n⁰'],'A student’s Bohr model of nitrogen'),
   ptMini:periodicMiniSVG
 };
 
-/* ======================= QUESTIONS ======================= */
-/* Each round alternates DNA and atom columns. Difficulty climbs within each column. */
+/* ======================= QUESTIONS =======================
+   Written to rehearse exam skills without reusing exam, review, or packet items.
+   Every team writes ONE short answer in ~20 s, so difficulty climbs by reasoning
+   depth, not by reading load or arithmetic:
+     row 1  one idea applied to a fresh situation
+     row 2  one idea plus a planted misconception
+     row 3  two linked steps, or working backward
+     row 4  two or three steps, or transfer to an unfamiliar setup
+     row 5  synthesis across topics, or a twist that exposes a shallow rule
+   Double Jeopardy sits one full step above Round 1. */
 const SEQ=(s,size)=>`<span style='font-family:monospace;letter-spacing:${size?'.04em':'.12em'}${size?';font-size:'+size:''}'>${s}</span>`;
 const ROUNDS=[
 { name:'Jeopardy!', values:[100,200,300,400,500], cats:[
  {t:'Nucleotide Know-How', q:[
-   {q:"Which of these does <b>NOT</b> describe DNA?<br>A. double helix &nbsp; B. polymer of amino acids<br>C. contains A–T pairs &nbsp; D. sugar–phosphate backbone",a:"B — polymer of amino acids",w:"DNA is a polymer of <b>nucleotides</b>. Amino acids are the monomers of <b>proteins</b>."},
-   {q:"Which <b>number</b> points to a <b>deoxyribose sugar</b>?",a:"3",w:"The sugars are the pentagons. Circles are phosphates (1); colored tabs are nitrogen bases (2).",v:"dnaParts"},
-   {q:"A DNA nucleotide contains atoms of five of the six CHNOPS elements. Which CHNOPS element is <b>missing</b> from DNA?",a:"Sulfur (S)",w:"Nucleotides contain C, H, O, N (in the bases), and P (in the phosphate) — but no sulfur."},
-   {q:"Which <b>numbered box</b> outlines one <b>complete nucleotide</b>?",a:"5",w:"A nucleotide = 1 phosphate + 1 deoxyribose sugar + 1 nitrogen base. Box 4 has a phosphate and a sugar but <b>no base</b>.",v:"dnaParts"},
-   {q:"A double-stranded DNA molecule is <b>40 base pairs</b> long. How many <b>deoxyribose sugars</b> does it contain?",a:"80",w:"40 base pairs = 80 nucleotides (40 on each strand). Each nucleotide has one sugar."}
+   {q:"The “deoxy” in <b>deoxyribose</b> means this sugar is missing one atom of which element?",a:"Oxygen",w:"<b>De-oxy</b>-ribose = ribose minus one oxygen atom. (RNA's sugar, ribose, keeps it.)"},
+   {q:"In the DNA “ladder,” the <b>rungs</b> are made of which part of the nucleotide — and the <b>side rails</b> of which two parts?",a:"Rungs: nitrogen bases · Rails: sugar + phosphate",w:"Bases pair across the middle; sugars and phosphates alternate along each side."},
+   {q:"A DNA ladder has <b>12 rungs</b>. How many <b>phosphate groups</b> are in the whole molecule?",a:"24",w:"12 base pairs = 24 nucleotides (12 per strand), and every nucleotide has one phosphate."},
+   {q:"To copy DNA, the cell “unzips” it, yet each strand stays in one piece. Which bonds break: the ones <b>between paired bases</b>, or the ones <b>along the backbone</b>?",a:"Between paired bases",w:"The weak hydrogen bonds between bases let the strands separate. The sugar–phosphate backbone stays intact, so each strand can serve as a template."},
+   {q:"This DNA model has exactly <b>ONE</b> structural mistake. Which numbered rung has it?",a:"Rung 4",w:"On rung 4 the base hangs from a <b>phosphate</b>. Bases attach only to sugars, and the backbone must alternate sugar–phosphate.",v:"dnaError"}
  ]},
  {t:'Subatomic Smackdown', q:[
-   {q:"Which <b>two particles</b> make up almost all of the mass of a <b>hydrogen-2</b> atom?",a:"A proton and a neutron",w:"Hydrogen-2 has 1 proton and 2 − 1 = 1 neutron. Electrons have very little mass."},
-   {q:"What is the total charge of the <b>nucleus</b> of an <b>oxygen</b> atom?",a:"+8",w:"The nucleus holds 8 protons (+) and neutrons (no charge). Electrons are outside the nucleus."},
-   {q:"In an atom of <b>krypton-84</b>, are there <b>more, fewer, or the same</b> number of protons as neutrons?",a:"Fewer protons (36 p vs. 48 n)",w:"Krypton's atomic number is 36. Neutrons = 84 − 36 = 48."},
-   {q:"The diagram shows an atom's nucleus. Name the atom <b>and</b> its mass number (example: carbon-12).",a:"Sodium-23",w:"Count 11 protons → atomic number 11 = sodium. Mass number = 11 p + 12 n = 23.",v:"nucleusNa"},
-   {q:"A neutral atom has a mass number of <b>31</b> and <b>16 neutrons</b>. How many <b>valence electrons</b> does it have?",a:"5",w:"31 − 16 = 15 protons → phosphorus (Group 15). Its shells are 2, 8, 5."}
+   {q:"If an atom's nucleus were a marble at the center of a football stadium, its electrons would be out in the stands. So what is <b>most</b> of an atom made of?",a:"Empty space",w:"The nucleus holds almost all the mass in a tiny volume; the rest of the atom is mostly empty."},
+   {q:"Which particle could you add to an atom <b>without</b> changing its element <b>or</b> its mass number?",a:"An electron",w:"A proton changes the element; a neutron changes the mass number. An electron changes only the charge."},
+   {q:"A carbon atom goes from <b>6 p, 6 n, 6 e</b> to <b>6 p, 6 n, 7 e</b>. Is it now a new element, an isotope, or an ion?",a:"An ion (C⁻)",w:"Protons and neutrons are unchanged, so it is still carbon-12. One extra electron makes it a 1− ion."},
+   {q:"A neutral atom has <b>3 more neutrons than protons</b> and a mass number of <b>23</b>. Name the element.",a:"Neon",w:"p + (p + 3) = 23, so p = 10 → neon (neon-23)."},
+   {q:"A neutral atom has electron shells of <b>2, 8, 4</b> and <b>14 neutrons</b>. What is its <b>mass number</b>?",a:"28",w:"2 + 8 + 4 = 14 electrons = 14 protons (silicon). Mass number = 14 + 14 = 28."}
  ]},
  {t:'Gel Detectives', q:[
-   {q:"DNA moves toward the <b>positive</b> electrode in a gel. Which part of each nucleotide makes this happen?",a:"The phosphate group",w:"Phosphate groups give DNA its negative charge, and opposite charges attract."},
-   {q:"Which setup (<b>A–D</b>) will separate the DNA correctly?",a:"C",w:"DNA is negative, so the wells must be at the <b>negative (−)</b> end. Only C runs from − toward +. D has no positive electrode.",v:"gelSetup"},
-   {q:"Use the ladder. The crime scene's <b>largest</b> fragment is between which <b>two</b> ladder sizes?",a:"Between 4,361 and 6,557 bp",w:"Largest fragments travel the shortest distance, so they are the top band. It is about 5,000 bp.",v:"gelCrime"},
-   {q:"Two suspects have <b>identical</b> DNA fingerprints, so they are most likely identical twins. Which two?",a:"Suspects 1 and 4",w:"All four bands match. Neither twin matches the crime scene, which matches Suspect 2.",v:"gelCrime"},
-   {q:"Which candidate father(s) can be <b>ruled out</b>?",a:"Father 1 only",w:"Cross off the child's bands that match the mother (1st and 3rd). The child's other 2 bands came from the father. Fathers 2 and 3 both have them; Father 1 has neither.",v:"gelPup"}
+   {q:"Gel race! Fragments of <b>4,500</b>, <b>45</b>, and <b>450 bp</b> start in the same well. Which one travels <b>farthest</b>?",a:"The 45 bp fragment",w:"Smaller fragments slip through the gel's pores more easily, so they move farther in the same time."},
+   {q:"Why does every gel include a <b>DNA ladder</b> lane?",a:"To estimate fragment sizes",w:"The ladder contains fragments of known sizes. Bands that line up with a ladder band are about that size."},
+   {q:"Use the ladder. Is the crime scene's <b>top</b> band closest to <b>500</b>, <b>5,000</b>, or <b>50,000</b> bp?",a:"5,000 bp",w:"The top band sits between the 6,557 and 4,361 bp ladder bands, so it is about 5,000 bp. The top band is the largest fragment.",v:"gelCrime"},
+   {q:"Two suspects have <b>identical</b> DNA fingerprints. Which two — and what is the most likely explanation?",a:"Suspects 1 and 4 — identical twins",w:"Identical twins come from one fertilized egg and share the same DNA. Neither matches the crime scene.",v:"gelCrime"},
+   {q:"A couple has four children, but one was <b>adopted</b>. Which child is it?",a:"Child 3",w:"Every biological child's band must come from Mom or Dad. Child 3 shares two bands with the mother, but its other two match <b>neither</b> parent.",v:"gelFamily"}
  ]},
  {t:'Isotope Island', q:[
-   {q:"Carbon-14 and nitrogen-14 have the same mass number. Are they <b>isotopes</b>? Answer yes or no, and why.",a:"No — different numbers of protons",w:"Carbon has 6 protons and nitrogen has 7, so they are different elements. Isotopes have the same number of protons."},
-   {q:"How do the nuclei of <b>chlorine-35</b> and <b>chlorine-37</b> differ?",a:"Cl-37 has 2 more neutrons (20 vs. 18)",w:"Both have 17 protons. Neutrons: 35 − 17 = 18 and 37 − 17 = 20."},
-   {q:"Which pair are <b>isotopes</b>?<br>A. <sup>35</sup>Cl and <sup>35</sup>Cl⁻ &nbsp; B. <sup>39</sup>K and <sup>40</sup>Ca<br>C. <sup>24</sup>Mg²⁺ and <sup>26</sup>Mg &nbsp; D. <sup>14</sup>C and <sup>14</sup>N",a:"C — ²⁴Mg²⁺ and ²⁶Mg",w:"Both have 12 protons with 12 vs. 14 neutrons. The charge does not matter. A is the same isotope (atom vs. ion)."},
-   {q:"Lithium's average atomic mass is <b>6.94 amu</b>. Which isotope is <b>more common</b> in nature: lithium-6 or lithium-7?",a:"Lithium-7",w:"A weighted average lies closer to the more abundant isotope; 6.94 is much closer to 7."},
-   {q:"Gallium is <b>60%</b> gallium-69 and <b>40%</b> gallium-71. Calculate gallium's <b>average atomic mass</b>.",a:"69.8 amu",w:"(69 × 0.60) + (71 × 0.40) = 41.4 + 28.4 = 69.8 amu."}
+   {q:"How many <b>more neutrons</b> does uranium-238 have than uranium-235?",a:"3",w:"Same element → same protons. The whole difference in mass number is neutrons: 238 − 235 = 3."},
+   {q:"Odd one out: <sup>12</sup>C · <sup>13</sup>C · <sup>13</sup>N · <sup>14</sup>C",a:"¹³N",w:"The other three are isotopes of carbon (6 protons). Nitrogen-13 has 7 protons, so it is a different element."},
+   {q:"Every atom has a whole number of protons and neutrons. So why is chlorine's atomic mass on the periodic table <b>35.45</b>?",a:"It is a weighted average of chlorine's isotopes",w:"The table lists the average mass of all of an element's natural isotopes, weighted by how common each one is."},
+   {q:"Copper's average atomic mass is <b>63.55</b>. Its isotopes are copper-63 and copper-65. Which is <b>more common</b>?",a:"Copper-63",w:"63.55 is much closer to 63 than to 65, so copper-63 must make up most of the mix (about 69%)."},
+   {q:"Element Z has two isotopes, <b>Z-20</b> and <b>Z-22</b>. Its average atomic mass is <b>20.5</b>. What percent of Z atoms are Z-22?",a:"25%",w:"20.5 is one-quarter of the way from 20 to 22, so one-quarter of atoms are Z-22. Check: 20(0.75) + 22(0.25) = 20.5."}
  ]},
  {t:'Gene → Protein → Trait', q:[
-   {q:"DNA is a polymer of nucleotides. <b>Proteins</b> are polymers of what monomer?",a:"Amino acids",w:"A gene's base sequence tells the cell which amino acids to link, in what order."},
-   {q:"Order from <b>largest to smallest</b>: gene · nucleotide · chromosome",a:"Chromosome → gene → nucleotide",w:"A chromosome holds many genes, and each gene is a sequence of many nucleotides."},
-   {q:"Which molecule carries a gene's instructions from the <b>nucleus</b> to a <b>ribosome</b>?",a:"RNA",w:"DNA → RNA → protein. The RNA copy leaves the nucleus, and a ribosome reads it to link amino acids."},
-   {q:"A gene for eye color is inherited. Which molecule actually <b>produces the color</b> in the eye: the gene, the RNA, or a protein?",a:"A protein",w:"Genes carry instructions; proteins do the work that creates traits."},
-   {q:"Your skin cells and nerve cells contain the <b>same DNA</b>. Why do they make <b>different proteins</b>?",a:"They use (turn on) different genes",w:"Every cell has the full genome, but each cell type uses only some of its genes."}
+   {q:"Blueprint is to house as <b>gene</b> is to ______.",a:"Protein",w:"A gene holds the instructions; the protein is what gets built — and proteins produce traits."},
+   {q:"Your cheek cells, muscle cells, and pancreas cells: which of them contain the <b>gene for insulin</b>?",a:"All of them",w:"Nearly every body cell carries the complete genome. Only pancreas cells switch the insulin gene on."},
+   {q:"Suppose Father 2 is the real father. Why are <b>two of his four bands</b> missing from the child?",a:"The child inherits only half of each parent's DNA",w:"A child gets one chromosome of each pair from each parent, so only some of each parent's bands show up.",v:"gelPup"},
+   {q:"Two people's DNA is about <b>99.9%</b> identical. If a genome has <b>3 billion</b> base pairs, about how many base pairs differ?",a:"About 3 million",w:"0.1% of 3,000,000,000 = 3,000,000. Small percentage, huge number — enough to make each of us unique."},
+   {q:"A gene's DNA reads "+SEQ('T A C')+". RNA is copied with the same pairing rules, except RNA uses <b>U</b> instead of T. What is the RNA copy?",a:"A U G",w:"T→A, A→<b>U</b> (not T), C→G. This RNA “word” is the start signal for building a protein."}
  ]},
  {t:'Charge It!', q:[
-   {q:"A balloon becomes negative after rubbing on hair. Which particle moved, and <b>in which direction</b>?",a:"Electrons moved from the hair to the balloon",w:"Only electrons move between objects. The hair, having lost electrons, becomes positive."},
-   {q:"<b>True or false:</b> A negative balloon polarizes a wall, so the wall becomes <b>negatively charged</b>.",a:"False — the wall stays neutral",w:"Polarization only rearranges the wall's electrons. No electrons are added or removed."},
-   {q:"A negative balloon bends a stream of water. Which end of the water molecule, <b>X or Y</b>, is pulled toward the balloon?",a:"Y — the hydrogen end",w:"Water is polar: the hydrogen end is slightly positive and the oxygen end is slightly negative. Opposites attract.",v:"water"},
-   {q:"Object A <b>repels</b> object B. Object B <b>attracts</b> object C, which is <b>positive</b>. What is the charge on object A?",a:"Negative",w:"Repulsion only happens between like charges, so B is charged. B attracts positive C, so B is negative — and so is A."},
-   {q:"A <b>positively</b> charged rod attracts a small piece of <b>neutral</b> paper. Explain how.",a:"The rod pulls the paper's electrons toward it (polarization)",w:"The near side of the paper becomes slightly negative and is attracted more strongly than the far, positive side is repelled. The paper stays neutral overall."}
+   {q:"After you rub a balloon on your hair, your hair is <b>positive</b>. Did your hair gain protons or lose electrons?",a:"Lost electrons",w:"Protons are locked in nuclei. Only electrons move between objects."},
+   {q:"A negatively charged strip of tape is brought near a tiny piece of <b>neutral</b> paper. Attract, repel, or nothing?",a:"Attract",w:"The tape polarizes the paper: its electrons shift away, leaving the near side slightly positive. Charged objects attract neutral ones."},
+   {q:"A <b>POSITIVELY</b> charged rod bends a stream of water. Which end of each water molecule, <b>X or Y</b>, turns toward the rod?",a:"X — the oxygen end",w:"Oxygen is the slightly negative end of a water molecule, so it is attracted to a positive rod.",v:"water"},
+   {q:"A negative rod is held near the <b>left end</b> of a neutral metal spoon. Which end of the spoon becomes slightly <b>positive</b>?",a:"The left end (nearest the rod)",w:"The rod repels the spoon's free electrons toward the right end, leaving the left end short of electrons."},
+   {q:"Ball X is <b>neutral</b>. Ball Y is <b>negative</b>. Ball Z <b>attracts both</b> X and Y. What is Z's charge?",a:"Positive",w:"Z attracts neutral X, so Z must be charged. Z also attracts negative Y, so Z must be positive."}
  ]}
 ]},
 { name:'Double Jeopardy!', values:[200,400,600,800,1000], cats:[
  {t:'Pair Up!', q:[
-   {q:"Write the complementary strand:<br>"+SEQ('T A C G G A T C'),a:"A T G C C T A G",w:"A pairs with T, and G pairs with C, at every position."},
-   {q:"A student wrote the complement of "+SEQ('G A T T C G A')+" as "+SEQ('C T A A G G T')+". Which <b>position</b> (1–7) is wrong?",a:"Position 6 (should be C)",w:"Correct complement: C T A A G <b>C</b> T. Position 6 is G in the original, so its partner is C."},
-   {q:"A double-stranded DNA sample is <b>18% cytosine</b>. What percent is <b>thymine</b>?",a:"32%",w:"C = G = 18%, so G + C = 36%. That leaves 64% for A + T, so T = 32%."},
-   {q:"One DNA strand has <b>8 A, 6 T, 9 G, and 7 C</b>. How many <b>A</b> bases are in its <b>complementary</b> strand?",a:"6",w:"Each A in the new strand pairs with a T in the original strand, and the original has 6 T."},
-   {q:"A double-stranded DNA molecule has <b>200 bases</b> in all. <b>30%</b> are thymine. How many <b>guanine</b> bases are there?",a:"40",w:"T = 60, so A = 60. That leaves 80 bases for G + C, so G = 40."}
+   {q:"Fill in both missing bases:<br>"+SEQ('A T G ? C A')+"<br>"+SEQ('T A C G ? T'),a:"Top: C · Bottom: G",w:"Top ? sits across from G, so it is C. Bottom ? sits across from C, so it is G."},
+   {q:"A student wrote the partner strand of "+SEQ('G A T T C G A')+" as "+SEQ('C T A A G G T')+". Which <b>position</b> (1–7) is wrong?",a:"Position 6 (should be C)",w:"Correct partner: C T A A G <b>C</b> T. Position 6 is G in the original, so its partner is C."},
+   {q:"A lab reports that a sample of double-stranded DNA is <b>30% adenine</b> and <b>30% guanine</b>. Is that possible?",a:"No — it would add up to 120%",w:"A = T = 30% and G = C = 30%, so the total would be 120%. The percentages of A + G must equal 50%."},
+   {q:"One DNA strand has <b>8 A, 6 T, 9 G, and 7 C</b>. How many <b>A</b> bases are in its <b>partner</b> strand?",a:"6",w:"Each A in the partner strand pairs with a T in the original strand, and the original has 6 T."},
+   {q:"A–T pairs are held by <b>2</b> hydrogen bonds; G–C pairs by <b>3</b>. A DNA molecule has <b>1,000 base pairs</b>, and <b>300</b> are G–C. How many hydrogen bonds hold the strands together?",a:"2,300",w:"700 A–T pairs × 2 = 1,400, plus 300 G–C pairs × 3 = 900. Total = 2,300."}
  ]},
  {t:'Ion Zone', q:[
-   {q:"A lithium atom loses one electron. Write the ion's <b>symbol</b>; is it a cation or an anion?",a:"Li⁺ — a cation",w:"Losing a negative electron leaves 3 protons and 2 electrons: a 1+ charge. Positive ions are cations."},
-   {q:"An ion has <b>26 protons</b> and <b>23 electrons</b>. Write its <b>ion symbol</b>.",a:"Fe³⁺",w:"26 protons = iron. Charge = 26 − 23 = 3+."},
-   {q:"How many <b>neutrons</b> and how many <b>electrons</b> are in <b><sup>75</sup>As³⁻</b>?",a:"42 neutrons, 36 electrons",w:"Arsenic has 33 protons. Neutrons = 75 − 33 = 42. A 3− charge means 3 extra electrons: 33 + 3 = 36."},
-   {q:"An ion has <b>18 electrons</b> and a <b>2+</b> charge. Which <b>element</b> is it?",a:"Calcium (Ca²⁺)",w:"A 2+ ion has 2 more protons than electrons: 18 + 2 = 20 protons = calcium."},
-   {q:"Which particle is an <b>ion</b>? Write its full symbol.<br>X: 17 p, 18 n, 18 e<br>Y: 17 p, 20 n, 17 e<br>Z: 18 p, 18 n, 18 e",a:"X — ³⁵Cl⁻",w:"Only X has unequal protons and electrons: 17 − 18 = 1−. Y is neutral chlorine-37; Z is neutral argon-36."}
+   {q:"Which has more electrons: a sodium ion (<b>Na⁺</b>) or a <b>neon</b> atom?",a:"Neither — both have 10",w:"Sodium has 11 electrons and loses 1 → 10. Neon atoms have 10."},
+   {q:"A sulfur-32 atom gains 2 electrons and becomes <b>S²⁻</b>. By how much does its <b>mass number</b> change?",a:"0 (it does not change)",w:"Mass number counts only protons + neutrons. Electrons are not counted."},
+   {q:"An ion has a <b>2−</b> charge and <b>54 electrons</b>. Name the element.",a:"Tellurium (Te)",w:"A negative ion has <b>more</b> electrons than protons: 54 − 2 = 52 protons = tellurium."},
+   {q:"<b>Ca²⁺</b> and an <b>argon</b> atom have the same number of electrons. Which has more <b>protons</b>, and how many more?",a:"Ca²⁺, by 2",w:"Both have 18 electrons. Calcium has 20 protons and argon has 18."},
+   {q:"A neutral oxygen-16 atom somehow gains <b>one proton</b> and nothing else. Write the full symbol of what it becomes.",a:"¹⁷F⁺",w:"9 protons → fluorine. Mass number 16 + 1 = 17. Electrons are still 8, so the charge is 9 − 8 = 1+."}
  ]},
  {t:'Molecular Scissors', q:[
-   {q:"In a DNA extraction, what does the ice-cold <b>alcohol</b> do?",a:"It makes the DNA come out of solution (precipitate) so it can be seen",w:"DNA does not dissolve in cold alcohol, so it clumps into visible white strands at the boundary."},
-   {q:"Which DNA-extraction ingredient breaks down the <b>proteins</b> that are wrapped around DNA?",a:"Protease (meat tenderizer)",w:"Detergent dissolves membranes; protease digests proteins; salt and cold alcohol make DNA clump."},
-   {q:"HaeIII cuts at <b>GG|CC</b>. How many fragments will this DNA produce?<br>"+SEQ('ATGGCCTAGGCATCCGGAGGCCTTCGGCCA','.72em'),a:"4 fragments",w:"GGCC appears 3 times; 3 cuts in a linear molecule make 4 pieces. GGCA and CCGG are not cut sites."},
-   {q:"The fragments are run on a gel. Which fragment forms the band <b>second from the bottom</b>?",a:"D (800 bp)",w:"Smallest travels farthest: B (300 bp) is at the bottom, then D (800 bp), A, E, and C (2,500 bp) nearest the well.",v:"cutMap"},
-   {q:"Which fragment is <b>larger</b>, and what is its <b>speed</b>?",a:"Fragment 2 — 0.25 cm/min",w:"Larger fragments move more slowly. Slope of Fragment 2 = 2.5 cm ÷ 10 min = 0.25 cm/min (Fragment 1: 0.75 cm/min).",v:"slope"}
+   {q:"In a DNA extraction, which <b>two</b> ingredients work together to make the DNA clump out of solution?",a:"Salt and cold alcohol",w:"Salt shields DNA's negative charges so the strands can stick together; DNA does not dissolve in cold alcohol, so it clumps into visible strands."},
+   {q:"Put the DNA-extraction steps in order: add cold alcohol · add detergent · mash the fruit · filter",a:"Mash → detergent → filter → alcohol",w:"Break up the tissue, dissolve the membranes, remove the solid pulp, then make the DNA clump."},
+   {q:"A restriction enzyme cuts a <b>circular</b> piece of DNA at <b>3</b> sites. How many fragments are made?",a:"3",w:"A circle has no ends, so every cut just adds one more piece after the first cut: 3 cuts → 3 pieces. (A straight piece would make 4.)"},
+   {q:"EcoRI cuts between G and A in <b>G|AATTC</b>. How many bases long is the <b>middle</b> fragment?<br>"+SEQ('TTGAATTCCAGAATTCTA','.8em'),a:"8 bases",w:"Cuts fall after each G of GAATTC: TTG | AATTCCAG | AATTCTA. The middle piece is AATTCCAG = 8 bases."},
+   {q:"A linear <b>5,000 bp</b> DNA is cut at the <b>1,000</b>, <b>3,500</b>, and <b>4,800 bp</b> positions. What size is the fragment that travels <b>farthest</b>?",a:"200 bp",w:"Pieces: 1,000 · 2,500 · 1,300 · and the last 5,000 − 4,800 = <b>200 bp</b>. The smallest travels farthest."}
  ]},
  {t:'Bohr & the Octet', q:[
-   {q:"How many <b>valence electrons</b> does this atom have?",a:"5",w:"Valence electrons are in the outermost shell: 2, 8, <b>5</b>. This is phosphorus.",v:"bohrP"},
-   {q:"Write how many electrons go in <b>each shell</b> of a neutral <b>sulfur</b> atom.",a:"2, 8, 6",w:"Sulfur has 16 electrons. Fill from the inside out: 2 → 8 → 6."},
-   {q:"Identify this particle. Write its <b>symbol with its charge</b>.",a:"Cl⁻",w:"17 protons = chlorine. It shows 18 electrons (2 + 8 + 8), so the charge is 17 − 18 = 1−.",v:"bohrCl"},
-   {q:"Magnesium can lose 2 electrons or gain 6. What <b>ion</b> does it form, and which <b>noble gas</b> does it then match?",a:"Mg²⁺ — matches neon",w:"Atoms move the fewest electrons. Losing 2 leaves 2, 8: the same arrangement as neon."},
-   {q:"This atom forms its usual ion. Will the ion be <b>larger or smaller</b> than the atom? Why?",a:"Smaller — it loses its only 4th-shell electron",w:"Potassium loses 1 electron to form K⁺. With only 3 shells left, the ion has a smaller radius.",v:"bohrK"}
+   {q:"The nucleus is hidden. Will this atom <b>gain or lose</b> electrons — and how many?",a:"Gain 1",w:"7 valence electrons: gaining 1 completes the octet; losing 7 would be far harder.",v:"bohrGain"},
+   {q:"Which element has a Bohr model with <b>3 shells</b> and <b>2 valence electrons</b>?",a:"Magnesium",w:"2, 8, 2 = 12 electrons = magnesium (period 3, group 2)."},
+   {q:"A student drew this Bohr model of nitrogen. What is the mistake?",a:"The first shell holds only 2 electrons (should be 2, 5)",w:"Nitrogen has 7 electrons. The first shell is full at 2, so the second shell gets 5.",v:"bohrBad"},
+   {q:"Lithium and fluorine each take their <b>easier</b> path to a full outer shell. How many electrons does each <b>ion</b> end up with?",a:"Li⁺: 2 · F⁻: 10",w:"Lithium (3 e) loses 1 → 2, like helium. Fluorine (9 e) gains 1 → 10, like neon."},
+   {q:"An atom has <b>2 valence electrons</b> in its <b>4th</b> shell. Write the ion it forms.",a:"Ca²⁺",w:"2, 8, 8, 2 = 20 electrons = calcium. It loses its 2 valence electrons → Ca²⁺."}
  ]},
  {t:'Science Hall of Fame', q:[
-   {q:"Whose X-ray image (“Photo 51”) showed that DNA has a <b>helical</b> shape?",a:"Rosalind Franklin",w:"Watson and Crick used Franklin's data to build their double-helix model."},
-   {q:"What rule did <b>Erwin Chargaff</b> find in DNA from many species?",a:"%A = %T and %G = %C",w:"The equal amounts were later explained by base pairing: A with T, G with C."},
-   {q:"Atoms were heavier than their protons alone could explain. Who solved this puzzle, and with what particle?",a:"James Chadwick — the neutron",w:"Chadwick discovered a neutral particle in the nucleus with about the same mass as a proton (1932)."},
-   {q:"A particle beam bent toward a <b>positive</b> plate. Which scientist's work was this, and which of <b>Dalton's</b> ideas did it disprove?",a:"Thomson — that atoms cannot be divided",w:"The beam was made of negative electrons, so atoms must contain smaller particles."},
-   {q:"Most alpha particles passed straight through gold foil, but a few <b>bounced back</b>. What <b>two</b> conclusions did Rutherford draw?",a:"The atom is mostly empty space, with a tiny, dense, positive nucleus",w:"Particles passing through show empty space; the rare bounce-backs show a small, concentrated positive center."}
+   {q:"If Thomson's “plum pudding” model were right (positive charge spread evenly through the atom), what would alpha particles do when fired at gold foil?",a:"All pass straight through",w:"Spread-out charge is too weak to deflect them. The few that bounced back proved the model wrong."},
+   {q:"Put these discoveries in order: <b>neutron · nucleus · electron</b>",a:"Electron → nucleus → neutron",w:"Thomson found the electron (1897), Rutherford the nucleus (1911), and Chadwick the neutron inside it (1932)."},
+   {q:"Dalton claimed all atoms of an element are <b>identical</b>. Which idea from this unit proves him wrong?",a:"Isotopes",w:"Atoms of the same element can have different numbers of neutrons, so they have different masses."},
+   {q:"In Rutherford's experiment, only about <b>1 in 8,000</b> alpha particles bounced back. What does that tiny fraction tell you about the nucleus?",a:"It is extremely small",w:"Almost every particle missed it, so the nucleus takes up only a tiny part of the atom's volume."},
+   {q:"A and G are large bases; T and C are small. Franklin's data showed DNA has the <b>same width</b> all along. Why can't A pair with G?",a:"Two large bases would be too wide",w:"Every rung must be one large + one small base to keep the width constant — which is why A pairs with T and G pairs with C."}
  ]},
  {t:'Periodic Table Talk', q:[
-   {q:"Which <b>two</b> lettered elements have the <b>same number of valence electrons</b>?",a:"B and F",w:"Both are in Group 17 (halogens), with 7 valence electrons. Elements in the same group behave alike.",v:"ptMini"},
-   {q:"Which is <b>least</b> abundant in living things?<br>nitrogen · hydrogen · sodium · phosphorus · carbon",a:"Sodium",w:"The six most abundant elements in living things are CHNOPS: carbon, hydrogen, nitrogen, oxygen, phosphorus, sulfur."},
-   {q:"For element <b>E</b>, how many <b>electron shells</b> and how many <b>valence electrons</b>?",a:"4 shells, 1 valence electron",w:"Period 4 → 4 shells. Group 1 → 1 valence electron. Element E is potassium.",v:"ptMini"},
-   {q:"What <b>ion</b> does element <b>C</b> usually form, and which noble gas does it then match?",a:"C²⁻ (O²⁻) — matches neon",w:"C is oxygen (period 2, group 16): 6 valence electrons. Gaining 2 completes its octet.",v:"ptMini"},
-   {q:"An element is in <b>period 3</b>, and its ion has a <b>3−</b> charge. Name the element.",a:"Phosphorus (P)",w:"A 3− ion gains 3 electrons, so the atom has 5 valence electrons: Group 15. Period 3, Group 15 = phosphorus."}
+   {q:"Sodium reacts violently with water. Which element <b>one row below it</b> would you predict also does?",a:"Potassium",w:"Elements in the same group have the same number of valence electrons, so they react alike."},
+   {q:"Element <b>A</b> forms an ion. Which lettered element forms an ion with the <b>same size charge</b> but the <b>opposite sign</b>?",a:"C",w:"A is magnesium → Mg²⁺. C is oxygen → O²⁻.",v:"ptMini"},
+   {q:"Which <b>two</b> lettered elements form ions with the same number of electrons as an atom of <b>D</b>?",a:"B and E",w:"D is argon (18 e). B is chlorine → Cl⁻ (18 e). E is potassium → K⁺ (18 e).",v:"ptMini"},
+   {q:"Name the element in <b>period 4</b> whose ion has a <b>2−</b> charge.",a:"Selenium (Se)",w:"A 2− ion means 6 valence electrons → group 16. Period 4, group 16 is selenium."},
+   {q:"Element Q forms <b>Q³⁻</b> ions that have the same number of electrons as argon. Name the element directly <b>below</b> Q.",a:"Arsenic (As)",w:"18 − 3 = 15 protons → Q is phosphorus. Below phosphorus in group 15 is arsenic."}
  ]}
 ]}
 ];
-const FINAL={cat:'The Mystery Ion',
- q:'An ion has a mass number of <b>32</b>, has <b>16 neutrons</b>, and has the same number of electrons as a neutral <b>argon</b> atom.<br>Write its complete isotope symbol, including mass number and charge.',
- a:'<sup>32</sup>S²⁻',
- w:'Protons = 32 − 16 = 16 → sulfur. Argon has 18 electrons. Charge = 16 − 18 = 2−.'};
+const FINAL={cat:'DNA Meets the Atom',
+ q:'Each DNA nucleotide contains <b>one phosphorus atom</b>, and natural phosphorus is all <b>phosphorus-31</b>.<br>How many <b>neutrons</b> are in all of the phosphorus atoms of a double-stranded DNA molecule that is <b>50 base pairs</b> long?',
+ a:'1,600 neutrons',
+ w:'50 base pairs = 100 nucleotides = 100 phosphorus atoms. Each P-31 atom has 31 − 15 = 16 neutrons. 100 × 16 = 1,600.'};
 
 /* ======================= SOUND (original, synthesized with Web Audio) ======================= */
 const SND={on:true,music:true,ctx:null,master:null,bus:null,noise:null};
@@ -1178,7 +1117,7 @@ function openPublish(){
 
 const ORIG={cats:ROUNDS.map(r=>r.cats.map(c=>c.t)),clues:{},final:{cat:FINAL.cat,q:FINAL.q,a:FINAL.a,w:FINAL.w}};
 ROUNDS.forEach((R,r)=>R.cats.forEach((c,ci)=>c.q.forEach((q,i)=>ORIG.clues[`${r}-${ci}-${i}`]={q:q.q,a:q.a,w:q.w,v:q.v||null})));
-const VIS_NAMES={dnaParts:'DNA ladder (numbered parts 1–5)',nucleusNa:'Nucleus (11 protons, 12 neutrons)',gelSetup:'Gel setups A–D (electrodes)',gelCrime:'Crime-scene gel',gelPup:'Paternity gel',water:'Balloon and water molecule (X/Y)',cutMap:'Restriction map (fragments A–E)',slope:'Fragment distance vs. time graph',bohrP:'Bohr model: phosphorus',bohrCl:'Bohr model: chloride ion',bohrK:'Bohr model: potassium',ptMini:'Mini periodic table (A–F)'};
+const VIS_NAMES={dnaError:'DNA model with one mistake (rungs 1–5)',gelCrime:'Crime-scene gel',gelPup:'Paternity gel',gelFamily:'Family gel (mother, father, children 1–4)',water:'Charged rod and water molecule (X/Y)',bohrGain:'Bohr model: unknown atom (2, 8, 7)',bohrBad:'Bohr model: student error (nitrogen)',ptMini:'Mini periodic table (A–F)'};
 const CLUE_FIELDS=[{k:'q',label:'Clue — what students see'},{k:'a',label:'Answer'},{k:'w',label:'Explanation — shown with the answer'}];
 let editMode=false;
 
