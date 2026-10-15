@@ -1014,7 +1014,9 @@ function toggleFS(){
 document.addEventListener('fullscreenchange',setCompact);document.addEventListener('webkitfullscreenchange',setCompact);
 
 /* --- content store: differences from originals, with cloud sync & offline exports --- */
-// v2: the clue set was rewritten, so edits saved against v1 positions no longer apply.
+// v2: the clue set was rewritten. Edits are keyed by board position, so every edit source
+// (local storage, share links, backups, cloud file) must carry EDITS_V or it is ignored.
+const EDITS_V=2;
 const CKEY='dna-atoms-jeopardy-content-v2';
 const CLOUD_REPO='stephenborish/simulations',CLOUD_FILE='dna-atoms-jeopardy-questions.json';
 const CLOUD_URL='https://api.github.com/repos/'+CLOUD_REPO+'/contents/'+CLOUD_FILE;
@@ -1198,7 +1200,7 @@ function sanitize(html){
   return walk(t.content).replace(/(<br>)+$/,'').trim();
 }
 function collectEdits(){
-  const E={v:1,cats:{},clues:{},final:{}};
+  const E={v:EDITS_V,cats:{},clues:{},final:{}};
   ROUNDS.forEach((R,r)=>R.cats.forEach((c,ci)=>{
     if(c.t!==ORIG.cats[r][ci])E.cats[`${r}-${ci}`]=c.t;
     c.q.forEach((q,i)=>{const id=`${r}-${ci}-${i}`,o=ORIG.clues[id],d={};
@@ -1209,7 +1211,7 @@ function collectEdits(){
   return E;
 }
 function applyEdits(E){
-  if(!E||typeof E!=='object')return 0;let n=0;
+  if(!E||typeof E!=='object'||E.v!==EDITS_V)return 0;let n=0;
   Object.entries(E.cats||{}).forEach(([k,v])=>{const [r,c]=k.split('-').map(Number);const cat=ROUNDS[r]&&ROUNDS[r].cats[c];if(cat&&typeof v==='string'&&plain(v)){cat.t=plain(v).slice(0,60);n++}});
   Object.entries(E.clues||{}).forEach(([id,d])=>{const pt=id.split('-').map(Number),R=ROUNDS[pt[0]],cat=R&&R.cats[pt[1]],q=cat&&cat.q[pt[2]];if(!q||!d)return;
     ['q','a','w'].forEach(k=>{if(typeof d[k]==='string')q[k]=sanitize(d[k])});
@@ -1346,6 +1348,7 @@ function openTransfer(){
   m.querySelector('#dl').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([tx.value],{type:'application/json'}));a.download='dna-atoms-jeopardy-edits.json';document.body.appendChild(a);a.click();a.remove()}catch(e){}toast('If no file appeared, use Copy instead.')};
   m.querySelector('#ld').onclick=()=>{
     let E;try{E=JSON.parse(tx.value);if(!E||typeof E!=='object')throw 0}catch(e){err.textContent='That text is not a valid backup. Paste the full text you copied earlier.';return}
+    if(E.v!==EDITS_V){err.textContent='That backup was made for an older set of questions, so it can’t be loaded into this version.';return}
     resetAll();const n=applyEdits(E);const ok=persist();close();redrawBoard();toast(ok?`✔ Loaded ${n} edited item${n===1?'':'s'}`:NOSAVE,5000);
   };
 }
@@ -1360,9 +1363,8 @@ if (location.hash && location.hash.startsWith('#edits=')) {
   try {
     const raw = decodeURIComponent(location.hash.slice(7));
     const data = JSON.parse(decode64(raw));
-    applyEdits(data);
-    persist(true);
-    toast('✔ Loaded shared questions from link!');
+    if(applyEdits(data)){persist(true);toast('✔ Loaded shared questions from link!')}
+    else if(data&&data.v!==EDITS_V)toast('This link was made for an older set of questions, so its edits were not loaded.',6000);
   } catch(e) {
     console.warn('Could not parse edits from URL hash', e);
   }
