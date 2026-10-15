@@ -467,7 +467,7 @@ const SEQ=(s,size)=>`<span style='font-family:monospace;letter-spacing:${size?'.
 const ROUNDS=[
 { name:'Jeopardy!', values:[100,200,300,400,500], cats:[
  {t:'Nucleotide Know-How', q:[
-   {q:"The “deoxy” in <b>deoxyribose</b> means this sugar is missing one atom of which element?",a:"Oxygen",w:"<b>De-oxy</b>-ribose = ribose minus one oxygen atom. (RNA's sugar, ribose, keeps it.)"},
+   {q:"Two DNA nucleotides are different from each other. Which of their three parts can differ: the <b>sugar</b>, the <b>phosphate</b>, or the <b>nitrogen base</b>?",a:"The nitrogen base",w:"Every DNA nucleotide has the same deoxyribose sugar and phosphate. Only the base (A, T, G, or C) changes — and the order of bases is the genetic code."},
    {q:"In the DNA “ladder,” the <b>rungs</b> are made of which part of the nucleotide — and the <b>side rails</b> of which two parts?",a:"Rungs: nitrogen bases · Rails: sugar + phosphate",w:"Bases pair across the middle; sugars and phosphates alternate along each side."},
    {q:"A DNA ladder has <b>12 rungs</b>. How many <b>phosphate groups</b> are in the whole molecule?",a:"24",w:"12 base pairs = 24 nucleotides (12 per strand), and every nucleotide has one phosphate."},
    {q:"To copy DNA, the cell “unzips” it, yet each strand stays in one piece. Which bonds break: the ones <b>between paired bases</b>, or the ones <b>along the backbone</b>?",a:"Between paired bases",w:"The weak hydrogen bonds between bases let the strands separate. The sugar–phosphate backbone stays intact, so each strand can serve as a template."},
@@ -477,13 +477,13 @@ const ROUNDS=[
    {q:"If an atom's nucleus were a marble at the center of a football stadium, its electrons would be out in the stands. So what is <b>most</b> of an atom made of?",a:"Empty space",w:"The nucleus holds almost all the mass in a tiny volume; the rest of the atom is mostly empty."},
    {q:"Which particle could you add to an atom <b>without</b> changing its element <b>or</b> its mass number?",a:"An electron",w:"A proton changes the element; a neutron changes the mass number. An electron changes only the charge."},
    {q:"A carbon atom goes from <b>6 p, 6 n, 6 e</b> to <b>6 p, 6 n, 7 e</b>. Is it now a new element, an isotope, or an ion?",a:"An ion (C⁻)",w:"Protons and neutrons are unchanged, so it is still carbon-12. One extra electron makes it a 1− ion."},
-   {q:"A neutral atom has <b>3 more neutrons than protons</b> and a mass number of <b>23</b>. Name the element.",a:"Neon",w:"p + (p + 3) = 23, so p = 10 → neon (neon-23)."},
+   {q:"How many protons, neutrons, and electrons are in a neutral atom of <b>zinc-65</b>?",a:"30 p, 35 n, 30 e",w:"Atomic number 30 → 30 protons. Neutrons = 65 − 30 = 35. Neutral, so electrons = protons = 30."},
    {q:"A neutral atom has electron shells of <b>2, 8, 4</b> and <b>14 neutrons</b>. What is its <b>mass number</b>?",a:"28",w:"2 + 8 + 4 = 14 electrons = 14 protons (silicon). Mass number = 14 + 14 = 28."}
  ]},
  {t:'Gel Detectives', q:[
    {q:"Gel race! Fragments of <b>4,500</b>, <b>45</b>, and <b>450 bp</b> start in the same well. Which one travels <b>farthest</b>?",a:"The 45 bp fragment",w:"Smaller fragments slip through the gel's pores more easily, so they move farther in the same time."},
-   {q:"Why does every gel include a <b>DNA ladder</b> lane?",a:"To estimate fragment sizes",w:"The ladder contains fragments of known sizes. Bands that line up with a ladder band are about that size."},
    {q:"Use the ladder. Is the crime scene's <b>top</b> band closest to <b>500</b>, <b>5,000</b>, or <b>50,000</b> bp?",a:"5,000 bp",w:"The top band sits between the 6,557 and 4,361 bp ladder bands, so it is about 5,000 bp. The top band is the largest fragment.",v:"gelCrime"},
+   {q:"A DNA fragment travels <b>6 cm</b> through a gel in <b>15 minutes</b>. What is its average speed?",a:"0.4 cm/min",w:"Speed = distance ÷ time = 6 cm ÷ 15 min = 0.4 cm/min. On a distance–time graph, this is the slope."},
    {q:"Two suspects have <b>identical</b> DNA fingerprints. Which two — and what is the most likely explanation?",a:"Suspects 1 and 4 — identical twins",w:"Identical twins come from one fertilized egg and share the same DNA. Neither matches the crime scene.",v:"gelCrime"},
    {q:"A couple has four children, but one was <b>adopted</b>. Which child is it?",a:"Child 3",w:"Every biological child's band must come from Mom or Dad. Child 3 shares two bands with the mother, but its other two match <b>neither</b> parent.",v:"gelFamily"}
  ]},
@@ -492,44 +492,44 @@ const ROUNDS=[
    {q:"Odd one out: <sup>12</sup>C · <sup>13</sup>C · <sup>13</sup>N · <sup>14</sup>C",a:"¹³N",w:"The other three are isotopes of carbon (6 protons). Nitrogen-13 has 7 protons, so it is a different element."},
    {q:"Every atom has a whole number of protons and neutrons. So why is chlorine's atomic mass on the periodic table <b>35.45</b>?",a:"It is a weighted average of chlorine's isotopes",w:"The table lists the average mass of all of an element's natural isotopes, weighted by how common each one is."},
    {q:"Copper's average atomic mass is <b>63.55</b>. Its isotopes are copper-63 and copper-65. Which is <b>more common</b>?",a:"Copper-63",w:"63.55 is much closer to 63 than to 65, so copper-63 must make up most of the mix (about 69%)."},
-   {q:"Element Z has two isotopes, <b>Z-20</b> and <b>Z-22</b>. Its average atomic mass is <b>20.5</b>. What percent of Z atoms are Z-22?",a:"25%",w:"20.5 is one-quarter of the way from 20 to 22, so one-quarter of atoms are Z-22. Check: 20(0.75) + 22(0.25) = 20.5."}
+   {q:"Element X is <b>90%</b> X-20 and <b>10%</b> X-22. Calculate its <b>average atomic mass</b>.",a:"20.2 amu",w:"(20 × 0.90) + (22 × 0.10) = 18 + 2.2 = 20.2 amu — close to 20 because X-20 is far more common."}
  ]},
  {t:'Gene → Protein → Trait', q:[
    {q:"Blueprint is to house as <b>gene</b> is to ______.",a:"Protein",w:"A gene holds the instructions; the protein is what gets built — and proteins produce traits."},
    {q:"Your cheek cells, muscle cells, and pancreas cells: which of them contain the <b>gene for insulin</b>?",a:"All of them",w:"Nearly every body cell carries the complete genome. Only pancreas cells switch the insulin gene on."},
    {q:"Suppose Father 2 is the real father. Why are <b>two of his four bands</b> missing from the child?",a:"The child inherits only half of each parent's DNA",w:"A child gets one chromosome of each pair from each parent, so only some of each parent's bands show up.",v:"gelPup"},
-   {q:"Two people's DNA is about <b>99.9%</b> identical. If a genome has <b>3 billion</b> base pairs, about how many base pairs differ?",a:"About 3 million",w:"0.1% of 3,000,000,000 = 3,000,000. Small percentage, huge number — enough to make each of us unique."},
-   {q:"A gene's DNA reads "+SEQ('T A C')+". RNA is copied with the same pairing rules, except RNA uses <b>U</b> instead of T. What is the RNA copy?",a:"A U G",w:"T→A, A→<b>U</b> (not T), C→G. This RNA “word” is the start signal for building a protein."}
+   {q:"Where in the cell is a protein actually <b>built</b>, and which molecule carries the gene's instructions there?",a:"At a ribosome · RNA",w:"DNA stays in the nucleus. An RNA copy of the gene travels to a ribosome, which links amino acids in the order the RNA specifies."},
+   {q:"A mutation changes one base in the gene for a skin-pigment protein. Trace the effect: list the <b>four</b> levels it passes through, in order.",a:"DNA → RNA → protein → trait",w:"The changed DNA is copied into changed RNA, which builds a changed protein. If the protein no longer works, the trait (skin color) changes."}
  ]},
  {t:'Charge It!', q:[
    {q:"After you rub a balloon on your hair, your hair is <b>positive</b>. Did your hair gain protons or lose electrons?",a:"Lost electrons",w:"Protons are locked in nuclei. Only electrons move between objects."},
-   {q:"A negatively charged strip of tape is brought near a tiny piece of <b>neutral</b> paper. Attract, repel, or nothing?",a:"Attract",w:"The tape polarizes the paper: its electrons shift away, leaving the near side slightly positive. Charged objects attract neutral ones."},
-   {q:"A <b>POSITIVELY</b> charged rod bends a stream of water. Which end of each water molecule, <b>X or Y</b>, turns toward the rod?",a:"X — the oxygen end",w:"Oxygen is the slightly negative end of a water molecule, so it is attracted to a positive rod.",v:"water"},
-   {q:"A negative rod is held near the <b>left end</b> of a neutral metal spoon. Which end of the spoon becomes slightly <b>positive</b>?",a:"The left end (nearest the rod)",w:"The rod repels the spoon's free electrons toward the right end, leaving the left end short of electrons."},
-   {q:"Ball X is <b>neutral</b>. Ball Y is <b>negative</b>. Ball Z <b>attracts both</b> X and Y. What is Z's charge?",a:"Positive",w:"Z attracts neutral X, so Z must be charged. Z also attracts negative Y, so Z must be positive."}
+   {q:"Two balloons are each rubbed on hair, then hung next to each other. Do they attract or repel?",a:"Repel",w:"Both balloons picked up extra electrons, so both are negative. Like charges repel."},
+   {q:"A negative balloon is held near a neutral wall. Do the wall's electrons move <b>toward</b> or <b>away from</b> the balloon?",a:"Away from the balloon",w:"Like charges repel, so electrons shift deeper into the wall. Protons can't move, so the surface becomes slightly positive and the balloon sticks."},
+   {q:"A negatively charged strip of tape is brought near a tiny piece of <b>neutral</b> paper. Attract, repel, or nothing?",a:"Attract",w:"The tape pushes the paper's electrons away, leaving the near side slightly positive. A charged object attracts a neutral one."},
+   {q:"A <b>POSITIVELY</b> charged rod bends a stream of water. Which end of each water molecule, <b>X or Y</b>, turns toward the rod?",a:"X — the oxygen end",w:"Water is polar: oxygen is the slightly negative end, so it is attracted to a positive rod.",v:"water"}
  ]}
 ]},
 { name:'Double Jeopardy!', values:[200,400,600,800,1000], cats:[
  {t:'Pair Up!', q:[
    {q:"Fill in both missing bases:<br>"+SEQ('A T G ? C A')+"<br>"+SEQ('T A C G ? T'),a:"Top: C · Bottom: G",w:"Top ? sits across from G, so it is C. Bottom ? sits across from C, so it is G."},
    {q:"A student wrote the partner strand of "+SEQ('G A T T C G A')+" as "+SEQ('C T A A G G T')+". Which <b>position</b> (1–7) is wrong?",a:"Position 6 (should be C)",w:"Correct partner: C T A A G <b>C</b> T. Position 6 is G in the original, so its partner is C."},
-   {q:"A lab reports that a sample of double-stranded DNA is <b>30% adenine</b> and <b>30% guanine</b>. Is that possible?",a:"No — it would add up to 120%",w:"A = T = 30% and G = C = 30%, so the total would be 120%. The percentages of A + G must equal 50%."},
-   {q:"One DNA strand has <b>8 A, 6 T, 9 G, and 7 C</b>. How many <b>A</b> bases are in its <b>partner</b> strand?",a:"6",w:"Each A in the partner strand pairs with a T in the original strand, and the original has 6 T."},
+   {q:"A double-stranded DNA sample is <b>20% guanine</b>. What percent is <b>adenine</b>?",a:"30%",w:"G = C = 20%, so G + C = 40%. The remaining 60% is split equally: A = T = 30%."},
+   {q:"One strand of a DNA segment reads "+SEQ('A T G C G C A T T A')+". How many <b>G–C pairs</b> does the double-stranded segment have?",a:"4",w:"Every G or C on this strand pairs with a C or G on the other. This strand has 2 G and 2 C → 4 G–C pairs (and 6 A–T pairs)."},
    {q:"A–T pairs are held by <b>2</b> hydrogen bonds; G–C pairs by <b>3</b>. A DNA molecule has <b>1,000 base pairs</b>, and <b>300</b> are G–C. How many hydrogen bonds hold the strands together?",a:"2,300",w:"700 A–T pairs × 2 = 1,400, plus 300 G–C pairs × 3 = 900. Total = 2,300."}
  ]},
  {t:'Ion Zone', q:[
-   {q:"Which has more electrons: a sodium ion (<b>Na⁺</b>) or a <b>neon</b> atom?",a:"Neither — both have 10",w:"Sodium has 11 electrons and loses 1 → 10. Neon atoms have 10."},
-   {q:"A sulfur-32 atom gains 2 electrons and becomes <b>S²⁻</b>. By how much does its <b>mass number</b> change?",a:"0 (it does not change)",w:"Mass number counts only protons + neutrons. Electrons are not counted."},
+   {q:"A chlorine atom gains one electron. Write the ion's symbol, its number of electrons, and whether it is a cation or anion.",a:"Cl⁻ · 18 electrons · anion",w:"Chlorine has 17 electrons; gaining 1 gives 18 and a 1− charge. Negative ions are anions."},
+   {q:"When sulfur-32 gains 2 electrons to become S²⁻, what is the <b>mass number</b> of the ion?",a:"32",w:"Mass number counts only protons + neutrons. Gaining electrons changes the charge, not the mass number."},
    {q:"An ion has a <b>2−</b> charge and <b>54 electrons</b>. Name the element.",a:"Tellurium (Te)",w:"A negative ion has <b>more</b> electrons than protons: 54 − 2 = 52 protons = tellurium."},
    {q:"<b>Ca²⁺</b> and an <b>argon</b> atom have the same number of electrons. Which has more <b>protons</b>, and how many more?",a:"Ca²⁺, by 2",w:"Both have 18 electrons. Calcium has 20 protons and argon has 18."},
-   {q:"A neutral oxygen-16 atom somehow gains <b>one proton</b> and nothing else. Write the full symbol of what it becomes.",a:"¹⁷F⁺",w:"9 protons → fluorine. Mass number 16 + 1 = 17. Electrons are still 8, so the charge is 9 − 8 = 1+."}
+   {q:"An ion has <b>24 protons</b>, <b>28 neutrons</b>, and <b>21 electrons</b>. Write its full symbol.",a:"⁵²Cr³⁺",w:"24 protons → chromium. Mass number = 24 + 28 = 52. Charge = 24 − 21 = 3+."}
  ]},
  {t:'Molecular Scissors', q:[
    {q:"In a DNA extraction, which <b>two</b> ingredients work together to make the DNA clump out of solution?",a:"Salt and cold alcohol",w:"Salt shields DNA's negative charges so the strands can stick together; DNA does not dissolve in cold alcohol, so it clumps into visible strands."},
    {q:"Put the DNA-extraction steps in order: add cold alcohol · add detergent · mash the fruit · filter",a:"Mash → detergent → filter → alcohol",w:"Break up the tissue, dissolve the membranes, remove the solid pulp, then make the DNA clump."},
-   {q:"A restriction enzyme cuts a <b>circular</b> piece of DNA at <b>3</b> sites. How many fragments are made?",a:"3",w:"A circle has no ends, so every cut just adds one more piece after the first cut: 3 cuts → 3 pieces. (A straight piece would make 4.)"},
+   {q:"An enzyme cuts the same DNA region in two people. Person A's region has <b>3</b> cut sites; Person B's has <b>4</b>. How many fragments does each person get?",a:"A: 4 fragments · B: 5 fragments",w:"Each cut in a linear piece adds one fragment. Different cut sites give different band patterns — the basis of DNA fingerprinting."},
    {q:"EcoRI cuts between G and A in <b>G|AATTC</b>. How many bases long is the <b>middle</b> fragment?<br>"+SEQ('TTGAATTCCAGAATTCTA','.8em'),a:"8 bases",w:"Cuts fall after each G of GAATTC: TTG | AATTCCAG | AATTCTA. The middle piece is AATTCCAG = 8 bases."},
-   {q:"A linear <b>5,000 bp</b> DNA is cut at the <b>1,000</b>, <b>3,500</b>, and <b>4,800 bp</b> positions. What size is the fragment that travels <b>farthest</b>?",a:"200 bp",w:"Pieces: 1,000 · 2,500 · 1,300 · and the last 5,000 − 4,800 = <b>200 bp</b>. The smallest travels farthest."}
+   {q:"A <b>5,000 bp</b> linear DNA is cut at the <b>1,000</b> and <b>3,500 bp</b> positions. List the fragment sizes from the well to the bottom of the gel.",a:"2,500 → 1,500 → 1,000 bp",w:"Pieces: 0–1,000 = 1,000; 1,000–3,500 = 2,500; 3,500–5,000 = 1,500. Largest stays nearest the well; smallest travels farthest."}
  ]},
  {t:'Bohr & the Octet', q:[
    {q:"The nucleus is hidden. Will this atom <b>gain or lose</b> electrons — and how many?",a:"Gain 1",w:"7 valence electrons: gaining 1 completes the octet; losing 7 would be far harder.",v:"bohrGain"},
@@ -548,9 +548,9 @@ const ROUNDS=[
  {t:'Periodic Table Talk', q:[
    {q:"Sodium reacts violently with water. Which element <b>one row below it</b> would you predict also does?",a:"Potassium",w:"Elements in the same group have the same number of valence electrons, so they react alike."},
    {q:"Element <b>A</b> forms an ion. Which lettered element forms an ion with the <b>same size charge</b> but the <b>opposite sign</b>?",a:"C",w:"A is magnesium → Mg²⁺. C is oxygen → O²⁻.",v:"ptMini"},
-   {q:"Which <b>two</b> lettered elements form ions with the same number of electrons as an atom of <b>D</b>?",a:"B and E",w:"D is argon (18 e). B is chlorine → Cl⁻ (18 e). E is potassium → K⁺ (18 e).",v:"ptMini"},
+   {q:"A DNA nucleotide contains atoms of <b>five</b> of the six CHNOPS elements. Which one is <b>missing</b>?",a:"Sulfur (S)",w:"Sugar: C, H, O. Base: C, H, O, N. Phosphate: P, O. No sulfur."},
    {q:"Name the element in <b>period 4</b> whose ion has a <b>2−</b> charge.",a:"Selenium (Se)",w:"A 2− ion means 6 valence electrons → group 16. Period 4, group 16 is selenium."},
-   {q:"Element Q forms <b>Q³⁻</b> ions that have the same number of electrons as argon. Name the element directly <b>below</b> Q.",a:"Arsenic (As)",w:"18 − 3 = 15 protons → Q is phosphorus. Below phosphorus in group 15 is arsenic."}
+   {q:"Element Q is in <b>period 3</b> and forms <b>Q³⁻</b> ions. Name Q, and name the noble gas its ion matches.",a:"Phosphorus · argon",w:"A 3− ion means 5 valence electrons → group 15. Period 3, group 15 is phosphorus. P³⁻ has 15 + 3 = 18 electrons, like argon."}
  ]}
 ]}
 ];
