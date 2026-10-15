@@ -294,7 +294,7 @@ body.compact footer{padding:4px 10px 8px}
 .sc-head{display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;color:#dce6ff;font-weight:700;font-size:clamp(15px,1.3vw,20px)}
 .sc-head .ck{color:#4ade80;font-size:1.2em}
 .sc-all{background:transparent;border:1.5px solid #ffffff55;color:#fff;border-radius:8px;padding:4px 12px;font-weight:700;font-size:14px}
-.sc-row{display:grid;grid-template-columns:repeat(var(--n,4),minmax(0,1fr));gap:12px;width:100%}
+.sc-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px;width:100%}
 .sc-team{display:grid;grid-template-columns:1fr auto;grid-template-areas:"name delta" "btns btns";align-items:baseline;gap:8px 10px;padding:12px 14px;border-radius:16px;border:3px solid;background:#0a1450;transition:background .12s,border-color .12s}
 .sc-team.is-wrong{border-color:#ff5d73aa}
 .sc-team.is-right{border-color:#34d399;background:#0b3a3a}
@@ -308,7 +308,6 @@ body.compact footer{padding:4px 10px 8px}
 .sc-no[aria-pressed=true]{background:#dc2626;border-color:#dc2626;color:#fff}
 .sc-btns button:hover{filter:brightness(1.2)}
 .sc-apply{align-self:center;font-size:clamp(20px,1.8vw,28px);padding:14px 40px}
-@media(max-width:700px){.sc-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .reference-gel-fallback[hidden],.reference-gel .vis[hidden]{display:none!important}
 </style>
 </head>
