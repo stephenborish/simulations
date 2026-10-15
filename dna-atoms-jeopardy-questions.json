@@ -17,6 +17,18 @@
     },
     "0-2-4": {
       "q": "Which child is <u><b>not</b></u> biologically related to the mother and father?"
+    },
+    "0-4-0": {
+      "q": "Recipe is to dessert as <b>gene</b> is to ______.",
+      "w": "A gene holds the instructions for building traits; the protein is what gets built — and proteins give you your traits."
+    },
+    "0-4-4": {
+      "q": "A mutation in the gene for an eye-pigment protein makes the protein stop working, and the person's eye color changes. List the <b>four</b> levels (in order) by which the change in eye color occured.",
+      "w": "The mutated gene (DNA) is copied into mutated RNA, which builds a protein that no longer works — so the trait (eye color) changes. Not every mutation does this; some have no effect."
+    },
+    "0-5-2": {
+      "q": "A negative balloon is held near a neutral wall. What happens to the wall's electrons?",
+      "a": "The electrons move away from the balloon"
     }
   },
   "final": {}
