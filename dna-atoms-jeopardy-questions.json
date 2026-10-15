@@ -1,6 +1,23 @@
 {
   "v": 3,
   "cats": {},
-  "clues": {},
+  "clues": {
+    "0-2-0": {
+      "q": "Gel race! Fragments of <b>4,500</b>, <b>45</b>, and <b>450 bp</b> start in the same well. Which fragment will travel the <b>farthest</b>?"
+    },
+    "0-2-1": {
+      "q": "Estimate the size of the crime scene's <b>largest </b>fragment of DNA.",
+      "a": "Around 5,000 bp",
+      "w": "The top band sits between the 6,557 and 4,361 bp ladder bands, so it is about 5,000 bp."
+    },
+    "0-2-3": {
+      "q": "Two suspects have <b>identical</b> DNA fingerprints. How is this possible?",
+      "a": "They are identical twins.",
+      "w": "Identical twins have the exact same DNA, so restriction enzymes will cut them the same way."
+    },
+    "0-2-4": {
+      "q": "Which child is <u><b>not</b></u> biologically related to the mother and father?"
+    }
+  },
   "final": {}
 }
