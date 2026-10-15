@@ -13,6 +13,11 @@ root = pathlib.Path(__file__).parent
 src = (root / 'dna-atoms-jeopardy.html').read_text(encoding='utf-8')
 edits = json.loads((root / 'dna-atoms-jeopardy-questions.json').read_text(encoding='utf-8'))
 
+m = re.search(r'const EDITS_V=(\d+);', src)
+if not m or edits.get('v') != int(m.group(1)):
+    sys.exit(f"Build failed: questions JSON version {edits.get('v')!r} does not match "
+             f"the game's EDITS_V {m and m.group(1)}; republish the questions first.")
+
 def sub(old, new, count=1):
     global src
     if src.count(old) != count:
