@@ -598,7 +598,7 @@ function renderIsotopes(e){const box=$('d-iso');const l=isoList(e.z);const name=
  else{const r=RADIO[e.z];$('iso-title').textContent='Isotopes';
   box.innerHTML=`<p style="margin:0;font-size:13.5px"><strong>No stable isotopes.</strong> ${r[2]?`${name} is found in nature only in tiny traces, made as other radioactive elements decay, so it has no natural isotope mix to graph.`:`${name} does not occur in nature — every atom has been made in a laboratory or reactor.`}</p>`+
   (e.z>=104?`<p class="note">Its longest-lived known isotopes have half-lives of ${r[1]}. The bracketed mass on the table, [${r[0]}], is a mass number, not an average — there is no natural mix to average.</p>`:`<p class="note">Longest-lived isotope: <strong>${name}-${r[0]}</strong> — half-life ${r[1]}. That is why its mass is shown in brackets as [${r[0]}]: a mass number, not an average.</p>`)}}
-const fmtPct=v=>v>=99.95&&v<100?v.toFixed(2):v>=1?v.toFixed(1).replace(/\.0$/,''):String(+v.toPrecision(2));
+const fmtPct=v=>v>=99.95&&v<100?String(v):v>=1?v.toFixed(1).replace(/\.0$/,''):String(+v.toPrecision(2));
 // Vertical bar graph: y axis 0–100% relative abundance, one colored bar per isotope, value label above each bar.
 const ISO_COLORS=['#4477cc','#db7046','#4a9e5c','#8a63c7','#c99a1a'];
 function isoChart(l,name){const W=360,H=250,L=52,T=26,B=H-40,Rt=W-6,ph=B-T,band=(Rt-L)/l.length,bw=Math.min(band*.62,110);
