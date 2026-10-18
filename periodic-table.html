@@ -4,6 +4,9 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Interactive periodic table: click any element for an animated Bohr model, isotope abundances, ion charges, a photo and key facts.">
 <title>Interactive Periodic Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{color-scheme:light;--ink:#111;--muted:#55606a;--paper:#fff;
 --alkali:#94dbf1;--alkaline:#a5e071;--transition:#f1c232;--other:#fbfbac;--nonmetal:#ffadb4;--noble:#6fa8dc;--lanthanide:#c9bdff;--actinide:#e1e1e1;--none:#fff;
@@ -11,10 +14,20 @@
 --stage:#14343f;--proton:#ee897c;--neutron:#a2bdce;--electron:#ffd079;--valence:#7cf0c8}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:var(--paper);color:var(--ink);font-family:Verdana,Tahoma,"DejaVu Sans",Geneva,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-button{font:inherit;color:inherit}
+body{background:var(--paper);color:var(--ink);font-family:Lexend,Verdana,Tahoma,"DejaVu Sans",sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+button,input{font:inherit;color:inherit}
 button:focus-visible,a:focus-visible{outline:3px solid #bd5e16;outline-offset:2px}
-header{flex-shrink:0;display:flex;align-items:baseline;gap:14px;padding:6px 14px 0;flex-wrap:wrap}
+header{flex-shrink:0;display:flex;align-items:center;gap:6px 16px;padding:6px 14px 0;flex-wrap:wrap}
+.search{position:relative;flex:0 1 300px;min-width:180px}
+.search input{width:100%;height:34px;border:2px solid #000;border-radius:10px;padding:0 10px 0 32px;font-size:14px;background:#fff}
+.search input:focus{outline:3px solid #bd5e16;outline-offset:1px}
+.search svg{position:absolute;left:9px;top:9px;width:16px;height:16px;pointer-events:none}
+.search ul{position:absolute;z-index:20;left:0;right:0;top:38px;margin:0;padding:4px;list-style:none;background:#fff;border:2px solid #000;border-radius:10px;box-shadow:0 8px 24px #0003}
+.search li{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:7px;cursor:pointer;font-size:14px}
+.search li b{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:30px;border:1.5px solid #000;background:var(--bg);color:var(--sc);font-size:15px}
+.search li small{margin-left:auto;color:var(--muted)}
+.search li[aria-selected=true],.search li:hover{background:#ffe9a8}
+.search .none{padding:6px 8px;font-size:13px;color:var(--muted)}
 header h1{margin:0;font-size:clamp(14px,1.6vw,20px)}
 header p{margin:0;font-size:clamp(11px,1.1vw,14px);color:var(--muted)}
 #rotate-hint{display:none;font-weight:700;color:#8a3b00}
@@ -24,9 +37,14 @@ header p{margin:0;font-size:clamp(11px,1.1vw,14px);color:var(--muted)}
 #ptable{--cw:60px;--ch:calc(var(--cw)*1.08);display:grid;
  grid-template-columns:calc(var(--cw)*.5) repeat(18,var(--cw));
  grid-template-rows:calc(var(--ch)*.45) repeat(7,var(--ch)) calc(var(--ch)*.25) repeat(2,var(--ch));position:relative}
-.el{position:relative;border:max(1px,calc(var(--cw)*.022)) solid #000;margin:0;padding:0;min-width:0;min-height:0;background:var(--bg,#fff);
+.el{position:relative;border:var(--bw,2px) solid #000;margin:calc(var(--bw,2px)/-2);padding:0;min-width:0;min-height:0;background:var(--bg,#fff);
  display:flex;flex-direction:column;align-items:center;justify-content:space-between;line-height:1.05;cursor:pointer;overflow:hidden;
  padding:calc(var(--cw)*.025) 0 calc(var(--cw)*.03);transition:transform .12s,box-shadow .12s,opacity .2s}
+.el.metalloid{border-width:calc(var(--bw,2px)*2.5);margin:calc(var(--bw,2px)*-1.25);z-index:2}
+.mkey{grid-column:4/9;grid-row:3;align-self:center;justify-self:start;margin-left:calc(var(--cw)*.05);display:flex;align-items:center;gap:calc(var(--cw)*.1);border:0;background:none;padding:2px 4px;cursor:pointer;font-weight:700;font-size:calc(var(--cw)*.21);border-radius:4px;white-space:nowrap}
+.mkey i{display:block;width:calc(var(--cw)*.42);height:calc(var(--cw)*.42);border:calc(var(--bw,2px)*2.5) solid #000;background:#fff}
+.mkey[aria-pressed=true]{background:#ffe9a8;box-shadow:0 0 0 3px #ffe9a8}
+#ptable.no-name .mkey span{display:none}
 .el:hover,.el:focus-visible{transform:scale(1.12);z-index:3;box-shadow:0 4px 14px #0006}
 .el:focus-visible{outline:3px solid #bd5e16;outline-offset:0}
 .el .nm{font-size:calc(var(--cw)*var(--nf,.16));white-space:nowrap}
@@ -68,9 +86,9 @@ dialog::backdrop{background:#0f1d24b0}
 .col{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:10px}
 .card{border:1px solid #d9dde0;border-radius:12px;padding:10px 12px;background:#fafbfc}
 .card h3{margin:0 0 6px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#3a4a55}
-.bigtile{--cw:clamp(96px,10.5vw,138px);align-self:center;width:var(--cw);height:calc(var(--cw)*1.08);cursor:default;flex-shrink:0;border-width:3px}
+.bigtile{--cw:clamp(96px,10.5vw,138px);align-self:center;width:var(--cw);height:calc(var(--cw)*1.08);cursor:default;flex-shrink:0;border-width:3px;margin:0}
 .bigtile:hover{transform:none;box-shadow:none}
-.pne{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center}
+.pne{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;text-align:center}
 .pne div{border-radius:10px;padding:5px 2px;font-size:11px;font-weight:700}
 .pne strong{display:block;font-size:20px;line-height:1.2}
 .facts{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:3px 10px;font-size:12.5px;margin:0}
@@ -94,22 +112,20 @@ dialog::backdrop{background:#0f1d24b0}
 .photo figcaption a{color:#fff}
 .photo .ph{padding:12px}
 .photo .ph strong{display:block;font-size:42px;color:#9aa5ad}
-.iso{display:grid;grid-template-columns:auto 1fr auto;gap:5px 8px;align-items:center;font-size:12.5px}
-.iso .bar{height:16px;background:#e7ebee;border-radius:4px;overflow:hidden}
-.iso .bar span{display:block;height:100%;background:#2f7f9b;border-radius:4px;min-width:2px;transform-origin:left;animation:grow .7s ease-out}
-.iso .lab{font-weight:700;white-space:nowrap}.iso .pct{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.isochart{display:block;width:100%;height:auto;max-height:260px;font-family:inherit}
+.isochart .bar{transform-box:fill-box;transform-origin:bottom;animation:rise .7s ease-out}
 .note{font-size:12px;color:var(--muted);margin:6px 0 0}
 .fun{background:#fff8e1;border-color:#f0d88a}
 .fun p{margin:0;font-size:13.5px;line-height:1.45}
-@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes rise{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @media (max-width:980px),(max-height:560px){.dbody{display:flex;flex-direction:column;overflow:auto}.col{flex:none;overflow:visible}.col.c2{order:-1}.atomstage{flex:none;min-height:0}#bohr{flex:none;height:min(78vw,380px,72dvh)}}
 @media (max-width:640px){.dhead{flex-wrap:wrap;gap:8px}.dhead .spacer{display:none}.dhead .navbtn{padding:2px 8px;min-height:34px}.dhead h2{flex-basis:100%}header p:not(#rotate-hint){display:none}}
-@media (prefers-reduced-motion:reduce){.el,.iso .bar span{transition:none;animation:none}}
+@media (prefers-reduced-motion:reduce){.el,.isochart .bar{transition:none;animation:none}}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
 </style>
 </head>
 <body>
-<header><h1>Interactive Periodic Table</h1><p>Click any element to explore it. Click a key color or state to highlight those elements.</p><p id="rotate-hint">Turn your device sideways for a larger table.</p></header>
+<header><h1>Interactive Periodic Table</h1><div class="search"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" fill="none" stroke="#333" stroke-width="2"/><path d="M10.5 10.5 15 15" stroke="#333" stroke-width="2" stroke-linecap="round"/></svg><input id="search" type="search" placeholder="Search name, symbol or number" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="search-list" aria-autocomplete="list" aria-label="Search for an element by name, symbol or atomic number"><ul id="search-list" role="listbox" aria-label="Matching elements" hidden></ul></div><p>Click any element to explore it. Click a key color or state to highlight those elements.</p><p id="rotate-hint">Turn your device sideways for a larger table.</p></header>
 <main id="stage"><div id="ptable" role="group" aria-label="Periodic table"></div></main>
 
 <dialog id="detail" aria-labelledby="d-name">
@@ -132,7 +148,7 @@ dialog::backdrop{background:#0f1d24b0}
      <svg id="bohr" viewBox="0 0 400 400" role="img" aria-labelledby="b-desc"><desc id="b-desc"></desc></svg>
      <div class="chips" id="b-chips"></div>
      <p class="ionnote" id="b-note"></p>
-     <div class="blegend"><span><i style="background:var(--proton)"></i>Protons</span><span><i style="background:var(--neutron)"></i>Neutrons</span><span><i style="background:var(--electron)"></i>Electrons</span><span><i style="background:var(--valence)"></i>Outer-shell (valence) electrons</span></div>
+     <div class="blegend"><span><i style="background:var(--proton)"></i>Nucleus (protons)</span><span><i style="background:var(--electron)"></i>Electrons</span><span><i style="background:var(--valence)"></i>Outer-shell (valence) electrons</span></div>
     </section>
     <div class="card"><h3>Electron configuration</h3><p class="config" id="d-config"></p></div>
    </div>
@@ -451,7 +467,6 @@ const chargeLabel=q=>q===0?'':sup((Math.abs(q)===1?'':Math.abs(q))+(q>0?'+':'-')
 
 // ---------- isotope helpers ----------
 const isoList=z=>ISO[z]?ISO[z].split(',').map(p=>{const[a,v]=p.split(':');return{a:+a,pct:+v}}).sort((x,y)=>y.pct-x.pct):null;
-function neutrons(e){const l=isoList(e.z);if(l)return l[0].a-e.z;if(RADIO[e.z])return RADIO[e.z][0]-e.z;return null}
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 
 // ---------- build the table ----------
@@ -461,6 +476,9 @@ add('1','grid-row:1;grid-column:2','gl');add('18','grid-row:1;grid-column:19','g
 [13,14,15,16,17].forEach(g=>add(g,`grid-row:2;grid-column:${g+1}`,'gl'));
 for(let g=3;g<=12;g++)add(g,`grid-row:4;grid-column:${g+1}`,'gl');
 for(let p=1;p<=7;p++)add(p,`grid-row:${p+1};grid-column:1`,'pl');
+const METALLOIDS=new Set([5,14,32,33,51,52]);EL.forEach(e=>{if(e)e.metalloid=METALLOIDS.has(e.z)});
+const mkey=document.createElement('button');mkey.type='button';mkey.className='mkey';mkey.dataset.cat='m';mkey.setAttribute('aria-pressed','false');mkey.title='Highlight: metalloids';
+mkey.innerHTML='<i></i><span>Metalloid (thick outline)</span>';ptable.appendChild(mkey);
 const legend=add('','', 'legend');
 ['a','n','e','g','t','l','o','c'].forEach(k=>{const b=document.createElement('button');b.type='button';b.dataset.cat=k;b.setAttribute('aria-pressed','false');
  b.innerHTML=`<i style="--bg:var(--${CAT[k][1]})"></i><span>${CAT[k][0]}</span>`;b.title='Highlight: '+CAT[k][0];legend.appendChild(b)});
@@ -473,18 +491,18 @@ function tileHTML(e){return `<span class="nm" style="--nf:${Math.min(.16,.9/(e.n
 function tileStyle(el,e){el.style.setProperty('--bg',`var(--${CAT[e.c][1]})`);el.style.setProperty('--sc',`var(--${STATE[e.p][2]})`)}
 const tiles=[];
 EL.forEach(e=>{if(!e)return;const b=document.createElement('button');b.type='button';b.className='el';b.dataset.z=e.z;
- b.style.gridRow=e.row+1;b.style.gridColumn=e.col+1;tileStyle(b,e);b.innerHTML=tileHTML(e);
+ b.style.gridRow=e.row+1;b.style.gridColumn=e.col+1;tileStyle(b,e);if(e.metalloid)b.classList.add('metalloid');b.innerHTML=tileHTML(e);
  b.setAttribute('aria-label',`${cap(e.n)}, ${e.s}, atomic number ${e.z}, atomic mass ${e.m}`);
  b.addEventListener('click',()=>openDetail(e.z));tiles[e.z]=b;ptable.appendChild(b)});
 
 // highlight by category / state
 let filter=null;
 function applyFilter(){ptable.classList.toggle('dim',!!filter);
- tiles.forEach((t,z)=>{if(!t)return;const e=EL[z];t.classList.toggle('hit',!!filter&&(filter.cat?e.c===filter.cat:e.p===filter.state))});
+ tiles.forEach((t,z)=>{if(!t)return;const e=EL[z];t.classList.toggle('hit',!!filter&&(filter.cat?(filter.cat==='m'?e.metalloid:e.c===filter.cat):e.p===filter.state))});
  ptable.querySelectorAll('[data-cat],[data-state]').forEach(b=>{const on=!!filter&&(b.dataset.cat?b.dataset.cat===filter.cat:b.dataset.state===filter.state);b.setAttribute('aria-pressed',String(on))})}
 ptable.addEventListener('click',ev=>{const b=ev.target.closest('[data-cat],[data-state]');if(!b)return;
  const f=b.dataset.cat?{cat:b.dataset.cat}:{state:b.dataset.state};
- filter=filter&&filter.cat===f.cat&&filter.state===f.state?null:f;applyFilter()});
+ filter=filter&&filter.cat===f.cat&&filter.state===f.state?null:f;sInput.value='';closeSearch();applyFilter()});
 
 // arrow keys move around the table
 ptable.addEventListener('keydown',ev=>{const t=ev.target.closest('.el');if(!t)return;const e=EL[+t.dataset.z];
@@ -494,7 +512,7 @@ ptable.addEventListener('keydown',ev=>{const t=ev.target.closest('.el');if(!t)re
 // size the table so it always fits the window — no scrolling or zooming
 const stage=document.getElementById('stage'),hint=document.getElementById('rotate-hint');
 function fit(){const W=stage.clientWidth-16,H=stage.clientHeight-14;const cw=Math.max(1,Math.min(W/18.5,H/(10.48)));
- ptable.style.setProperty('--cw',cw.toFixed(2)+'px');ptable.classList.toggle('no-name',cw<42);ptable.classList.toggle('no-mass',cw<34);ptable.classList.toggle('tiny',cw<34);
+ ptable.style.setProperty('--cw',cw.toFixed(2)+'px');ptable.style.setProperty('--bw',Math.max(1,Math.round(cw*.04))+'px');ptable.classList.toggle('no-name',cw<42);ptable.classList.toggle('no-mass',cw<34);ptable.classList.toggle('tiny',cw<34);
  hint.style.display=cw<42&&innerHeight>innerWidth?'block':'none'}
 new ResizeObserver(fit).observe(stage);addEventListener('orientationchange',fit);fit();
 
@@ -513,12 +531,10 @@ dlg.addEventListener('keydown',ev=>{if(ev.target.closest('.chips'))return;if(ev.
 function parseCharges(e){if(!e.ch||e.ch==='?')return[];return e.ch.replace(/p/g,'').split(',').map(Number)}
 function render(){const e=EL[current];ionCharge=0;
  const catVar=`var(--${CAT[e.c][1]})`;$('d-head').style.setProperty('--bg',catVar);
- $('d-name').textContent=`${cap(e.n)} (${e.s})`;$('d-cat').textContent=CAT[e.c][0];
+ $('d-name').textContent=`${cap(e.n)} (${e.s})`;$('d-cat').textContent=CAT[e.c][0]+(e.metalloid?' · Metalloid':'');
  $('d-prev-l').textContent=EL[current>1?current-1:118].s;$('d-next-l').textContent=EL[current<118?current+1:1].s;
  const tile=$('d-tile');tileStyle(tile,e);tile.innerHTML=tileHTML(e);
- const N=neutrons(e);
- $('d-pne').innerHTML=`<div style="background:#fbe0dc">Protons<strong>${e.z}</strong></div><div style="background:#e1ebf2">Neutrons<strong>${N??'?'}</strong></div><div style="background:#fff0cc">Electrons<strong>${e.z}</strong></div>`;
- $('d-pne').title=N!=null?`Neutrons shown for ${cap(e.n)}-${N+e.z}, its ${ISO[e.z]?'most common':'longest-lived'} isotope (mass number − atomic number).`:'';
+ $('d-pne').innerHTML=`<div style="background:#fbe0dc">Protons<strong>${e.z}</strong></div><div style="background:#fff0cc">Electrons<strong>${e.z}</strong></div>`;
  const cfg=configText(neutralConfig(e.z),e.z);const sh=shellsOf(neutralConfig(e.z));
  const groupTxt=e.group?`Group ${e.group}`:'f-block (no group number)';
  const val=(e.block==='s'||e.block==='p')?`${sh[sh.length-1]}`:`${sh[sh.length-1]} in the outer shell (transition/inner-transition metals can also use inner electrons)`;
@@ -554,12 +570,11 @@ function drawBohr(){const e=EL[current];const svg=$('bohr');[...svg.querySelecto
   for(let k=0;k<count;k++){const a=2*Math.PI*k/count;el('circle',{cx:200+radii[i]*Math.cos(a),cy:200+radii[i]*Math.sin(a),r:er,fill:outer?'var(--valence)':'var(--electron)',stroke:'#0b2028',"stroke-width":1},g)}
   shellGroups.push({g,speed:(i%2?-1:1)*(0.9/(0.6+i*0.55))})});
  // nucleus
- const N=neutrons(e);const nuc=el('g',{},root);
+ const nuc=el('g',{},root);
  el('circle',{cx:200,cy:200,r:rNuc,fill:'url(#nucgrad)',stroke:'#fbd4cd',"stroke-width":1.5},nuc);
  if(!svg.querySelector('defs')){const defs=el('defs',{},svg);const rg=el('radialGradient',{id:'nucgrad',cx:'40%',cy:'38%',r:'70%'},defs);el('stop',{offset:'0%','stop-color':'#f6b0a6'},rg);el('stop',{offset:'100%','stop-color':'#b9554a'},rg)}
- const t1=el('text',{x:200,y:N!=null?196:205,'text-anchor':'middle','font-size':rNuc>31?13:12,'font-weight':700,fill:'#fff'},nuc);t1.textContent=`${e.z} p⁺`;
- if(N!=null){const t2=el('text',{x:200,y:212,'text-anchor':'middle','font-size':rNuc>31?13:12,'font-weight':700,fill:'#e5f1f8'},nuc);t2.textContent=`${N} n⁰`}
- $('b-desc').textContent=`Bohr model of ${name}: nucleus with ${e.z} protons${N!=null?' and '+N+' neutrons':''}; ${electrons} electrons arranged ${sh.join(', ')} by shell.`;
+ const t1=el('text',{x:200,y:205,'text-anchor':'middle','font-size':rNuc>31?14:13,'font-weight':700,fill:'#fff'},nuc);t1.textContent=`${e.z} p⁺`;
+ $('b-desc').textContent=`Bohr model of ${name}: nucleus with ${e.z} protons; ${electrons} electrons arranged ${sh.join(', ')} by shell.`;
  // ion explanation
  let note='';
  if(ion){const k=Math.abs(ionCharge);const match=NOBLE.find(([nz])=>nz===electrons);
@@ -578,13 +593,52 @@ function togglePause(){paused=!paused;const b=$('b-pause');if(b)b.textContent=pa
 // ---------- isotopes bar graph ----------
 function renderIsotopes(e){const box=$('d-iso');const l=isoList(e.z);const name=cap(e.n);
  if(l){$('iso-title').textContent=`Naturally occurring isotopes${l.length===5?' (top 5)':''}`;
-  const max=Math.max(...l.map(i=>i.pct));
-  box.innerHTML=`<div class="iso" role="list">`+l.map(i=>`<span class="lab" role="listitem">${name}-${i.a}<br><span style="font-weight:400;color:var(--muted);font-size:11px">${i.a-e.z} neutrons</span></span><span class="bar" aria-hidden="true"><span style="width:${(i.pct/max*100).toFixed(2)}%"></span></span><span class="pct">${fmtPct(i.pct)}%</span>`).join('')+`</div>`+
-  `<p class="note">${l.length===1?`Every naturally occurring ${e.n} atom has ${l[0].a-e.z} neutrons, so its average mass (${e.m}) is very close to ${l[0].a}.`:`The average atomic mass (${e.m}) is a weighted average of these isotopes, so it lands closest to ${name}-${l.reduce((b,i)=>Math.abs(i.a-parseFloat(e.m))<Math.abs(b.a-parseFloat(e.m))?i:b).a}.`}${RADIOACTIVE_NATURAL[e.z]?' '+RADIOACTIVE_NATURAL[e.z]:''}</p>`}
+  box.innerHTML=isoChart([...l].sort((a,b)=>a.a-b.a),e.n)+
+  `<p class="note">${l.length===1?`Every naturally occurring ${e.n} atom is ${e.n}-${l[0].a}, so its average mass (${e.m}) is very close to ${l[0].a}.`:`The average atomic mass (${e.m}) is a weighted average of these isotopes, so it lands closest to ${name}-${l.reduce((b,i)=>Math.abs(i.a-parseFloat(e.m))<Math.abs(b.a-parseFloat(e.m))?i:b).a}.`}${RADIOACTIVE_NATURAL[e.z]?' '+RADIOACTIVE_NATURAL[e.z]:''}</p>`}
  else{const r=RADIO[e.z];$('iso-title').textContent='Isotopes';
   box.innerHTML=`<p style="margin:0;font-size:13.5px"><strong>No stable isotopes.</strong> ${r[2]?`${name} is found in nature only in tiny traces, made as other radioactive elements decay, so it has no natural isotope mix to graph.`:`${name} does not occur in nature — every atom has been made in a laboratory or reactor.`}</p>`+
-  (e.z>=104?`<p class="note">Its longest-lived known isotopes have half-lives of ${r[1]}. The bracketed mass on the table, [${r[0]}], is a mass number, not an average — there is no natural mix to average.</p>`:`<p class="note">Longest-lived isotope: <strong>${name}-${r[0]}</strong> (${r[0]-e.z} neutrons) — half-life ${r[1]}. That is why its mass is shown in brackets as [${r[0]}]: a mass number, not an average.</p>`)}}
-const fmtPct=v=>v>=1?v.toFixed(v>=99.9&&v<100?4:2).replace(/\.?0+$/,''):String(v);
+  (e.z>=104?`<p class="note">Its longest-lived known isotopes have half-lives of ${r[1]}. The bracketed mass on the table, [${r[0]}], is a mass number, not an average — there is no natural mix to average.</p>`:`<p class="note">Longest-lived isotope: <strong>${name}-${r[0]}</strong> — half-life ${r[1]}. That is why its mass is shown in brackets as [${r[0]}]: a mass number, not an average.</p>`)}}
+const fmtPct=v=>v>=99.95&&v<100?String(v):v>=1?v.toFixed(1).replace(/\.0$/,''):String(+v.toPrecision(2));
+// Vertical bar graph: y axis 0–100% relative abundance, one colored bar per isotope, value label above each bar.
+const ISO_COLORS=['#4477cc','#db7046','#4a9e5c','#8a63c7','#c99a1a'];
+function isoChart(l,name){const W=360,H=250,L=52,T=26,B=H-40,Rt=W-6,ph=B-T,band=(Rt-L)/l.length,bw=Math.min(band*.62,110);
+ const y=v=>B-ph*v/100;let g='';
+ for(let v=0;v<=100;v+=20)g+=`<line x1="${L}" x2="${Rt}" y1="${y(v)}" y2="${y(v)}" stroke="#e2e2e2" stroke-width="1.5"/><text x="${L-7}" y="${y(v)+4.5}" text-anchor="end" font-size="13" font-weight="700" fill="#333">${v}</text>`;
+ const vs=l.length>3?12.5:16;
+ l.forEach((i,k)=>{const cx=L+band*(k+.5),h=Math.max(1,ph*i.pct/100),lab=`${name}-${i.a}`;
+  g+=`<rect class="bar" x="${cx-bw/2}" y="${B-h}" width="${bw}" height="${h}" fill="${ISO_COLORS[k]}"><title>${lab}: ${i.pct}%</title></rect>`;
+  g+=`<text x="${cx}" y="${B-h-6}" text-anchor="middle" font-size="${vs}" font-weight="700" fill="#111">${fmtPct(i.pct)}%</text>`;
+  let fs=Math.min(14,band/(lab.length*.72));
+  if(fs>=10)g+=`<text x="${cx}" y="${B+19}" text-anchor="middle" font-size="${fs.toFixed(1)}" font-weight="700" fill="#333">${lab}</text>`;
+  else{fs=Math.max(7.5,Math.min(13,(band-4)/(name.length*.72)));g+=`<text x="${cx}" y="${B+16}" text-anchor="middle" font-size="${fs.toFixed(1)}" font-weight="700" fill="#333">${name}<tspan x="${cx}" dy="${fs+2}">-${i.a}</tspan></text>`}});
+ g+=`<line x1="${L}" x2="${L}" y1="${T-6}" y2="${B}" stroke="#333" stroke-width="2.5"/><line x1="${L}" x2="${Rt}" y1="${B}" y2="${B}" stroke="#333" stroke-width="2.5"/>`;
+ g+=`<text transform="translate(14 ${(T+B)/2}) rotate(-90)" text-anchor="middle" font-size="13" font-weight="700" fill="#222">Relative abundance (%)</text>`;
+ return `<svg class="isochart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bar graph of ${name} isotopes: ${l.map(i=>`${name}-${i.a} ${fmtPct(i.pct)}%`).join(', ')}">${g}</svg>`}
+
+// ---------- search by name, symbol or atomic number ----------
+const sInput=$('search'),sList=$('search-list');let sHits=[],sActive=0;
+function searchMatches(q){q=q.trim().toLowerCase();if(!q)return[];const out=[];
+ EL.forEach(e=>{if(!e)return;const n=e.n.toLowerCase(),s=e.s.toLowerCase(),z=String(e.z);let r=-1;
+  if(s===q||n===q||z===q)r=0;else if(n.startsWith(q))r=1;else if(s.startsWith(q)||(/^\d+$/.test(q)&&z.startsWith(q)))r=2;else if(q.length>2&&n.includes(q))r=3;
+  if(r>=0)out.push([r,e])});
+ return out.sort((a,b)=>a[0]-b[0]||a[1].z-b[1].z).map(x=>x[1])}
+function renderSearch(){const q=sInput.value;sHits=searchMatches(q);sActive=0;
+ filter=null;applyFilter();ptable.classList.toggle('dim',!!q.trim());sHits.forEach(e=>tiles[e.z].classList.add('hit'));
+ if(!q.trim()){sList.hidden=true;sInput.setAttribute('aria-expanded','false');return}
+ sList.innerHTML=sHits.length?sHits.slice(0,7).map((e,i)=>`<li role="option" id="opt-${e.z}" data-z="${e.z}" aria-selected="${i===0}" style="--bg:var(--${CAT[e.c][1]});--sc:var(--${STATE[e.p][2]})"><b>${e.s}</b>${cap(e.n)}<small>${e.z}</small></li>`).join(''):'<li class="none" role="presentation">No element matches</li>';
+ sList.hidden=false;sInput.setAttribute('aria-expanded','true');markActive()}
+function markActive(){sList.querySelectorAll('[role=option]').forEach((li,i)=>li.setAttribute('aria-selected',String(i===sActive)));
+ const a=sHits[sActive];if(a)sInput.setAttribute('aria-activedescendant','opt-'+a.z);else sInput.removeAttribute('aria-activedescendant')}
+function closeSearch(){sList.hidden=true;sInput.setAttribute('aria-expanded','false')}
+sInput.addEventListener('input',renderSearch);
+sInput.addEventListener('keydown',ev=>{const n=Math.min(sHits.length,7);
+ if(ev.key==='ArrowDown'&&n){ev.preventDefault();sActive=(sActive+1)%n;markActive()}
+ else if(ev.key==='ArrowUp'&&n){ev.preventDefault();sActive=(sActive+n-1)%n;markActive()}
+ else if(ev.key==='Enter'&&sHits[sActive]){ev.preventDefault();closeSearch();openDetail(sHits[sActive].z)}
+ else if(ev.key==='Escape'){sInput.value='';renderSearch()}});
+sList.addEventListener('mousedown',ev=>{const li=ev.target.closest('[data-z]');if(!li)return;ev.preventDefault();closeSearch();openDetail(+li.dataset.z)});
+sInput.addEventListener('blur',closeSearch);sInput.addEventListener('focus',()=>{if(sInput.value.trim())renderSearch()});
+addEventListener('keydown',ev=>{if(ev.key==='/'&&!dlg.open&&document.activeElement!==sInput){ev.preventDefault();sInput.focus()}});
 
 // ---------- photo (loaded from Wikipedia; works whenever the page is online) ----------
 const photoCache={};
