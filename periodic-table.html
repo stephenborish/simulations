@@ -40,11 +40,10 @@ header p{margin:0;font-size:clamp(11px,1.1vw,14px);color:var(--muted)}
 .el{position:relative;border:var(--bw,2px) solid #000;margin:calc(var(--bw,2px)/-2);padding:0;min-width:0;min-height:0;background:var(--bg,#fff);
  display:flex;flex-direction:column;align-items:center;justify-content:space-between;line-height:1.05;cursor:pointer;overflow:hidden;
  padding:calc(var(--cw)*.025) 0 calc(var(--cw)*.03);transition:transform .12s,box-shadow .12s,opacity .2s}
-.el.metalloid{border-width:calc(var(--bw,2px)*2.5);margin:calc(var(--bw,2px)*-1.25);z-index:2}
-.mkey{grid-column:4/9;grid-row:3;align-self:center;justify-self:start;margin-left:calc(var(--cw)*.05);display:flex;align-items:center;gap:calc(var(--cw)*.1);border:0;background:none;padding:2px 4px;cursor:pointer;font-weight:700;font-size:calc(var(--cw)*.21);border-radius:4px;white-space:nowrap}
-.mkey i{display:block;width:calc(var(--cw)*.42);height:calc(var(--cw)*.42);border:calc(var(--bw,2px)*2.5) solid #000;background:#fff}
-.mkey[aria-pressed=true]{background:#ffe9a8;box-shadow:0 0 0 3px #ffe9a8}
-#ptable.no-name .mkey span{display:none}
+/* thick metal / nonmetal staircase, centered on the shared cell edges as in the printed table */
+.stair{--sw:calc(var(--bw,2px)*2.5);pointer-events:none;z-index:2;border:0 solid #000}
+.stair.top{border-top-width:var(--sw);margin:calc(var(--sw)/-2) calc(var(--sw)/-2) 0}
+.stair.left{border-left-width:var(--sw);margin:calc(var(--sw)/-2) 0 calc(var(--sw)/-2) calc(var(--sw)/-2)}
 .el:hover,.el:focus-visible{transform:scale(1.12);z-index:3;box-shadow:0 4px 14px #0006}
 .el:focus-visible{outline:3px solid #bd5e16;outline-offset:0}
 .el .nm{font-size:calc(var(--cw)*var(--nf,.16));white-space:nowrap}
@@ -476,9 +475,6 @@ add('1','grid-row:1;grid-column:2','gl');add('18','grid-row:1;grid-column:19','g
 [13,14,15,16,17].forEach(g=>add(g,`grid-row:2;grid-column:${g+1}`,'gl'));
 for(let g=3;g<=12;g++)add(g,`grid-row:4;grid-column:${g+1}`,'gl');
 for(let p=1;p<=7;p++)add(p,`grid-row:${p+1};grid-column:1`,'pl');
-const METALLOIDS=new Set([5,14,32,33,51,52]);EL.forEach(e=>{if(e)e.metalloid=METALLOIDS.has(e.z)});
-const mkey=document.createElement('button');mkey.type='button';mkey.className='mkey';mkey.dataset.cat='m';mkey.setAttribute('aria-pressed','false');mkey.title='Highlight: metalloids';
-mkey.innerHTML='<i></i><span>Metalloid (thick outline)</span>';ptable.appendChild(mkey);
 const legend=add('','', 'legend');
 ['a','n','e','g','t','l','o','c'].forEach(k=>{const b=document.createElement('button');b.type='button';b.dataset.cat=k;b.setAttribute('aria-pressed','false');
  b.innerHTML=`<i style="--bg:var(--${CAT[k][1]})"></i><span>${CAT[k][0]}</span>`;b.title='Highlight: '+CAT[k][0];legend.appendChild(b)});
@@ -491,14 +487,18 @@ function tileHTML(e){return `<span class="nm" style="--nf:${Math.min(.16,.9/(e.n
 function tileStyle(el,e){el.style.setProperty('--bg',`var(--${CAT[e.c][1]})`);el.style.setProperty('--sc',`var(--${STATE[e.p][2]})`)}
 const tiles=[];
 EL.forEach(e=>{if(!e)return;const b=document.createElement('button');b.type='button';b.className='el';b.dataset.z=e.z;
- b.style.gridRow=e.row+1;b.style.gridColumn=e.col+1;tileStyle(b,e);if(e.metalloid)b.classList.add('metalloid');b.innerHTML=tileHTML(e);
+ b.style.gridRow=e.row+1;b.style.gridColumn=e.col+1;tileStyle(b,e);b.innerHTML=tileHTML(e);
  b.setAttribute('aria-label',`${cap(e.n)}, ${e.s}, atomic number ${e.z}, atomic mass ${e.m}`);
  b.addEventListener('click',()=>openDetail(e.z));tiles[e.z]=b;ptable.appendChild(b)});
+
+// Staircase between the metals and nonmetals: B/Al, Al|Si, Si/Ge, Ge|As, As/Sb, Sb|Te, Te/Po, Po|At
+[[13,'top'],[14,'left'],[32,'top'],[33,'left'],[51,'top'],[52,'left'],[84,'top'],[85,'left']].forEach(([z,edge])=>
+ add('',`grid-row:${EL[z].row+1};grid-column:${EL[z].col+1}`,'stair '+edge).setAttribute('aria-hidden','true'));
 
 // highlight by category / state
 let filter=null;
 function applyFilter(){ptable.classList.toggle('dim',!!filter);
- tiles.forEach((t,z)=>{if(!t)return;const e=EL[z];t.classList.toggle('hit',!!filter&&(filter.cat?(filter.cat==='m'?e.metalloid:e.c===filter.cat):e.p===filter.state))});
+ tiles.forEach((t,z)=>{if(!t)return;const e=EL[z];t.classList.toggle('hit',!!filter&&(filter.cat?e.c===filter.cat:e.p===filter.state))});
  ptable.querySelectorAll('[data-cat],[data-state]').forEach(b=>{const on=!!filter&&(b.dataset.cat?b.dataset.cat===filter.cat:b.dataset.state===filter.state);b.setAttribute('aria-pressed',String(on))})}
 ptable.addEventListener('click',ev=>{const b=ev.target.closest('[data-cat],[data-state]');if(!b)return;
  const f=b.dataset.cat?{cat:b.dataset.cat}:{state:b.dataset.state};
@@ -531,7 +531,7 @@ dlg.addEventListener('keydown',ev=>{if(ev.target.closest('.chips'))return;if(ev.
 function parseCharges(e){if(!e.ch||e.ch==='?')return[];return e.ch.replace(/p/g,'').split(',').map(Number)}
 function render(){const e=EL[current];ionCharge=0;
  const catVar=`var(--${CAT[e.c][1]})`;$('d-head').style.setProperty('--bg',catVar);
- $('d-name').textContent=`${cap(e.n)} (${e.s})`;$('d-cat').textContent=CAT[e.c][0]+(e.metalloid?' · Metalloid':'');
+ $('d-name').textContent=`${cap(e.n)} (${e.s})`;$('d-cat').textContent=CAT[e.c][0];
  $('d-prev-l').textContent=EL[current>1?current-1:118].s;$('d-next-l').textContent=EL[current<118?current+1:1].s;
  const tile=$('d-tile');tileStyle(tile,e);tile.innerHTML=tileHTML(e);
  $('d-pne').innerHTML=`<div style="background:#fbe0dc">Protons<strong>${e.z}</strong></div><div style="background:#fff0cc">Electrons<strong>${e.z}</strong></div>`;
