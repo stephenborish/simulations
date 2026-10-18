@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Interactive periodic table: click any element for an animated Bohr model, isotope abundances, ion charges, a photo and key facts.">
+<title>Interactive Periodic Table</title>
+<style>
+:root{color-scheme:light;--ink:#111;--muted:#55606a;--paper:#fff;
+--alkali:#94dbf1;--alkaline:#a5e071;--transition:#f1c232;--other:#fbfbac;--nonmetal:#ffadb4;--noble:#6fa8dc;--lanthanide:#c9bdff;--actinide:#e1e1e1;--none:#fff;
+--solid:#000;--liquid:#00bd35;--gas:#9900ff;--synth:#6fa8dc;
+--stage:#14343f;--proton:#ee897c;--neutron:#a2bdce;--electron:#ffd079;--valence:#7cf0c8}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:Verdana,Tahoma,"DejaVu Sans",Geneva,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+button{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible{outline:3px solid #bd5e16;outline-offset:2px}
+header{flex-shrink:0;display:flex;align-items:baseline;gap:14px;padding:6px 14px 0;flex-wrap:wrap}
+header h1{margin:0;font-size:clamp(14px,1.6vw,20px)}
+header p{margin:0;font-size:clamp(11px,1.1vw,14px);color:var(--muted)}
+#rotate-hint{display:none;font-weight:700;color:#8a3b00}
+#stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:6px 8px 8px}
+
+/* ---------- table: everything scales from --cw (cell width) so the whole table always fits ---------- */
+#ptable{--cw:60px;--ch:calc(var(--cw)*1.08);display:grid;
+ grid-template-columns:calc(var(--cw)*.5) repeat(18,var(--cw));
+ grid-template-rows:calc(var(--ch)*.45) repeat(7,var(--ch)) calc(var(--ch)*.25) repeat(2,var(--ch));position:relative}
+.el{position:relative;border:max(1px,calc(var(--cw)*.022)) solid #000;margin:0;padding:0;min-width:0;min-height:0;background:var(--bg,#fff);
+ display:flex;flex-direction:column;align-items:center;justify-content:space-between;line-height:1.05;cursor:pointer;overflow:hidden;
+ padding:calc(var(--cw)*.025) 0 calc(var(--cw)*.03);transition:transform .12s,box-shadow .12s,opacity .2s}
+.el:hover,.el:focus-visible{transform:scale(1.12);z-index:3;box-shadow:0 4px 14px #0006}
+.el:focus-visible{outline:3px solid #bd5e16;outline-offset:0}
+.el .nm{font-size:calc(var(--cw)*var(--nf,.16));white-space:nowrap}
+.el .z{font-size:calc(var(--cw)*.19);font-weight:700}
+.el .sy{font-size:calc(var(--cw)*.37);font-weight:700;color:var(--sc,#000);letter-spacing:-.02em}
+.el .ms{font-size:calc(var(--cw)*.155)}
+#ptable.no-name .el .nm{display:none}
+#ptable.no-mass .el .ms{display:none}
+#ptable.tiny .el .z{font-size:calc(var(--cw)*.26)}
+#ptable.tiny .el .sy{font-size:calc(var(--cw)*.44)}
+#ptable.tiny .el{justify-content:center;gap:2px}
+#ptable.dim .el:not(.hit){opacity:.18}
+.gl{font-weight:700;font-size:calc(var(--cw)*.26);display:flex;align-items:flex-end;justify-content:center;padding-bottom:calc(var(--cw)*.03)}
+.pl{font-weight:700;font-size:calc(var(--cw)*.26);display:flex;align-items:center;justify-content:center}
+.legend{grid-column:4/11;grid-row:1/3;align-self:center;display:grid;grid-template-columns:auto auto;column-gap:calc(var(--cw)*.45);row-gap:calc(var(--cw)*.02);justify-content:start;padding-left:calc(var(--cw)*.05)}
+.legend button,.phase button{border:0;background:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:calc(var(--cw)*.08);font-weight:700;font-size:calc(var(--cw)*.21);text-align:left;white-space:nowrap;border-radius:4px}
+.legend button i{display:block;width:calc(var(--cw)*.27);height:calc(var(--cw)*.27);background:var(--bg)}
+.legend button[aria-pressed=true],.phase button[aria-pressed=true]{background:#ffe9a8;box-shadow:0 0 0 3px #ffe9a8}
+.phase{grid-column:14/18;grid-row:1/3;align-self:start;display:grid;grid-template-columns:repeat(4,1fr);margin-top:calc(var(--ch)*-.05)}
+.phase button{flex-direction:column;gap:calc(var(--cw)*.05);font-size:calc(var(--cw)*.17)}
+.phase button b{display:flex;align-items:center;justify-content:center;width:calc(var(--cw)*.86);height:calc(var(--cw)*.6);border:max(1.5px,calc(var(--cw)*.04)) solid #000;margin-left:-1px;font-size:calc(var(--cw)*.3);color:var(--sc);background:#fff}
+.keybox{grid-column:11/14;grid-row:3;justify-self:center;align-self:center;width:calc(var(--cw)*2);height:calc(var(--ch)*.92);border:max(1.5px,calc(var(--cw)*.04)) solid #000;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;text-align:center}
+.keybox span{font-size:calc(var(--cw)*.14)}.keybox b{font-size:calc(var(--cw)*.16)}.keybox strong{font-size:calc(var(--cw)*.32)}
+#ptable.no-name .keybox,#ptable.no-name .legend button span,#ptable.no-name .phase span{display:none}
+#ptable.no-name .legend{grid-template-columns:repeat(4,auto);row-gap:calc(var(--cw)*.12);column-gap:calc(var(--cw)*.12)}
+#ptable.no-name .legend button i{width:calc(var(--cw)*.45);height:calc(var(--cw)*.45);border:1px solid #0004}
+
+/* ---------- detail dialog ---------- */
+dialog{border:0;padding:0;border-radius:18px;width:min(1240px,97vw);height:min(800px,96dvh);max-width:none;max-height:none;box-shadow:0 20px 60px #0007;overflow:hidden}
+dialog::backdrop{background:#0f1d24b0}
+.dlg{display:flex;flex-direction:column;height:100%}
+.dhead{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg);border-bottom:2px solid #000}
+.dhead h2{margin:0;font-size:clamp(18px,2.2vw,28px)}
+.dhead .cat{font-size:13px;font-weight:700;background:#fff9;border:1px solid #0003;border-radius:20px;padding:2px 10px}
+.dhead .spacer{flex:1}
+.navbtn{border:2px solid #000;background:#fff;border-radius:10px;min-height:38px;padding:4px 12px;cursor:pointer;font-weight:700;font-size:14px}
+.navbtn:hover{background:#f3f3f3}
+.dbody{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.3fr) minmax(0,1.15fr);gap:12px;padding:12px}
+.col{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.card{border:1px solid #d9dde0;border-radius:12px;padding:10px 12px;background:#fafbfc}
+.card h3{margin:0 0 6px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#3a4a55}
+.bigtile{--cw:clamp(96px,10.5vw,138px);align-self:center;width:var(--cw);height:calc(var(--cw)*1.08);cursor:default;flex-shrink:0;border-width:3px}
+.bigtile:hover{transform:none;box-shadow:none}
+.pne{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center}
+.pne div{border-radius:10px;padding:5px 2px;font-size:11px;font-weight:700}
+.pne strong{display:block;font-size:20px;line-height:1.2}
+.facts{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:3px 10px;font-size:12.5px;margin:0}
+.facts dt{color:var(--muted);font-weight:700}.facts dd{margin:0}
+.atomstage{background:radial-gradient(ellipse at 50% 45%,#22505a 0%,var(--stage) 55%,#0e2a33 100%);color:#eef7f2;border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;flex:1;min-height:260px}
+.atomstage .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.atomstage h3{color:#92cbb8;margin:0}
+.atomstage .shells{font-size:13px;color:#d6efe5}
+#bohr{flex:1;min-height:0;width:100%;display:block}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chip{border:1px solid #5b7f88;background:#1d4049;color:#eef7f2;border-radius:20px;padding:4px 12px;min-height:34px;cursor:pointer;font-weight:700;font-size:14px}
+.chip[aria-pressed=true]{background:#ffd079;color:#14343f;border-color:#ffd079}
+.chip.ghost{background:none}
+.ionnote{font-size:13px;color:#d6efe5;margin:6px 0 0;min-height:2.6em}
+.blegend{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:#cfe3dc;margin-top:4px}
+.blegend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.config{font-size:13.5px;margin:0}
+.photo{position:relative;border-radius:12px;overflow:hidden;background:#eef0f2;aspect-ratio:16/10;flex-shrink:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:13px;padding:0}
+.photo img{width:100%;height:100%;object-fit:contain;background:#fff}
+.photo figcaption{position:absolute;right:0;bottom:0;background:#000a;color:#fff;font-size:10.5px;padding:2px 7px;border-top-left-radius:8px}
+.photo figcaption a{color:#fff}
+.photo .ph{padding:12px}
+.photo .ph strong{display:block;font-size:42px;color:#9aa5ad}
+.iso{display:grid;grid-template-columns:auto 1fr auto;gap:5px 8px;align-items:center;font-size:12.5px}
+.iso .bar{height:16px;background:#e7ebee;border-radius:4px;overflow:hidden}
+.iso .bar span{display:block;height:100%;background:#2f7f9b;border-radius:4px;min-width:2px;transform-origin:left;animation:grow .7s ease-out}
+.iso .lab{font-weight:700;white-space:nowrap}.iso .pct{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.note{font-size:12px;color:var(--muted);margin:6px 0 0}
+.fun{background:#fff8e1;border-color:#f0d88a}
+.fun p{margin:0;font-size:13.5px;line-height:1.45}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (max-width:980px),(max-height:560px){.dbody{display:flex;flex-direction:column;overflow:auto}.col{flex:none;overflow:visible}.col.c2{order:-1}.atomstage{flex:none;min-height:0}#bohr{flex:none;height:min(78vw,380px,72dvh)}}
+@media (max-width:640px){.dhead{flex-wrap:wrap;gap:8px}.dhead .spacer{display:none}.dhead .navbtn{padding:2px 8px;min-height:34px}.dhead h2{flex-basis:100%}header p:not(#rotate-hint){display:none}}
+@media (prefers-reduced-motion:reduce){.el,.iso .bar span{transition:none;animation:none}}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+</style>
+</head>
+<body>
+<header><h1>Interactive Periodic Table</h1><p>Click any element to explore it. Click a key color or state to highlight those elements.</p><p id="rotate-hint">Turn your device sideways for a larger table.</p></header>
+<main id="stage"><div id="ptable" role="group" aria-label="Periodic table"></div></main>
+
+<dialog id="detail" aria-labelledby="d-name">
+ <div class="dlg">
+  <div class="dhead" id="d-head">
+   <h2 id="d-name">Element</h2><span class="cat" id="d-cat"></span><span class="spacer"></span>
+   <button class="navbtn" id="d-prev" aria-label="Previous element">&#9664; <span id="d-prev-l"></span></button>
+   <button class="navbtn" id="d-next" aria-label="Next element"><span id="d-next-l"></span> &#9654;</button>
+   <button class="navbtn" id="d-close" aria-label="Close">&#10005;</button>
+  </div>
+  <div class="dbody">
+   <div class="col c1">
+    <div class="el bigtile" id="d-tile" aria-hidden="true"></div>
+    <div class="pne" id="d-pne"></div>
+    <div class="card"><h3>Key facts</h3><dl class="facts" id="d-facts"></dl></div>
+   </div>
+   <div class="col c2">
+    <section class="atomstage" aria-label="Animated Bohr model">
+     <div class="top"><h3 id="b-title">Bohr model</h3><span class="shells" id="b-shells"></span></div>
+     <svg id="bohr" viewBox="0 0 400 400" role="img" aria-labelledby="b-desc"><desc id="b-desc"></desc></svg>
+     <div class="chips" id="b-chips"></div>
+     <p class="ionnote" id="b-note"></p>
+     <div class="blegend"><span><i style="background:var(--proton)"></i>Protons</span><span><i style="background:var(--neutron)"></i>Neutrons</span><span><i style="background:var(--electron)"></i>Electrons</span><span><i style="background:var(--valence)"></i>Outer-shell (valence) electrons</span></div>
+    </section>
+    <div class="card"><h3>Electron configuration</h3><p class="config" id="d-config"></p></div>
+   </div>
+   <div class="col c3">
+    <figure class="photo" id="d-photo"></figure>
+    <div class="card"><h3 id="iso-title">Naturally occurring isotopes</h3><div id="d-iso"></div></div>
+    <div class="card fun"><h3>Did you know?</h3><p id="d-fun"></p></div>
+   </div>
+  </div>
+ </div>
+</dialog>
+<div id="announce" class="sr-only" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+// ---------- Table data, transcribed exactly from the printed table (Periodic_Table_2.pdf) ----------
+// Z|symbol|name|mass|category|state  (category: a alkali, e alkaline earth, t transition, o other metal, n nonmetal, g noble gas, l lanthanide, c actinide, h hydrogen (uncolored))
+// state: s solid, l liquid, g gas, x synthetic
+const TABLE=`1|H|hydrogen|1.008|h|g
+2|He|helium|4.003|g|g
+3|Li|lithium|6.941|a|s
+4|Be|beryllium|9.012|e|s
+5|B|boron|10.811|n|s
+6|C|carbon|12.011|n|s
+7|N|nitrogen|14.007|n|g
+8|O|oxygen|15.999|n|g
+9|F|fluorine|18.998|n|g
+10|Ne|neon|20.179|g|g
+11|Na|sodium|22.989|a|s
+12|Mg|magnesium|24.305|e|s
+13|Al|aluminum|26.982|o|s
+14|Si|silicon|28.086|n|s
+15|P|phosphorus|30.974|n|s
+16|S|sulfur|32.065|n|s
+17|Cl|chlorine|35.453|n|g
+18|Ar|argon|39.984|g|g
+19|K|potassium|39.098|a|s
+20|Ca|calcium|40.078|e|s
+21|Sc|scandium|44.956|t|s
+22|Ti|titanium|47.867|t|s
+23|V|vanadium|50.942|t|s
+24|Cr|chromium|51.996|t|s
+25|Mn|manganese|54.938|t|s
+26|Fe|iron|55.845|t|s
+27|Co|cobalt|58.933|t|s
+28|Ni|nickel|58.693|t|s
+29|Cu|copper|63.546|t|s
+30|Zn|zinc|65.409|t|s
+31|Ga|gallium|69.723|o|s
+32|Ge|germanium|72.64|o|s
+33|As|arsenic|74.922|n|s
+34|Se|selenium|78.96|n|s
+35|Br|bromine|79.904|n|l
+36|Kr|krypton|83.798|g|g
+37|Rb|rubidium|85.468|a|s
+38|Sr|strontium|87.620|e|s
+39|Y|yttrium|88.906|t|s
+40|Zr|zirconium|91.225|t|s
+41|Nb|niobium|92.906|t|s
+42|Mo|molybdenum|95.94|t|s
+43|Tc|technetium|[98]|t|x
+44|Ru|ruthenium|101.07|t|s
+45|Rh|rhodium|102.906|t|s
+46|Pd|palladium|106.42|t|s
+47|Ag|silver|107.868|t|s
+48|Cd|cadmium|112.411|t|s
+49|In|indium|114.818|o|s
+50|Sn|tin|118.710|o|s
+51|Sb|antimony|121.760|o|s
+52|Te|tellurium|127.60|n|s
+53|I|iodine|126.905|n|s
+54|Xe|xenon|131.293|g|g
+55|Cs|cesium|132.905|a|s
+56|Ba|barium|137.327|e|s
+57|La|lanthanum|138.906|l|s
+58|Ce|cerium|140.116|l|s
+59|Pr|praseodymium|140.907|l|s
+60|Nd|neodymium|144.24|l|s
+61|Pm|promethium|[145]|l|x
+62|Sm|samarium|150.36|l|s
+63|Eu|europium|151.964|l|s
+64|Gd|gadolinium|157.25|l|s
+65|Tb|terbium|158.925|l|s
+66|Dy|dysprosium|162.50|l|s
+67|Ho|holmium|164.930|l|s
+68|Er|erbium|167.259|l|s
+69|Tm|thulium|168.934|l|s
+70|Yb|ytterbium|173.04|l|s
+71|Lu|lutetium|174.967|t|s
+72|Hf|hafnium|178.486|t|s
+73|Ta|tantalum|180.948|t|s
+74|W|tungsten|183.84|t|s
+75|Re|rhenium|186.207|t|s
+76|Os|osmium|190.23|t|s
+77|Ir|iridium|192.217|t|s
+78|Pt|platinum|195.078|t|s
+79|Au|gold|196.967|t|s
+80|Hg|mercury|200.592|t|l
+81|Tl|thallium|204.383|o|s
+82|Pb|lead|207.2|o|s
+83|Bi|bismuth|208.980|o|s
+84|Po|polonium|[209]|o|s
+85|At|astatine|[210]|n|s
+86|Rn|radon|[222]|g|g
+87|Fr|francium|[223]|a|s
+88|Ra|radium|[226]|e|s
+89|Ac|actinium|[227]|c|s
+90|Th|thorium|232.038|c|s
+91|Pa|protactinium|231.036|c|s
+92|U|uranium|238.0289|c|s
+93|Np|neptunium|[237]|c|x
+94|Pu|plutonium|[244]|c|x
+95|Am|americium|[243]|c|x
+96|Cm|curium|[247]|c|x
+97|Bk|berkelium|[247]|c|x
+98|Cf|californium|[251]|c|x
+99|Es|einsteinium|[252]|c|x
+100|Fm|fermium|[257]|c|x
+101|Md|mendelevium|[258]|c|x
+102|No|nobelium|[259]|c|x
+103|Lr|lawrencium|[266]|t|x
+104|Rf|rutherfordium|[267]|t|x
+105|Db|dubnium|[268]|t|x
+106|Sg|seaborgium|[269]|t|x
+107|Bh|bohrium|[270]|t|x
+108|Hs|hassium|[269]|t|x
+109|Mt|meitnerium|[269]|t|x
+110|Ds|darmstadtium|[281]|t|x
+111|Rg|roentgenium|[282]|t|x
+112|Cn|copernicium|[285]|t|x
+113|Nh|nihonium|[286]|o|x
+114|Fl|flerovium|[289]|o|x
+115|Mc|moscovium|[289]|o|x
+116|Lv|livermorium|[293]|o|x
+117|Ts|tennessine|[294]|o|x
+118|Og|oganesson|[294]|o|x`;
+
+// ---------- Extra facts ----------
+// Z|electronegativity (Pauling)|melting point °C|boiling point °C|common ion charges|discovered|discovered by|name origin|fact
+// Charges: "" = does not normally form ions, "?" = unknown (too few atoms made); "p" prefix = predicted.
+const FACTS=`1|2.20|-259.2|-252.9|+1,-1|1766|Henry Cavendish|Greek "hydro" + "genes": water-former|Hydrogen makes up about 75% of the normal matter in the universe by mass. Stars like the Sun shine by fusing hydrogen into helium.
+2||none (stays liquid at normal pressure)|-268.9||1868|Pierre Janssen and Norman Lockyer|Greek "helios": the Sun|Helium was discovered in the Sun's light before anyone found it on Earth. It is the only element that won't freeze at normal pressure, even near absolute zero.
+3|0.98|180.5|1342|+1|1817|Johan August Arfwedson|Greek "lithos": stone|Lithium is the lightest metal — it floats on water (while reacting with it). It powers the rechargeable lithium-ion batteries in phones and electric cars.
+4|1.57|1287|2469|+2|1798|Louis-Nicolas Vauquelin|The mineral beryl|Beryllium is light and very stiff, so the James Webb Space Telescope's mirrors are made of it. Its dust is toxic to breathe.
+5|2.04|2076|3927|+3|1808|Joseph Gay-Lussac, Louis Thénard and Humphry Davy|Borax, a boron mineral|Borosilicate glass (like lab glassware) contains boron, which keeps it from cracking when heated quickly.
+6|2.55|sublimes ≈3640|—|+4,-4|ancient|known since prehistoric times|Latin "carbo": charcoal|Carbon forms more compounds than almost any other element and is the backbone of every living thing. Diamond and graphite are both pure carbon — just arranged differently.
+7|3.04|-210.0|-195.8|-3|1772|Daniel Rutherford|Greek "nitron" + "genes": niter-former|About 78% of the air you breathe is nitrogen gas (N₂). Liquid nitrogen boils at −196 °C and instantly freezes flowers and food.
+8|3.44|-218.8|-183.0|-2|1774|Joseph Priestley and Carl Wilhelm Scheele|Greek "oxys" + "genes": acid-former|Oxygen is the most abundant element in Earth's crust (about 46% by mass) and makes up about 21% of air. Liquid oxygen is pale blue and magnetic.
+9|3.98|-219.7|-188.1|-1|1886|Henri Moissan|Latin "fluere": to flow|Fluorine is the most electronegative and most reactive element — it pulls electrons harder than anything else. Fluoride in toothpaste helps harden tooth enamel.
+10||-248.6|-246.0||1898|William Ramsay and Morris Travers|Greek "neos": new|Neon glows bright red-orange when electricity passes through it — the original "neon sign." Other sign colors come from other gases.
+11|0.93|97.8|883|+1|1807|Humphry Davy|English "soda" (symbol Na from Latin "natrium")|Sodium is soft enough to cut with a butter knife and reacts violently with water. Combined with chlorine it becomes ordinary table salt, NaCl.
+12|1.31|650|1090|+2|1755|Joseph Black (isolated by Humphry Davy, 1808)|Magnesia, a region of Greece|Magnesium burns with a blinding white flame, so it is used in flares and fireworks. A magnesium ion sits at the center of every chlorophyll molecule.
+13|1.61|660.3|2470|+3|1825|Hans Christian Ørsted|Latin "alumen": alum|Aluminum is the most abundant metal in Earth's crust, yet it was once more valuable than gold — until a cheap way to extract it was invented in 1886.
+14|1.90|1414|3265|+4,-4|1824|Jöns Jacob Berzelius|Latin "silex": flint|Silicon is the second most abundant element in Earth's crust (sand is SiO₂) and the semiconductor at the heart of nearly every computer chip.
+15|2.19|44.1 (white)|280.5|-3|1669|Hennig Brand|Greek "phosphoros": light-bearer|Phosphorus was discovered by an alchemist boiling down urine. White phosphorus glows in the dark. Your DNA and ATP both contain phosphate groups.
+16|2.58|115.2|444.6|-2|ancient|known since ancient times|Latin "sulfur"|Sulfur was called "brimstone" in ancient texts and burns with a blue flame. The rotten-egg smell of hydrogen sulfide (H₂S) comes from sulfur.
+17|3.16|-101.5|-34.0|-1|1774|Carl Wilhelm Scheele|Greek "chloros": pale green|Chlorine is a toxic yellow-green gas, yet the chloride ion is half of table salt. Chlorine is used to disinfect drinking water and swimming pools.
+18||-189.3|-185.8||1894|Lord Rayleigh and William Ramsay|Greek "argos": lazy, inactive|Argon makes up almost 1% of air — more than carbon dioxide. Because it doesn't react, it fills light bulbs and shields metal during welding.
+19|0.82|63.5|759|+1|1807|Humphry Davy|English "potash" (symbol K from Latin "kalium")|Potassium was the first metal isolated using electricity. Potassium ions carry the electrical signals in your nerves; bananas are a good source.
+20|1.00|842|1484|+2|1808|Humphry Davy|Latin "calx": lime|Calcium is the most abundant metal in the human body, mostly in bones and teeth. Chalk, marble, and seashells are calcium carbonate.
+21|1.36|1541|2836|+3|1879|Lars Fredrik Nilson|Latin "Scandia": Scandinavia|Mendeleev predicted scandium ("eka-boron") years before it was found. A little scandium makes aluminum alloys for bikes and baseball bats stronger.
+22|1.54|1668|3287|+4,+3,+2|1791|William Gregor|The Titans of Greek mythology|Titanium is about as strong as steel but roughly 45% lighter. It's used in jet engines and hip implants, and TiO₂ makes paint and sunscreen white.
+23|1.63|1910|3407|+5,+4,+3,+2|1801|Andrés Manuel del Río|Vanadís, a Norse goddess of beauty|Vanadium compounds come in many beautiful colors. A little vanadium makes steel tough enough for tools and car springs.
+24|1.66|1907|2671|+3,+2,+6|1797|Louis-Nicolas Vauquelin|Greek "chroma": color|Chromium gives rubies their red and emeralds their green, and it is what makes stainless steel "stainless."
+25|1.55|1246|2061|+2,+3,+4,+7|1774|Johan Gottlieb Gahn|Latin "magnes": magnet (magnesia nigra)|About 90% of all manganese mined is used to make steel. Potassium permanganate (Mn⁷⁺) is a deep purple disinfectant.
+26|1.83|1538|2861|+2,+3|ancient|known since ancient times|Anglo-Saxon "iron" (symbol Fe from Latin "ferrum")|Iron is the most-used metal on Earth, and Earth's core is mostly iron. Hemoglobin uses iron to carry oxygen in your blood — that's why blood is red.
+27|1.88|1495|2927|+2,+3|1735|Georg Brandt|German "Kobold": goblin|Cobalt gives glass and pottery a deep "cobalt blue" color, and a cobalt atom sits at the center of vitamin B₁₂.
+28|1.91|1455|2913|+2|1751|Axel Fredrik Cronstedt|German "Kupfernickel": "Old Nick's copper"|Nickel is one of only three elements magnetic at room temperature (with iron and cobalt). A U.S. "nickel" coin is actually 75% copper.
+29|1.90|1085|2562|+2,+1|ancient|known since prehistoric times|Latin "cuprum": from the island of Cyprus|Copper is the go-to metal for electrical wiring. It slowly turns green as it reacts with air — that's why the Statue of Liberty is green.
+30|1.65|419.5|907|+2|1746|Andreas Marggraf (known earlier in India)|German "Zink"|Zinc coats steel to keep it from rusting (galvanizing). Mixing copper and zinc makes brass.
+31|1.81|29.8|2400|+3|1875|Paul-Émile Lecoq de Boisbaudran|Latin "Gallia": France|Gallium melts at 29.8 °C — it will melt in your hand. Gallium nitride and gallium arsenide are used in LEDs and lasers.
+32|2.01|938.3|2833|+4,+2|1886|Clemens Winkler|Latin "Germania": Germany|Germanium was Mendeleev's predicted "eka-silicon." It was used in the very first transistors and is used today in fiber optics.
+33|2.18|sublimes 615|—|-3,+3,+5|c. 1250|Albertus Magnus|Greek "arsenikon": yellow pigment (orpiment)|Arsenic was a famous poison in history. Today gallium arsenide (GaAs) is used in solar cells for satellites.
+34|2.55|221|685|-2|1817|Jöns Jacob Berzelius|Greek "selene": the Moon|Selenium conducts electricity better in light than in the dark, which made early photocopiers possible. Your body needs a tiny amount.
+35|2.96|-7.2|58.8|-1|1826|Antoine Balard and Carl Löwig|Greek "bromos": stench|Bromine is one of only two elements that are liquid at room temperature (with mercury). It is a red-brown liquid with a sharp, choking smell.
+36|3.00|-157.4|-153.4||1898|William Ramsay and Morris Travers|Greek "kryptos": hidden|From 1960 to 1983 the official length of a meter was defined using the orange light given off by krypton-86 atoms.
+37|0.82|39.3|688|+1|1861|Robert Bunsen and Gustav Kirchhoff|Latin "rubidus": deep red (its spectral lines)|Rubidium catches fire on contact with air. Rubidium atomic clocks are used in GPS satellites and cell towers.
+38|0.95|777|1377|+2|1790|Adair Crawford (isolated by Humphry Davy, 1808)|Strontian, a village in Scotland|Strontium salts give fireworks and road flares their brilliant red color.
+39|1.22|1526|3345|+3|1794|Johan Gadolin|Ytterby, a village in Sweden|Four elements are named after the tiny Swedish village of Ytterby: yttrium, terbium, erbium, and ytterbium. Yttrium is used in LEDs and lasers.
+40|1.33|1855|4409|+4|1789|Martin Heinrich Klaproth|The mineral zircon|Zirconium barely absorbs neutrons, so it wraps the fuel rods in nuclear reactors. Cubic zirconia (ZrO₂) is a popular diamond look-alike.
+41|1.6|2477|4744|+5,+3|1801|Charles Hatchett|Niobe, daughter of Tantalus in Greek myth|Niobium–titanium wire becomes a superconductor when cold; it makes the powerful magnets inside MRI machines.
+42|2.16|2623|4639|+6,+4|1778|Carl Wilhelm Scheele|Greek "molybdos": lead|Molybdenum's very high melting point makes it great for strengthening steel. Plants need it for the enzymes that capture nitrogen from the air.
+43|1.9|2157|4265|+7,+4|1937|Emilio Segrè and Carlo Perrier|Greek "technetos": artificial|Technetium was the first element made artificially. Technetium-99m is used in tens of millions of medical scans every year.
+44|2.2|2334|4150|+3,+4|1844|Karl Ernst Claus|Latin "Ruthenia": Russia|Ruthenium is a rare platinum-group metal used to make electrical contacts and hard-drive coatings more durable.
+45|2.28|1964|3695|+3|1803|William Hyde Wollaston|Greek "rhodon": rose (its rose-colored salts)|Rhodium is one of the rarest and most expensive metals. It's used in catalytic converters and to give jewelry a bright, shiny finish.
+46|2.20|1555|2963|+2,+4|1803|William Hyde Wollaston|The asteroid Pallas|Palladium can soak up about 900 times its own volume of hydrogen gas. Most palladium goes into catalytic converters that clean car exhaust.
+47|1.93|961.8|2162|+1|ancient|known since ancient times|Anglo-Saxon "seolfor" (symbol Ag from Latin "argentum")|Silver is the best conductor of electricity and heat of any element. Silver ions kill bacteria, so silver is used in some bandages.
+48|1.69|321.1|767|+2|1817|Friedrich Stromeyer|Latin "cadmia": zinc ore (calamine)|Cadmium was used in rechargeable Ni-Cd batteries and bright yellow paints, but it is a toxic heavy metal.
+49|1.78|156.6|2072|+3|1863|Ferdinand Reich and Theodor Richter|The indigo-blue line in its spectrum|Indium tin oxide is see-through yet conducts electricity — it's the invisible coating that makes touchscreens work.
+50|1.96|231.9|2602|+2,+4|ancient|known since ancient times|Anglo-Saxon "tin" (symbol Sn from Latin "stannum")|Mixing tin with copper makes bronze, which gave the Bronze Age its name. Bending a bar of tin makes a crackling sound called "tin cry."
+51|2.05|630.6|1587|+3,+5|ancient|known since ancient times|Symbol Sb from Latin "stibium"|Ancient Egyptians used the antimony mineral stibnite as black eyeliner. Today antimony helps make plastics and fabrics flame-resistant.
+52|2.1|449.5|988|-2|1782|Franz-Joseph Müller von Reichenstein|Latin "tellus": Earth|Cadmium telluride is used in thin-film solar panels. People exposed to tellurium can develop strong "garlic breath."
+53|2.66|113.7|184.3|-1|1811|Bernard Courtois|Greek "iodes": violet|Solid iodine turns straight into a violet vapor when warmed. Your thyroid needs iodine, which is why table salt is often "iodized."
+54|2.6|-111.8|-108.1||1898|William Ramsay and Morris Travers|Greek "xenos": stranger|Xenon was the first noble gas shown to form compounds (1962). It's used in bright car headlights and in ion engines that push spacecraft.
+55|0.79|28.4|671|+1|1860|Robert Bunsen and Gustav Kirchhoff|Latin "caesius": sky blue (its spectral lines)|Cesium melts at 28 °C. The official definition of a second is based on vibrations of cesium-133 atoms in atomic clocks.
+56|0.89|727|1845|+2|1774|Carl Wilhelm Scheele (isolated by Humphry Davy, 1808)|Greek "barys": heavy|Patients drink a barium sulfate "milkshake" so their digestive tract shows up on X-rays. Barium also makes green fireworks.
+57|1.10|920|3464|+3|1839|Carl Gustaf Mosander|Greek "lanthanein": to lie hidden|Lanthanum gives the lanthanide series its name. It's used in high-quality camera lenses and in batteries for hybrid cars.
+58|1.12|795|3443|+3,+4|1803|Jöns Jacob Berzelius and Wilhelm Hisinger (also Martin Klaproth)|The dwarf planet Ceres|Cerium is the most abundant rare-earth metal. The sparks from a lighter "flint" come from a cerium–iron alloy.
+59|1.13|935|3520|+3|1885|Carl Auer von Welsbach|Greek "prasios didymos": green twin|Praseodymium is added to the glass in welders' and glassblowers' goggles to block harmful yellow light.
+60|1.14|1024|3074|+3|1885|Carl Auer von Welsbach|Greek "neos didymos": new twin|Neodymium magnets are the strongest permanent magnets. They're in earbuds, hard drives, electric-car motors, and wind turbines.
+61|1.13|1042|3000|+3|1945|Jacob Marinsky, Lawrence Glendenin and Charles Coryell|Prometheus, who stole fire from the gods|All promethium is radioactive, and only traces exist in nature. It was once used in glow-in-the-dark watch dials and is used in some nuclear batteries.
+62|1.17|1072|1794|+3,+2|1879|Paul-Émile Lecoq de Boisbaudran|The mineral samarskite (named for Colonel Samarsky)|Samarium was the first element named after a person (indirectly). Samarium–cobalt magnets keep working at high temperatures.
+63|1.2|822|1529|+3,+2|1901|Eugène-Anatole Demarçay|The continent of Europe|Europium compounds glow red and blue under UV light. Euro banknotes use europium in their glowing anti-counterfeiting marks.
+64|1.20|1312|3273|+3|1880|Jean Charles Galissard de Marignac|The mineral gadolinite (after chemist Johan Gadolin)|Gadolinium compounds are injected as contrast agents to make MRI images clearer.
+65|1.1|1356|3230|+3,+4|1843|Carl Gustaf Mosander|Ytterby, a village in Sweden|Terbium makes the green glow in some screens and lamps, and Terfenol-D, an alloy that changes shape in a magnetic field.
+66|1.22|1407|2567|+3|1886|Paul-Émile Lecoq de Boisbaudran|Greek "dysprositos": hard to get|Dysprosium is added to neodymium magnets so they keep working when hot, such as inside electric-car motors.
+67|1.23|1461|2720|+3|1878|Marc Delafontaine, Jacques-Louis Soret and Per Teodor Cleve|"Holmia," Latin for Stockholm|Holmium has the strongest magnetism (magnetic moment) of any element, so it is used to concentrate the fields of the most powerful magnets. Holmium lasers are used in surgery.
+68|1.24|1529|2868|+3|1843|Carl Gustaf Mosander|Ytterby, a village in Sweden|Erbium-doped fiber amplifiers boost the light signals that carry the internet through undersea cables. Erbium also tints glass pink.
+69|1.25|1545|1950|+3|1879|Per Teodor Cleve|Thule, a mythical far-northern land|Thulium is one of the rarest lanthanides. It's used as the X-ray source in some portable X-ray machines.
+70|1.1|824|1196|+3,+2|1878|Jean Charles Galissard de Marignac|Ytterby, a village in Sweden|Ytterbium atomic clocks are among the most precise clocks ever built — they would lose less than a second over the age of the universe.
+71|1.27|1652|3402|+3|1907|Georges Urbain (also Carl Auer von Welsbach and Charles James)|"Lutetia," Latin for Paris|Lutetium was the last naturally occurring rare-earth element discovered. Lutetium-177 is used to treat some cancers.
+72|1.3|2233|4603|+4|1923|Dirk Coster and George de Hevesy|"Hafnia," Latin for Copenhagen|Hafnium soaks up neutrons, so it's used in nuclear-reactor control rods. Hafnium oxide is also inside modern computer chips.
+73|1.5|3017|5458|+5|1802|Anders Gustaf Ekeberg|Tantalus, a figure in Greek myth|Tiny tantalum capacitors are found in nearly every phone and laptop. Tantalum doesn't react with body fluids, so it's used in implants.
+74|2.36|3422|5555|+6|1783|Juan José and Fausto Elhuyar|Swedish "tung sten": heavy stone (symbol W from "wolfram")|Tungsten has the highest melting point of any metal (3,422 °C), which is why it was used for light-bulb filaments.
+75|1.9|3186|5596|+7,+4|1925|Walter Noddack, Ida Tacke and Otto Berg|"Rhenus," Latin for the Rhine River|Rhenium was the last stable element to be discovered. It's used in the superalloys of jet-engine turbine blades.
+76|2.2|3033|5012|+4|1803|Smithson Tennant|Greek "osme": smell|Osmium is the densest naturally occurring element — a softball-sized piece would weigh about 9 kg (20 lb). Its oxide has a sharp smell.
+77|2.20|2446|4428|+3,+4|1803|Smithson Tennant|Greek "iris": rainbow (its colorful salts)|Iridium is the most corrosion-resistant metal. A thin iridium-rich layer of rock marks the asteroid impact that wiped out the dinosaurs.
+78|2.28|1768|3825|+2,+4|1748|Antonio de Ulloa (used earlier in South America)|Spanish "platina": little silver|Platinum barely reacts with anything, so it's used in jewelry, lab equipment, and the catalytic converters that clean car exhaust.
+79|2.54|1064|2856|+1,+3|ancient|known since prehistoric times|Anglo-Saxon "gold" (symbol Au from Latin "aurum")|Gold never rusts or tarnishes. It is so malleable that a single gram can be hammered into a sheet about one square meter in size.
+80|2.00|-38.8|356.7|+2,+1|ancient|known since ancient times|The planet Mercury (symbol Hg from Greek "hydrargyrum": liquid silver)|Mercury is the only metal that is liquid at room temperature. Its +1 ion actually exists in pairs (Hg₂²⁺). It is toxic, so mercury thermometers are being phased out.
+81|1.62|304|1473|+1,+3|1861|William Crookes|Greek "thallos": green shoot (its green spectral line)|Thallium is extremely toxic and was once used as rat poison. Its compounds have no taste or smell.
+82|2.33|327.5|1749|+2,+4|ancient|known since ancient times|Anglo-Saxon "lead" (symbol Pb from Latin "plumbum")|The Romans used lead water pipes — the word "plumbing" comes from "plumbum." Lead blocks X-rays, so dentists use lead aprons.
+83|2.02|271.4|1564|+3|1753|Claude François Geoffroy (known since the 1400s)|German "Wismut"|Bismuth forms rainbow-colored, staircase-shaped crystals. It's the active ingredient in Pepto-Bismol and is very slightly radioactive.
+84|2.0|254|962|+4,+2|1898|Marie and Pierre Curie|Poland, Marie Curie's homeland|Polonium is so radioactive that a small sample glows blue and keeps itself warm. Marie Curie named it to draw attention to her occupied homeland.
+85|2.2|≈300 (estimated)|≈340 (estimated)|-1|1940|Dale Corson, Kenneth MacKenzie and Emilio Segrè|Greek "astatos": unstable|Astatine is the rarest naturally occurring element — less than about one gram exists in all of Earth's crust at any moment.
+86|2.2|-71|-61.7||1900|Friedrich Ernst Dorn|Named after radium, which produces it|Radon is a radioactive gas that seeps from the ground into basements. It's the second leading cause of lung cancer, so homes are tested for it.
+87|0.7|≈27 (estimated)|≈680 (estimated)|+1|1939|Marguerite Perey|France|Francium was the last element discovered in nature. It's so unstable that no one has ever collected enough to see.
+88|0.9|700|1737|+2|1898|Marie and Pierre Curie|Latin "radius": ray|Radium glows in the dark. It was painted on watch dials in the 1920s, poisoning the factory workers known as the "Radium Girls."
+89|1.1|1050|3198|+3|1899|André-Louis Debierne|Greek "aktis": ray|Actinium is so radioactive it glows a pale blue in the dark. It gives the actinide series its name.
+90|1.3|1750|4788|+4|1829|Jöns Jacob Berzelius|Thor, Norse god of thunder|Thorium is about three times more abundant than uranium and is being studied as a safer nuclear fuel.
+91|1.5|1572|≈4000|+5|1913|Kasimir Fajans and Oswald Göhring (also Otto Hahn and Lise Meitner, 1917)|Greek "protos" (first) + actinium|Its name means "parent of actinium," because protactinium decays into actinium. It is extremely rare and highly toxic.
+92|1.38|1132|4131|+6,+4|1789|Martin Heinrich Klaproth|The planet Uranus|Uranium-235 splits (fissions) to power nuclear plants. Uranium is the heaviest element found in large amounts in nature.
+93|1.36|644|≈4000|+5|1940|Edwin McMillan and Philip Abelson|The planet Neptune|Neptunium was the first element heavier than uranium ever made. Uranus, then Neptune — the names follow the planets.
+94|1.28|640|3228|+4|1940|Glenn Seaborg and team|The dwarf planet Pluto|Plutonium-238 produces heat that powers spacecraft such as Voyager and the Curiosity and Perseverance Mars rovers.
+95|1.3|1176|2011|+3|1944|Glenn Seaborg and team|The Americas|A tiny amount of americium-241 sits inside most household smoke detectors, where it helps detect smoke particles.
+96|1.28|1340|3110|+3|1944|Glenn Seaborg, Ralph James and Albert Ghiorso|Marie and Pierre Curie|Curium was used as the alpha-particle source in instruments on Mars rovers that measured the chemistry of Martian rocks.
+97|1.3|986|—|+3|1949|Stanley Thompson, Albert Ghiorso and Glenn Seaborg|Berkeley, California|Berkelium-249 was used as the target to create element 117, tennessine.
+98|1.3|900|—|+3|1950|Stanley Thompson, Kenneth Street, Albert Ghiorso and Glenn Seaborg|The state of California|Californium-252 shoots out neutrons, so it's used to start up nuclear reactors and to search for gold, oil, and water underground.
+99|1.3|860|—|+3|1952|Albert Ghiorso and team|Albert Einstein|Einsteinium was discovered in the debris of the first hydrogen-bomb test. Only tiny amounts have ever been made.
+100|1.3|—|—|+3|1952|Albert Ghiorso and team|Enrico Fermi|Fermium was also found in hydrogen-bomb debris. It's the heaviest element that can be made by bombarding lighter elements with neutrons.
+101|1.3|—|—|+3|1955|Albert Ghiorso, Bernard Harvey, Gregory Choppin, Stanley Thompson and Glenn Seaborg|Dmitri Mendeleev|Named after the creator of the periodic table. Mendelevium was first made literally one atom at a time.
+102|1.3|—|—|+2|1966|Georgy Flerov's team at Dubna (after earlier claims)|Alfred Nobel|Scientists in Sweden, the U.S., and the Soviet Union argued for years over who really discovered nobelium.
+103|1.3|—|—|+3|1961|Albert Ghiorso and team|Ernest Lawrence, inventor of the cyclotron|On this table lawrencium sits in group 3 under scandium and yttrium. Chemists still debate whether lutetium and lawrencium or lanthanum and actinium belong there.
+104||—|—|p+4|1964–1969|Teams at Dubna (USSR) and Berkeley (USA)|Ernest Rutherford|Rutherfordium was the first element after the actinides. Its few studied atoms behave like hafnium, the element above it.
+105||—|—|p+5|1968–1970|Teams at Dubna (USSR) and Berkeley (USA)|Dubna, Russia|Named for the Russian science city that is home to the Joint Institute for Nuclear Research.
+106||—|—|p+6|1974|Albert Ghiorso and team|Glenn T. Seaborg|Seaborgium was the first element named after a person who was still alive.
+107||—|—|p+7|1981|Peter Armbruster and Gottfried Münzenberg (GSI, Germany)|Niels Bohr|Named after Niels Bohr — the physicist who invented the Bohr model of the atom shown on this page.
+108||—|—|p+8|1984|Peter Armbruster and Gottfried Münzenberg (GSI, Germany)|"Hassia," Latin for the German state of Hesse|Hassium is predicted to be even denser than osmium, but only a few atoms have been made, so no one can measure it.
+109||—|—|?|1982|Peter Armbruster and Gottfried Münzenberg (GSI, Germany)|Lise Meitner|Meitnerium honors Lise Meitner, who helped explain nuclear fission but was left out of the Nobel Prize for it.
+110||—|—|?|1994|Sigurd Hofmann and team (GSI, Germany)|Darmstadt, Germany|Named after the German city where it was first created by smashing nickel atoms into lead.
+111||—|—|?|1994|Sigurd Hofmann and team (GSI, Germany)|Wilhelm Röntgen, discoverer of X-rays|Roentgenium sits below gold and is predicted to be a "noble" metal like gold.
+112||—|—|?|1996|Sigurd Hofmann and team (GSI, Germany)|Nicolaus Copernicus|Experiments suggest copernicium may be a very volatile metal — possibly even a liquid or gas at room temperature.
+113||—|—|?|2004|Kosuke Morita and team (RIKEN, Japan)|"Nihon," Japanese for Japan|Nihonium was the first element discovered in Asia. It took nine years to make just three atoms.
+114||—|—|?|1998|Yuri Oganessian and team (Dubna, Russia)|The Flerov Laboratory, named for Georgy Flerov|Flerovium may be surprisingly unreactive, behaving somewhat like a noble gas.
+115||—|—|?|2003|Teams at Dubna (Russia) and Livermore (USA)|The Moscow region of Russia|Only a few hundred atoms of moscovium have ever been made, and each lasts less than a second.
+116||—|—|?|2000|Teams at Dubna (Russia) and Livermore (USA)|Lawrence Livermore National Laboratory|Livermorium atoms fall apart within a fraction of a second of being made.
+117||—|—|?|2010|Teams at Dubna, Oak Ridge and Vanderbilt|The state of Tennessee|Tennessine is the most recently discovered element. It was made by firing calcium at berkelium produced in Tennessee.
+118||—|—|?|2002–2006|Yuri Oganessian and teams at Dubna and Livermore|Yuri Oganessian|Oganesson is the heaviest element known; only about five atoms have ever been detected. It is named after a scientist who was still alive.`;
+
+// ---------- Natural isotopic abundances (atom %, IUPAC). Top five at most. ----------
+const ISO={1:'1:99.9885,2:0.0115',2:'4:99.99986,3:0.00014',3:'7:92.41,6:7.59',4:'9:100',5:'11:80.1,10:19.9',6:'12:98.93,13:1.07',7:'14:99.636,15:0.364',8:'16:99.757,18:0.205,17:0.038',9:'19:100',10:'20:90.48,22:9.25,21:0.27',
+11:'23:100',12:'24:78.99,26:11.01,25:10.00',13:'27:100',14:'28:92.223,29:4.685,30:3.092',15:'31:100',16:'32:94.99,34:4.25,33:0.75,36:0.01',17:'35:75.76,37:24.24',18:'40:99.6035,36:0.3336,38:0.0629',19:'39:93.2581,41:6.7302,40:0.0117',20:'40:96.941,44:2.086,42:0.647,48:0.187,43:0.135',
+21:'45:100',22:'48:73.72,46:8.25,47:7.44,49:5.41,50:5.18',23:'51:99.750,50:0.250',24:'52:83.789,53:9.501,50:4.345,54:2.365',25:'55:100',26:'56:91.754,54:5.845,57:2.119,58:0.282',27:'59:100',28:'58:68.077,60:26.223,62:3.6346,61:1.1399,64:0.9255',29:'63:69.15,65:30.85',30:'64:49.17,66:27.73,68:18.45,67:4.04,70:0.61',
+31:'69:60.108,71:39.892',32:'74:36.52,72:27.45,70:20.52,73:7.76,76:7.75',33:'75:100',34:'80:49.61,78:23.77,76:9.37,82:8.73,77:7.63',35:'79:50.69,81:49.31',36:'84:56.987,86:17.279,82:11.593,83:11.500,80:2.286',37:'85:72.17,87:27.83',38:'88:82.58,86:9.86,87:7.00,84:0.56',39:'89:100',40:'90:51.45,94:17.38,92:17.15,91:11.22,96:2.80',
+41:'93:100',42:'98:24.292,96:16.673,95:15.873,92:14.649,100:9.744',44:'102:31.55,104:18.62,101:17.06,99:12.76,100:12.60',45:'103:100',46:'106:27.33,108:26.46,105:22.33,110:11.72,104:11.14',47:'107:51.839,109:48.161',48:'114:28.73,112:24.13,111:12.80,110:12.49,113:12.22',49:'115:95.719,113:4.281',50:'120:32.58,118:24.22,116:14.54,119:8.59,117:7.68',
+51:'121:57.21,123:42.79',52:'130:34.08,128:31.74,126:18.84,125:7.07,124:4.74',53:'127:100',54:'132:26.909,129:26.401,131:21.232,134:10.436,136:8.857',55:'133:100',56:'138:71.698,137:11.232,136:7.854,135:6.592,134:2.417',57:'139:99.9119,138:0.0881',58:'140:88.450,142:11.114,138:0.251,136:0.185',59:'141:100',60:'142:27.152,144:23.798,146:17.189,143:12.174,145:8.293',
+62:'152:26.75,154:22.75,147:14.99,149:13.82,148:11.24',63:'153:52.19,151:47.81',64:'158:24.84,160:21.86,156:20.47,157:15.65,155:14.80',65:'159:100',66:'164:28.260,162:25.475,163:24.896,161:18.889,160:2.329',67:'165:100',68:'166:33.503,168:26.978,167:22.869,170:14.910,164:1.601',69:'169:100',70:'174:32.026,172:21.68,173:16.103,171:14.09,176:12.996',
+71:'175:97.401,176:2.599',72:'180:35.08,178:27.28,177:18.60,179:13.62,176:5.26',73:'181:99.988,180:0.012',74:'184:30.64,186:28.43,182:26.50,183:14.31,180:0.12',75:'187:62.60,185:37.40',76:'192:40.78,190:26.26,189:16.15,188:13.24,187:1.96',77:'193:62.7,191:37.3',78:'195:33.78,194:32.86,196:25.21,198:7.36,192:0.782',79:'197:100',80:'202:29.74,200:23.10,199:16.87,201:13.18,198:9.97',
+81:'205:70.48,203:29.52',82:'208:52.4,206:24.1,207:22.1,204:1.4',83:'209:100',90:'232:100',91:'231:100',92:'238:99.2742,235:0.7204,234:0.0054'};
+// Elements with no stable isotopes and no standard natural mix: [mass number of key isotope, its half-life, found in nature?]
+const RADIO={43:[98,'about 4.2 million years',1],61:[145,'about 17.7 years',1],84:[209,'about 124 years',1],85:[210,'about 8.1 hours',1],86:[222,'3.8 days',1],87:[223,'22 minutes',1],88:[226,'about 1,600 years',1],89:[227,'21.8 years',1],
+93:[237,'about 2.1 million years',1],94:[244,'about 80 million years',1],95:[243,'about 7,370 years'],96:[247,'about 15.6 million years'],97:[247,'about 1,380 years'],98:[251,'about 900 years'],99:[252,'about 470 days'],100:[257,'about 100 days'],101:[258,'about 51 days'],102:[259,'about 58 minutes'],
+103:[266,'about 11 hours'],104:[267,'about 1–2 hours'],105:[268,'about a day'],106:[269,'a few minutes'],107:[270,'about a minute'],108:[269,'about 10 seconds'],109:[269,'a few seconds'],110:[281,'about 10 seconds'],111:[282,'about 1–2 minutes'],112:[285,'about 30 seconds'],113:[286,'about 10 seconds'],114:[289,'about 2 seconds'],115:[289,'less than a second'],116:[293,'about 0.06 seconds'],117:[294,'about 0.05 seconds'],118:[294,'less than a thousandth of a second']};
+const RADIOACTIVE_NATURAL={19:'Potassium-40 is slightly radioactive — it is a major source of the natural radioactivity in your body.',6:'A trace of radioactive carbon-14 (too small to show) is used for radiocarbon dating.',1:'A trace of radioactive tritium (hydrogen-3) also exists.',83:'Bismuth-209 is technically radioactive, but its half-life is about a billion times the age of the universe.',90:'All thorium is radioactive; thorium-232 has a half-life of 14 billion years.',91:'Protactinium-231 is radioactive and found only in tiny amounts in uranium ores.',92:'All uranium is radioactive. Uranium-235 is the isotope that fuels nuclear reactors.'};
+
+const CAT={a:['Alkali Metal','alkali'],e:['Alkaline Earth Metal','alkaline'],t:['Transition Metal','transition'],o:['Other Metal','other'],n:['Nonmetal','nonmetal'],g:['Noble Gas','noble'],l:['Lanthanide','lanthanide'],c:['Actinide','actinide'],h:['Hydrogen (unique)','none']};
+const STATE={s:['solid','Solid','solid'],l:['liquid','Liquid','liquid'],g:['gas','Gas','gas'],x:['synth.','Synthetic (made in a lab)','synth']};
+const WIKI={13:'Aluminium',55:'Caesium',80:'Mercury_(element)'};
+
+const EL=[];
+TABLE.split('\n').forEach(line=>{const [z,s,n,m,c,p]=line.split('|');EL[+z]={z:+z,s,n,m,c,p}});
+FACTS.split('\n').forEach(line=>{const f=line.split('|');const e=EL[+f[0]];Object.assign(e,{en:f[1],mp:f[2],bp:f[3],ch:f[4],yr:f[5],by:f[6],origin:f[7],fun:f[8]})});
+
+function pos(z){ // [grid row (1 = period 1), grid column (1-18)]
+ if(z===1)return[1,1];if(z===2)return[1,18];
+ if(z<=18){const p=z<=10?2:3,i=z-(p===2?2:10);return[p,i<=2?i:i+10]}
+ if(z<=36)return[4,z-18];if(z<=54)return[5,z-36];
+ if(z<=56)return[6,z-54];if(z<=70)return[9,z-57+3];if(z<=86)return[6,z-68];
+ if(z<=88)return[7,z-86];if(z<=102)return[10,z-89+3];return[7,z-100];
+}
+EL.forEach(e=>{if(!e)return;const[r,c]=pos(e.z);e.row=r;e.col=c;e.period=r>=9?r-3:r;e.group=r>=9?null:c;
+ e.block=r>=9?'f':(c<=2||e.z===2)?'s':c>=13?'p':'d';});
+
+// ---------- electron configurations (Aufbau order + known exceptions) ----------
+const ORB=['1s','2s','2p','3s','3p','4s','3d','4p','5s','4d','5p','6s','4f','5d','6p','7s','5f','6d','7p'];
+const CAP={s:2,p:6,d:10,f:14};
+const EXC={24:{'4s':-1,'3d':1},29:{'4s':-1,'3d':1},41:{'5s':-1,'4d':1},42:{'5s':-1,'4d':1},44:{'5s':-1,'4d':1},45:{'5s':-1,'4d':1},46:{'5s':-2,'4d':2},47:{'5s':-1,'4d':1},
+ 57:{'4f':-1,'5d':1},58:{'4f':-1,'5d':1},64:{'4f':-1,'5d':1},78:{'6s':-1,'5d':1},79:{'6s':-1,'5d':1},89:{'5f':-1,'6d':1},90:{'5f':-2,'6d':2},91:{'5f':-1,'6d':1},92:{'5f':-1,'6d':1},93:{'5f':-1,'6d':1},96:{'5f':-1,'6d':1},103:{'6d':-1,'7p':1}};
+function neutralConfig(z){const c={};let left=z;for(const o of ORB){if(!left)break;const k=Math.min(CAP[o[1]],left);c[o]=k;left-=k}
+ const x=EXC[z];if(x)for(const o in x)c[o]=(c[o]||0)+x[o];for(const o in c)if(!c[o])delete c[o];return c}
+function ionConfig(z,charge){const c=neutralConfig(z);
+ if(charge>0){for(let i=0;i<charge;i++){const keys=Object.keys(c).sort((a,b)=>(b[0]-a[0])||('spdf'.indexOf(b[1])-'spdf'.indexOf(a[1])));const o=keys[0];if(!o)break;if(!--c[o])delete c[o]}}
+ else if(charge<0){let add=-charge;for(const o of ORB){const room=CAP[o[1]]-(c[o]||0);if(room>0){const k=Math.min(room,add);c[o]=(c[o]||0)+k;add-=k}if(!add)break}}
+ return c}
+const shellsOf=c=>{const s=[];for(const o in c){const n=+o[0];s[n-1]=(s[n-1]||0)+c[o]}for(let i=0;i<s.length;i++)s[i]=s[i]||0;return s};
+const SUP={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','-':'⁻'};
+const sup=t=>String(t).split('').map(ch=>SUP[ch]||ch).join('');
+const NOBLE=[[86,'Rn'],[54,'Xe'],[36,'Kr'],[18,'Ar'],[10,'Ne'],[2,'He']];
+function configText(c,total){
+ const order=Object.keys(c).sort((a,b)=>(a[0]-b[0])||('spdf'.indexOf(a[1])-'spdf'.indexOf(b[1])));
+ const full=order.map(o=>o+sup(c[o])).join(' ');
+ for(const[nz,ns] of NOBLE){if(nz>=total)continue;const core=neutralConfig(nz);let ok=true;for(const o in core)if((c[o]||0)<core[o])ok=false;
+  if(ok){const rest=order.filter(o=>c[o]-(core[o]||0)>0).map(o=>o+sup(c[o]-(core[o]||0))).join(' ');return{short:`[${ns}] ${rest}`,full}}}
+ return{short:full,full}}
+const chargeLabel=q=>q===0?'':sup((Math.abs(q)===1?'':Math.abs(q))+(q>0?'+':'-'));
+
+// ---------- isotope helpers ----------
+const isoList=z=>ISO[z]?ISO[z].split(',').map(p=>{const[a,v]=p.split(':');return{a:+a,pct:+v}}).sort((x,y)=>y.pct-x.pct):null;
+function neutrons(e){const l=isoList(e.z);if(l)return l[0].a-e.z;if(RADIO[e.z])return RADIO[e.z][0]-e.z;return null}
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+// ---------- build the table ----------
+const ptable=document.getElementById('ptable');
+function add(html,style,cls){const d=document.createElement('div');if(cls)d.className=cls;d.style.cssText=style;d.innerHTML=html;ptable.appendChild(d);return d}
+add('1','grid-row:1;grid-column:2','gl');add('18','grid-row:1;grid-column:19','gl');add('2','grid-row:2;grid-column:3','gl');
+[13,14,15,16,17].forEach(g=>add(g,`grid-row:2;grid-column:${g+1}`,'gl'));
+for(let g=3;g<=12;g++)add(g,`grid-row:4;grid-column:${g+1}`,'gl');
+for(let p=1;p<=7;p++)add(p,`grid-row:${p+1};grid-column:1`,'pl');
+const legend=add('','', 'legend');
+['a','n','e','g','t','l','o','c'].forEach(k=>{const b=document.createElement('button');b.type='button';b.dataset.cat=k;b.setAttribute('aria-pressed','false');
+ b.innerHTML=`<i style="--bg:var(--${CAT[k][1]})"></i><span>${CAT[k][0]}</span>`;b.title='Highlight: '+CAT[k][0];legend.appendChild(b)});
+const phase=add('','', 'phase');
+[['s','C'],['l','Br'],['g','He'],['x','Tc']].forEach(([k,sym])=>{const b=document.createElement('button');b.type='button';b.dataset.state=k;b.setAttribute('aria-pressed','false');
+ b.innerHTML=`<b style="--sc:var(--${STATE[k][2]})">${sym}</b><span>${STATE[k][0]}</span>`;b.title='Highlight: '+STATE[k][1];phase.appendChild(b)});
+add('<span>element name</span><b>atomic number</b><strong>symbol</strong><span>average atomic mass</span>','', 'keybox').setAttribute('aria-hidden','true');
+
+function tileHTML(e){return `<span class="nm" style="--nf:${Math.min(.16,.9/(e.n.length*.6)).toFixed(3)}">${e.n}</span><span class="z">${e.z}</span><span class="sy">${e.s}</span><span class="ms">${e.m}</span>`}
+function tileStyle(el,e){el.style.setProperty('--bg',`var(--${CAT[e.c][1]})`);el.style.setProperty('--sc',`var(--${STATE[e.p][2]})`)}
+const tiles=[];
+EL.forEach(e=>{if(!e)return;const b=document.createElement('button');b.type='button';b.className='el';b.dataset.z=e.z;
+ b.style.gridRow=e.row+1;b.style.gridColumn=e.col+1;tileStyle(b,e);b.innerHTML=tileHTML(e);
+ b.setAttribute('aria-label',`${cap(e.n)}, ${e.s}, atomic number ${e.z}, atomic mass ${e.m}`);
+ b.addEventListener('click',()=>openDetail(e.z));tiles[e.z]=b;ptable.appendChild(b)});
+
+// highlight by category / state
+let filter=null;
+function applyFilter(){ptable.classList.toggle('dim',!!filter);
+ tiles.forEach((t,z)=>{if(!t)return;const e=EL[z];t.classList.toggle('hit',!!filter&&(filter.cat?e.c===filter.cat:e.p===filter.state))});
+ ptable.querySelectorAll('[data-cat],[data-state]').forEach(b=>{const on=!!filter&&(b.dataset.cat?b.dataset.cat===filter.cat:b.dataset.state===filter.state);b.setAttribute('aria-pressed',String(on))})}
+ptable.addEventListener('click',ev=>{const b=ev.target.closest('[data-cat],[data-state]');if(!b)return;
+ const f=b.dataset.cat?{cat:b.dataset.cat}:{state:b.dataset.state};
+ filter=filter&&filter.cat===f.cat&&filter.state===f.state?null:f;applyFilter()});
+
+// arrow keys move around the table
+ptable.addEventListener('keydown',ev=>{const t=ev.target.closest('.el');if(!t)return;const e=EL[+t.dataset.z];
+ const d={ArrowLeft:[0,-1],ArrowRight:[0,1],ArrowUp:[-1,0],ArrowDown:[1,0]}[ev.key];if(!d)return;ev.preventDefault();
+ let r=e.row,c=e.col;for(let i=0;i<18;i++){r+=d[0];c+=d[1];if(r===8)r+=d[0];if(r<1||r>10||c<1||c>18)return;const hit=EL.find(x=>x&&x.row===r&&x.col===c);if(hit){tiles[hit.z].focus();return}}});
+
+// size the table so it always fits the window — no scrolling or zooming
+const stage=document.getElementById('stage'),hint=document.getElementById('rotate-hint');
+function fit(){const W=stage.clientWidth-16,H=stage.clientHeight-14;const cw=Math.max(1,Math.min(W/18.5,H/(10.48)));
+ ptable.style.setProperty('--cw',cw.toFixed(2)+'px');ptable.classList.toggle('no-name',cw<42);ptable.classList.toggle('no-mass',cw<34);ptable.classList.toggle('tiny',cw<34);
+ hint.style.display=cw<42&&innerHeight>innerWidth?'block':'none'}
+new ResizeObserver(fit).observe(stage);addEventListener('orientationchange',fit);fit();
+
+// ---------- detail dialog ----------
+const dlg=document.getElementById('detail');const $=id=>document.getElementById(id);
+let current=1,ionCharge=0;
+function openDetail(z){current=z;render();if(!dlg.open)dlg.showModal();$('d-close').focus({preventScroll:true});startAnim()}
+function closeDetail(){dlg.close()}
+dlg.addEventListener('close',()=>{stopAnim();const t=tiles[current];if(t)t.focus()});
+dlg.addEventListener('click',ev=>{if(ev.target===dlg)closeDetail()});
+$('d-close').onclick=closeDetail;
+$('d-prev').onclick=()=>openDetail(current>1?current-1:118);
+$('d-next').onclick=()=>openDetail(current<118?current+1:1);
+dlg.addEventListener('keydown',ev=>{if(ev.target.closest('.chips'))return;if(ev.key==='ArrowLeft'){ev.preventDefault();$('d-prev').click()}else if(ev.key==='ArrowRight'){ev.preventDefault();$('d-next').click()}});
+
+function parseCharges(e){if(!e.ch||e.ch==='?')return[];return e.ch.replace(/p/g,'').split(',').map(Number)}
+function render(){const e=EL[current];ionCharge=0;
+ const catVar=`var(--${CAT[e.c][1]})`;$('d-head').style.setProperty('--bg',catVar);
+ $('d-name').textContent=`${cap(e.n)} (${e.s})`;$('d-cat').textContent=CAT[e.c][0];
+ $('d-prev-l').textContent=EL[current>1?current-1:118].s;$('d-next-l').textContent=EL[current<118?current+1:1].s;
+ const tile=$('d-tile');tileStyle(tile,e);tile.innerHTML=tileHTML(e);
+ const N=neutrons(e);
+ $('d-pne').innerHTML=`<div style="background:#fbe0dc">Protons<strong>${e.z}</strong></div><div style="background:#e1ebf2">Neutrons<strong>${N??'?'}</strong></div><div style="background:#fff0cc">Electrons<strong>${e.z}</strong></div>`;
+ $('d-pne').title=N!=null?`Neutrons shown for ${cap(e.n)}-${N+e.z}, its ${ISO[e.z]?'most common':'longest-lived'} isotope (mass number − atomic number).`:'';
+ const cfg=configText(neutralConfig(e.z),e.z);const sh=shellsOf(neutralConfig(e.z));
+ const groupTxt=e.group?`Group ${e.group}`:'f-block (no group number)';
+ const val=(e.block==='s'||e.block==='p')?`${sh[sh.length-1]}`:`${sh[sh.length-1]} in the outer shell (transition/inner-transition metals can also use inner electrons)`;
+ const charges=parseCharges(e);
+ let ionTxt;if(e.ch==='?')ionTxt='Unknown — too few atoms have been made to study';else if(!charges.length)ionTxt='Does not normally form ions';else ionTxt=charges.map(q=>(q>0?'+':'−')+Math.abs(q)).join(', ')+(e.ch.startsWith('p')?' (predicted)':'');
+ if(e.z===6||e.z===14||e.z===5)ionTxt+=' — usually shares electrons (covalent bonds) instead';
+ const rows=[['Position',`${groupTxt}, Period ${e.period}, ${e.block}-block`],['State at 25 °C',STATE[e.p][1]],['Ion charge(s)',ionTxt],['Valence e⁻',val],
+  ['Electronegativity',e.en||'—'],['Melting point',fmtT(e.mp)],['Boiling point',fmtT(e.bp)],['Discovered',e.yr==='ancient'?'Ancient times':e.yr],['Discovered by',e.by],['Name comes from',e.origin]];
+ $('d-facts').innerHTML=rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('');
+ $('d-config').innerHTML=`<strong>${cfg.short}</strong>${cfg.short!==cfg.full?`<br><span style="color:var(--muted);font-size:12px">${cfg.full}</span>`:''}${e.z>=104?'<br><span style="color:var(--muted);font-size:12px">(predicted)</span>':''}`;
+ // ion chips
+ const chips=$('b-chips');chips.innerHTML='';
+ const mk=(q,label)=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=label;b.setAttribute('aria-pressed',String(q===0));b.onclick=()=>{ionCharge=q;chips.querySelectorAll('.chip[data-q]').forEach(c=>c.setAttribute('aria-pressed',String(+c.dataset.q===q)));drawBohr()};b.dataset.q=q;chips.appendChild(b)};
+ mk(0,'Neutral atom');charges.forEach(q=>mk(q,e.s+chargeLabel(q)+' ion'));
+ const pb=document.createElement('button');pb.type='button';pb.className='chip ghost';pb.id='b-pause';pb.textContent=paused?'▶ Play':'❚❚ Pause';pb.onclick=togglePause;chips.appendChild(pb);
+ drawBohr();renderIsotopes(e);renderPhoto(e);$('d-fun').textContent=e.fun;
+ $('announce').textContent=`${cap(e.n)}, atomic number ${e.z}`;
+}
+function fmtT(v){if(!v||v==='—')return'—';return v.replace(/-?\d[\d.,]*/,m=>m.replace('-','−')+' °C')}
+
+// ---------- Bohr model ----------
+const svgNS='http://www.w3.org/2000/svg';let shellGroups=[],raf=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches,angle=0,last=0;
+function el(tag,attrs,parent){const n=document.createElementNS(svgNS,tag);for(const k in attrs)n.setAttribute(k,attrs[k]);if(parent)parent.appendChild(n);return n}
+function drawBohr(){const e=EL[current];const svg=$('bohr');[...svg.querySelectorAll(':scope > g')].forEach(g=>g.remove());
+ const conf=ionConfig(e.z,ionCharge);const sh=shellsOf(conf);const electrons=e.z-ionCharge;
+ const ion=ionCharge!==0;const name=ion?`${e.s}${chargeLabel(ionCharge)} ion`:`${cap(e.n)} atom`;
+ $('b-title').textContent=`Bohr model · ${name}`;$('b-shells').textContent=sh.length?`Electrons per shell: ${sh.join(', ')}`:'No electrons';
+ const root=el('g',{},svg);const n=sh.length;const rNuc=n>5?30:34,rMax=188;
+ const radii=sh.map((_,i)=>rNuc+14+(rMax-rNuc-14)*(i+1)/n);
+ shellGroups=[];
+ sh.forEach((count,i)=>{el('circle',{cx:200,cy:200,r:radii[i],fill:'none',stroke:'#7fb4c2',"stroke-opacity":.45,"stroke-width":1.4},root);
+  const g=el('g',{},root);const outer=i===n-1;const er=count>24?3.6:count>16?4.3:5.4;
+  for(let k=0;k<count;k++){const a=2*Math.PI*k/count;el('circle',{cx:200+radii[i]*Math.cos(a),cy:200+radii[i]*Math.sin(a),r:er,fill:outer?'var(--valence)':'var(--electron)',stroke:'#0b2028',"stroke-width":1},g)}
+  shellGroups.push({g,speed:(i%2?-1:1)*(0.9/(0.6+i*0.55))})});
+ // nucleus
+ const N=neutrons(e);const nuc=el('g',{},root);
+ el('circle',{cx:200,cy:200,r:rNuc,fill:'url(#nucgrad)',stroke:'#fbd4cd',"stroke-width":1.5},nuc);
+ if(!svg.querySelector('defs')){const defs=el('defs',{},svg);const rg=el('radialGradient',{id:'nucgrad',cx:'40%',cy:'38%',r:'70%'},defs);el('stop',{offset:'0%','stop-color':'#f6b0a6'},rg);el('stop',{offset:'100%','stop-color':'#b9554a'},rg)}
+ const t1=el('text',{x:200,y:N!=null?196:205,'text-anchor':'middle','font-size':rNuc>31?13:12,'font-weight':700,fill:'#fff'},nuc);t1.textContent=`${e.z} p⁺`;
+ if(N!=null){const t2=el('text',{x:200,y:212,'text-anchor':'middle','font-size':rNuc>31?13:12,'font-weight':700,fill:'#e5f1f8'},nuc);t2.textContent=`${N} n⁰`}
+ $('b-desc').textContent=`Bohr model of ${name}: nucleus with ${e.z} protons${N!=null?' and '+N+' neutrons':''}; ${electrons} electrons arranged ${sh.join(', ')} by shell.`;
+ // ion explanation
+ let note='';
+ if(ion){const k=Math.abs(ionCharge);const match=NOBLE.find(([nz])=>nz===electrons);
+  note=`${cap(e.n)} ${ionCharge>0?'loses':'gains'} ${k} electron${k>1?'s':''} → ${electrons} electrons but still ${e.z} protons, so the charge is ${ionCharge>0?'+':'−'}${k}.`+(match?` It now has the same electron arrangement as ${EL[match[0]].n} (${match[1]}) — very stable.`:'');
+  if(e.z===80&&ionCharge===1)note+=' (Hg⁺ really exists as the pair Hg₂²⁺.)'}
+ else{const charges=parseCharges(EL[current]);note=charges.length?`Click an ion button to see how ${e.n} gains or loses electrons to become an ion.`:(EL[current].ch==='?'?'Too few atoms have been made to know which ions it forms.':`${cap(e.n)}'s outer shell ${EL[current].c==='g'?'is already stable, so it rarely forms ions.':'rarely gains or loses electrons.'}`)}
+ $('b-note').textContent=note;
+ applyAngle();
+}
+function applyAngle(){shellGroups.forEach(s=>s.g.setAttribute('transform',`rotate(${(angle*s.speed)%360} 200 200)`))}
+function tick(t){if(!last)last=t;const dt=Math.min(64,t-last);last=t;if(!paused){angle+=dt*0.05;applyAngle()}raf=requestAnimationFrame(tick)}
+function startAnim(){if(!raf){last=0;raf=requestAnimationFrame(tick)}}
+function stopAnim(){cancelAnimationFrame(raf);raf=0}
+function togglePause(){paused=!paused;const b=$('b-pause');if(b)b.textContent=paused?'▶ Play':'❚❚ Pause'}
+
+// ---------- isotopes bar graph ----------
+function renderIsotopes(e){const box=$('d-iso');const l=isoList(e.z);const name=cap(e.n);
+ if(l){$('iso-title').textContent=`Naturally occurring isotopes${l.length===5?' (top 5)':''}`;
+  const max=Math.max(...l.map(i=>i.pct));
+  box.innerHTML=`<div class="iso" role="list">`+l.map(i=>`<span class="lab" role="listitem">${name}-${i.a}<br><span style="font-weight:400;color:var(--muted);font-size:11px">${i.a-e.z} neutrons</span></span><span class="bar" aria-hidden="true"><span style="width:${(i.pct/max*100).toFixed(2)}%"></span></span><span class="pct">${fmtPct(i.pct)}%</span>`).join('')+`</div>`+
+  `<p class="note">${l.length===1?`Every naturally occurring ${e.n} atom has ${l[0].a-e.z} neutrons, so its average mass (${e.m}) is very close to ${l[0].a}.`:`The average atomic mass (${e.m}) is a weighted average of these isotopes, so it lands closest to ${name}-${l.reduce((b,i)=>Math.abs(i.a-parseFloat(e.m))<Math.abs(b.a-parseFloat(e.m))?i:b).a}.`}${RADIOACTIVE_NATURAL[e.z]?' '+RADIOACTIVE_NATURAL[e.z]:''}</p>`}
+ else{const r=RADIO[e.z];$('iso-title').textContent='Isotopes';
+  box.innerHTML=`<p style="margin:0;font-size:13.5px"><strong>No stable isotopes.</strong> ${r[2]?`${name} is found in nature only in tiny traces, made as other radioactive elements decay, so it has no natural isotope mix to graph.`:`${name} does not occur in nature — every atom has been made in a laboratory or reactor.`}</p>`+
+  (e.z>=104?`<p class="note">Its longest-lived known isotopes have half-lives of ${r[1]}. The bracketed mass on the table, [${r[0]}], is a mass number, not an average — there is no natural mix to average.</p>`:`<p class="note">Longest-lived isotope: <strong>${name}-${r[0]}</strong> (${r[0]-e.z} neutrons) — half-life ${r[1]}. That is why its mass is shown in brackets as [${r[0]}]: a mass number, not an average.</p>`)}}
+const fmtPct=v=>v>=1?v.toFixed(v>=99.9&&v<100?4:2).replace(/\.?0+$/,''):String(v);
+
+// ---------- photo (loaded from Wikipedia; works whenever the page is online) ----------
+const photoCache={};
+function renderPhoto(e){const fig=$('d-photo');const z=e.z;const title=WIKI[z]||cap(e.n);
+ const placeholder=msg=>`<div class="ph"><strong>${e.s}</strong>${msg}</div>`;
+ fig.innerHTML=placeholder('Loading image…');
+ const show=d=>{if(current!==z)return;
+  if(d&&d.src){fig.innerHTML=`<img alt="${d.alt}" src="${d.src}"><figcaption>Image: <a href="${d.page}" target="_blank" rel="noopener">Wikipedia</a></figcaption>`;
+   const im=fig.querySelector('img');im.onerror=()=>{if(d.fallback&&im.src!==d.fallback)im.src=d.fallback;else fig.innerHTML=placeholder('Image unavailable.')}}
+  else fig.innerHTML=placeholder(e.p==='x'&&!RADIO[z]?.[2]?'No photo — too few atoms have ever existed at once to see.':'Image unavailable right now.')};
+ if(photoCache[z]!==undefined)return show(photoCache[z]);
+ fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`).then(r=>r.ok?r.json():Promise.reject()).then(j=>{
+  const th=j.thumbnail&&j.thumbnail.source;const big=j.originalimage&&j.originalimage.width<=640?j.originalimage.source:th&&th.replace(/\/\d+px-/,'/640px-');
+  photoCache[z]={src:big||null,fallback:th,alt:`${cap(e.n)} (photo from Wikipedia)`,page:j.content_urls?j.content_urls.desktop.page:`https://en.wikipedia.org/wiki/${title}`};show(photoCache[z])
+ }).catch(()=>{photoCache[z]=null;show(null)})}
+</script>
+</body>
+</html>
