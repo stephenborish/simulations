@@ -489,11 +489,11 @@ ptable.addEventListener('click',ev=>{const b=ev.target.closest('[data-cat],[data
 // arrow keys move around the table
 ptable.addEventListener('keydown',ev=>{const t=ev.target.closest('.el');if(!t)return;const e=EL[+t.dataset.z];
  const d={ArrowLeft:[0,-1],ArrowRight:[0,1],ArrowUp:[-1,0],ArrowDown:[1,0]}[ev.key];if(!d)return;ev.preventDefault();
- let r=e.row,c=e.col;for(let i=0;i<12;i++){r+=d[0];c+=d[1];if(r===8)r+=d[0];if(r<1||r>10||c<1||c>18)return;const hit=EL.find(x=>x&&x.row===r&&x.col===c);if(hit){tiles[hit.z].focus();return}}});
+ let r=e.row,c=e.col;for(let i=0;i<18;i++){r+=d[0];c+=d[1];if(r===8)r+=d[0];if(r<1||r>10||c<1||c>18)return;const hit=EL.find(x=>x&&x.row===r&&x.col===c);if(hit){tiles[hit.z].focus();return}}});
 
 // size the table so it always fits the window — no scrolling or zooming
 const stage=document.getElementById('stage'),hint=document.getElementById('rotate-hint');
-function fit(){const W=stage.clientWidth-16,H=stage.clientHeight-14;const cw=Math.max(14,Math.min(W/18.5,H/(10.48)));
+function fit(){const W=stage.clientWidth-16,H=stage.clientHeight-14;const cw=Math.max(1,Math.min(W/18.5,H/(10.48)));
  ptable.style.setProperty('--cw',cw.toFixed(2)+'px');ptable.classList.toggle('no-name',cw<42);ptable.classList.toggle('no-mass',cw<34);ptable.classList.toggle('tiny',cw<34);
  hint.style.display=cw<42&&innerHeight>innerWidth?'block':'none'}
 new ResizeObserver(fit).observe(stage);addEventListener('orientationchange',fit);fit();
@@ -580,7 +580,7 @@ function renderIsotopes(e){const box=$('d-iso');const l=isoList(e.z);const name=
  if(l){$('iso-title').textContent=`Naturally occurring isotopes${l.length===5?' (top 5)':''}`;
   const max=Math.max(...l.map(i=>i.pct));
   box.innerHTML=`<div class="iso" role="list">`+l.map(i=>`<span class="lab" role="listitem">${name}-${i.a}<br><span style="font-weight:400;color:var(--muted);font-size:11px">${i.a-e.z} neutrons</span></span><span class="bar" aria-hidden="true"><span style="width:${(i.pct/max*100).toFixed(2)}%"></span></span><span class="pct">${fmtPct(i.pct)}%</span>`).join('')+`</div>`+
-  `<p class="note">${l.length===1?`Every naturally occurring ${e.n} atom has ${l[0].a-e.z} neutrons, so its average mass (${e.m}) is very close to ${l[0].a}.`:`The average atomic mass (${e.m}) is a weighted average of these isotopes, so it lands closest to ${name}-${l[0].a}.`}${RADIOACTIVE_NATURAL[e.z]?' '+RADIOACTIVE_NATURAL[e.z]:''}</p>`}
+  `<p class="note">${l.length===1?`Every naturally occurring ${e.n} atom has ${l[0].a-e.z} neutrons, so its average mass (${e.m}) is very close to ${l[0].a}.`:`The average atomic mass (${e.m}) is a weighted average of these isotopes, so it lands closest to ${name}-${l.reduce((b,i)=>Math.abs(i.a-parseFloat(e.m))<Math.abs(b.a-parseFloat(e.m))?i:b).a}.`}${RADIOACTIVE_NATURAL[e.z]?' '+RADIOACTIVE_NATURAL[e.z]:''}</p>`}
  else{const r=RADIO[e.z];$('iso-title').textContent='Isotopes';
   box.innerHTML=`<p style="margin:0;font-size:13.5px"><strong>No stable isotopes.</strong> ${r[2]?`${name} is found in nature only in tiny traces, made as other radioactive elements decay, so it has no natural isotope mix to graph.`:`${name} does not occur in nature — every atom has been made in a laboratory or reactor.`}</p>`+
   (e.z>=104?`<p class="note">Its longest-lived known isotopes have half-lives of ${r[1]}. The bracketed mass on the table, [${r[0]}], is a mass number, not an average — there is no natural mix to average.</p>`:`<p class="note">Longest-lived isotope: <strong>${name}-${r[0]}</strong> (${r[0]-e.z} neutrons) — half-life ${r[1]}. That is why its mass is shown in brackets as [${r[0]}]: a mass number, not an average.</p>`)}}
