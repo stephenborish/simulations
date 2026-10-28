@@ -2,6 +2,10 @@
 
 Independent, single-page HTML simulations. Each simulation has its own public URL and can be embedded separately.
 
+## The Role of Enzymes in DNA Replication
+
+[Open the animation](https://stephenborish.github.io/simulations/dna-replication.html). Scroll to move through the animation and its accompanying explanations.
+
 ## Generate a public link and iframe code
 
 Use **link-generator.html**, included alongside this README:
